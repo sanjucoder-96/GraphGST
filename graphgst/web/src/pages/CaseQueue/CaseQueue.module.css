@@ -1,0 +1,83 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--border-solid);
+  background: var(--panel);
+}
+.filters { display: flex; gap: var(--sp-3); align-items: center; }
+.select {
+  height: 22px;
+  padding: 0 var(--sp-3);
+  background: var(--card);
+  border: 1px solid var(--border-solid-2);
+  border-radius: var(--r-chip);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-chrome);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.spacer { flex: 1; }
+.count { color: var(--text-dim); font-family: var(--font-mono); font-size: var(--fs-chrome); letter-spacing: 0.06em; text-transform: uppercase; }
+.wrap { flex: 1; overflow: auto; min-height: 0; }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  position: sticky;
+  top: 0;
+  height: 24px;
+  background: #08090c;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-chrome);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0 var(--sp-4);
+  border-bottom: 1px solid var(--border-solid);
+  z-index: 1;
+  white-space: nowrap;
+}
+thead th.right, .right { text-align: right; }
+tbody tr {
+  height: var(--h-row-queue);
+  border-bottom: 1px solid var(--border-solid);
+  background: var(--row-a);
+  cursor: pointer;
+}
+tbody tr:nth-child(even) { background: var(--row-b); }
+tbody tr:hover { background: var(--row-hover); }
+tbody tr.selected {
+  background: var(--row-selected);
+  box-shadow: inset 2px 0 0 var(--signal);
+}
+tbody td {
+  padding: 6px var(--sp-4);
+  color: var(--text);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+}
+tbody td.mono { font-family: var(--font-mono); font-feature-settings: 'tnum'; }
+tbody td.dim { color: var(--text-dim); }
+tbody td.strong { color: var(--text-strong); font-weight: 500; }
+
+.chipCell { display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; }
+
+.emptyBox {
+  padding: var(--sp-8);
+  color: var(--text-dim);
+  font-size: var(--fs-micro);
+  text-align: center;
+  border: 1px dashed var(--border-solid-2);
+  margin: var(--sp-10);
+  border-radius: var(--r-card);
+}

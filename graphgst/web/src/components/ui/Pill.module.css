@@ -1,0 +1,27 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: 18px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--border-solid-2);
+  background: var(--card);
+  color: var(--text);
+  font-size: var(--fs-chrome);
+  line-height: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.info { color: var(--info); border-color: rgba(110,138,166,0.35); }
+.ok   { color: var(--ok);   border-color: rgba(127,168,138,0.35); }
+.warn { color: var(--warn); border-color: rgba(201,169,110,0.35); }
+.bad  { color: var(--bad);  border-color: rgba(200,107,90,0.35);  }
+.signal { color: var(--signal); border-color: rgba(242,166,58,0.45); background: var(--signal-veil); }
+
+.solid.ok   { background: rgba(127,168,138,0.10); }
+.solid.warn { background: rgba(201,169,110,0.10); }
+.solid.bad  { background: rgba(200,107,90,0.10);  }

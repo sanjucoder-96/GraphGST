@@ -1,0 +1,57 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  padding: var(--sp-4) 0;
+  gap: var(--sp-2);
+}
+/* Brand mark — mono wordmark in strong text, no amber. */
+.brand {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid var(--border-solid);
+  margin-bottom: var(--sp-3);
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--sp-3) 0;
+  color: var(--text-muted);
+  transition: color 80ms ease-out, background 80ms ease-out;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+}
+.item:hover  { color: var(--text); background: var(--row-hover); }
+/* Active nav — strong text + card surface + 2px neutral rail. Amber is
+   reserved for screen signals, not navigation state. */
+.item.active { color: var(--text-strong); background: var(--card); }
+.item.active::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2px;
+  background: var(--border-solid-2);
+}
+.icon { display: block; }
+.hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.spacer { flex: 1; }
+.footerRow { border-top: 1px solid var(--border-solid); padding-top: var(--sp-3); }

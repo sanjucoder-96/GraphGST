@@ -1,0 +1,63 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 24px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--border-solid-2);
+  background: var(--card);
+  color: var(--text);
+  font-size: var(--fs-body);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  transition: background 80ms ease-out, border-color 80ms ease-out, color 80ms ease-out;
+}
+.btn:hover  { background: var(--elevated); border-color: #333b48; }
+.btn:active { background: #191e28; }
+.btn:disabled {
+  color: var(--text-dim);
+  background: var(--panel);
+  cursor: not-allowed;
+  border-color: var(--border-solid);
+}
+.btn:focus-visible {
+  border-color: var(--signal);
+  outline: none;
+}
+
+/* Primary — the standard CTA. Elevated surface, strong text, 1px neutral rail.
+   No amber: amber is reserved for the single per-screen action tied to a live
+   signal (accepting the recommended break-edge). */
+.primary {
+  background: var(--elevated);
+  border-color: var(--border-solid-2);
+  color: var(--text-strong);
+}
+.primary:hover { background: #232936; border-color: #333b48; }
+
+/* Signal — the loud amber variant. Use only on a per-screen action tied to a
+   live signal, e.g. accepting the recommended break-edge on the counterfactual
+   tab. Do NOT use as a default CTA. */
+.signal {
+  background: transparent;
+  border-color: var(--signal-lo);
+  color: var(--signal);
+}
+.signal:hover { background: var(--signal-veil); border-color: var(--signal); }
+
+.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.ghost:hover { color: var(--text); background: var(--row-hover); }
+
+.sm { height: 20px; padding: 0 var(--sp-3); font-size: var(--fs-micro); }
+.lg { height: 28px; padding: 0 var(--sp-5); font-size: var(--fs-strong); }
+
+.icon {
+  width: 24px;
+  padding: 0;
+  justify-content: center;
+}

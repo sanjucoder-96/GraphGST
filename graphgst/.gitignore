@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+*.pkl
+node_modules/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated datasets — never commit synthetic output
+datagen_output/
+*.parquet
+truth.json
+
+# IDE
+.vscode/
+.idea/
+*.swp

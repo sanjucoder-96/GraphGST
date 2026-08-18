@@ -1,0 +1,133 @@
+/* Graph GST — design tokens.
+   Dark-first instrument palette. One signal color (amber). Narrow greyscale ramp.
+   Every token used in the app resolves from here — no ad-hoc colors anywhere. */
+
+:root {
+  /* Surfaces (four steps, +~4% luminance each) */
+  --bg:            #07090C;
+  --panel:         #0D1117;
+  --card:          #141922;
+  --elevated:      #1C2230;
+
+  /* Row-zebra companions (queue rows) */
+  --row-a:         #0B0D11;
+  --row-b:         #0E1116;
+  --row-hover:     #10131A;
+  --row-selected:  #141821;
+
+  /* Neutral text ramp */
+  --text:          #E6E8EC;
+  --text-strong:   #F4F6FA;
+  --text-muted:    #A6ADBB;
+  --text-dim:      #6E7683;
+  --text-fade:     #4A5058;
+
+  /* Borders (hairline, never solid grey) */
+  --border-1:      rgba(255,255,255,0.06);
+  --border-2:      rgba(255,255,255,0.04);
+  --border-3:      rgba(255,255,255,0.10);
+  --border-solid:  #1A1E26;
+  --border-solid-2:#242A33;
+
+  /* Signal — the one loud color */
+  --signal:        #F2A63A;
+  --signal-hi:     #F7B95E;
+  --signal-lo:     #B87A20;
+  --signal-glow:   rgba(242,166,58,0.35);
+  --signal-veil:   rgba(242,166,58,0.10);
+
+  /* Semantic status (desaturated so amber wins the eye) */
+  --info:          #6E8AA6;
+  --ok:            #7FA88A;
+  --warn:          #C9A96E;
+  --bad:           #C86B5A;
+
+  /* Type scale */
+  --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:     'JetBrains Mono', 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+
+  --fs-chrome:     10px;
+  --lh-chrome:     12px;
+  --fs-micro:      11px;
+  --lh-micro:      14px;
+  --fs-body:       12px;
+  --lh-body:       16px;
+  --fs-strong:     13px;
+  --lh-strong:     18px;
+  --fs-num-lg:     15px;
+  --lh-num-lg:     18px;
+  --fs-h:          17px;
+  --lh-h:          22px;
+  --fs-display:    22px;
+  --lh-display:    26px;
+
+  /* Spacing scale (only these) */
+  --sp-1:  2px;
+  --sp-2:  4px;
+  --sp-3:  6px;
+  --sp-4:  8px;
+  --sp-5:  12px;
+  --sp-6:  16px;
+  --sp-8:  24px;
+  --sp-10: 32px;
+
+  /* Radii — nothing above 4px */
+  --r-chip:   2px;
+  --r-card:   3px;
+  --r-modal:  4px;
+
+  /* Chrome heights (fixed) */
+  --h-topbar:    36px;
+  --h-rail:      52px;
+  --h-tabs:      32px;
+  --h-section:   24px;
+  --h-footer:    22px;
+  --h-row-queue: 28px;
+  --h-row-list:  24px;
+  --h-row-cmd:   32px;
+
+  /* One shadow (elevation) */
+  --shadow-modal: 0 8px 24px rgba(0,0,0,0.60);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Inter alternate 'ss01' (single-story a). 'cv11' is JetBrains Mono only —
+     lives on the mono selector below, not here. */
+  font-feature-settings: 'ss01' 1;
+}
+
+/* Everything numeric — tabular-nums lock */
+.mono, code, kbd, samp, pre, [data-mono] {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-variant-numeric: tabular-nums;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--signal-veil);
+  color: var(--text-strong);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a1e26; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #242a33; }
