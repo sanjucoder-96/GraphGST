@@ -53,6 +53,7 @@ export function AppShell() {
     'g r':     () => navigate('/'),
     'g v':     () => navigate('/vendors'),
     'g h':     () => navigate('/data-health'),
+    'g m':     () => navigate('/model-card'),
     'escape':  () => { setPaletteOpen(false); setShortcutsOpen(false); clearSelection(); }
   });
 

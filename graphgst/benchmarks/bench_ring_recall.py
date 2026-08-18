@@ -103,10 +103,9 @@ def _canonical_members(seq):
     return tuple(seq[i:]) + tuple(seq[:i])
 
 
-def bench(cfg: GenerationConfig) -> dict:
-    t0 = time.perf_counter()
-    out_dir = _generate(cfg)
-    t_gen = time.perf_counter() - t0
+def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
+    """Run the ring-recall benchmark on an already-generated dataset dir."""
+    t_gen = 0.0
 
     # Load truth
     with open(os.path.join(out_dir, "truth.json"), encoding="utf-8") as f:
@@ -196,6 +195,12 @@ def bench(cfg: GenerationConfig) -> dict:
             for p in missed[:3]
         ],
     }
+
+
+def bench(cfg: GenerationConfig) -> dict:
+    """Generate a fresh dataset, then run the benchmark."""
+    _generate(cfg)
+    return bench_prepared(cfg, cfg.out_dir)
 
 
 def main() -> None:

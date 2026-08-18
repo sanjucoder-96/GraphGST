@@ -1,0 +1,132 @@
+{
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 6,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "./_b",
+    "notes": ""
+  },
+  "timing_sec": {
+    "generate": 0.28,
+    "load_csv": 0.429,
+    "reconcile": 0.226,
+    "rings": 0.865,
+    "compose": 8.06
+  },
+  "counts": {
+    "gstins": 500,
+    "planted_ring_members": 25,
+    "detected_rings": 525,
+    "match_events": 1295
+  },
+  "roc_auc": 0.927,
+  "precision_at_k": {
+    "10": 0.2,
+    "25": 0.16,
+    "50": 0.3,
+    "100": 0.25
+  },
+  "band_histogram": {
+    "LOW": 476,
+    "MED": 23,
+    "HIGH": 1,
+    "CRITICAL": 0
+  },
+  "score_summary": {
+    "median": 0.074,
+    "p90": 0.25,
+    "max": 0.583
+  },
+  "sample_top": [
+    {
+      "gstin_id": "37THAPD7754V1ZQ",
+      "score": 0.5831,
+      "band": "HIGH",
+      "planted": false,
+      "top_scorer": "reconcile",
+      "n_reasons": 7
+    },
+    {
+      "gstin_id": "09ITGPN4144H1Z1",
+      "score": 0.5256,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "reconcile",
+      "n_reasons": 8
+    },
+    {
+      "gstin_id": "29YEIHP7600G1ZF",
+      "score": 0.5152,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "reconcile",
+      "n_reasons": 8
+    },
+    {
+      "gstin_id": "10VFZCW2429D1ZG",
+      "score": 0.4563,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "reconcile",
+      "n_reasons": 8
+    },
+    {
+      "gstin_id": "24IIPAI9495X1ZL",
+      "score": 0.4535,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "reconcile",
+      "n_reasons": 4
+    },
+    {
+      "gstin_id": "27EPKPR6072Q1ZN",
+      "score": 0.445,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "rules",
+      "n_reasons": 5
+    },
+    {
+      "gstin_id": "03IKOPF7033Q1Z9",
+      "score": 0.4301,
+      "band": "MED",
+      "planted": false,
+      "top_scorer": "rings",
+      "n_reasons": 5
+    },
+    {
+      "gstin_id": "27IBZFN9011M1ZP",
+      "score": 0.4284,
+      "band": "MED",
+      "planted": true,
+      "top_scorer": "rings",
+      "n_reasons": 4
+    }
+  ]
+}

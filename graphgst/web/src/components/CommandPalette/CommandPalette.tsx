@@ -51,6 +51,7 @@ export function CommandPalette() {
     list.push({ kind: 'nav',    label: 'Go to Cases',   hint: 'g q',  run: () => { navigate('/'); setOpen(false); } });
     list.push({ kind: 'nav',    label: 'Go to Vendors', hint: 'g v',  run: () => { navigate('/vendors'); setOpen(false); } });
     list.push({ kind: 'nav',    label: 'Go to Data Health', hint: 'g h', run: () => { navigate('/data-health'); setOpen(false); } });
+    list.push({ kind: 'nav',    label: 'Go to Model Card',  hint: 'g m', run: () => { navigate('/model-card'); setOpen(false); } });
 
     list.push({ kind: 'action', label: 'Detect rings now', hint: 'POST /api/rings/detect', run: async () => {
       pushToast({ kind: 'info', title: 'Detection started', body: 'POST /api/rings/detect' });

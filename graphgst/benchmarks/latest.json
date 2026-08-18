@@ -1,0 +1,555 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-18T19:04:06.334700+00:00",
+  "git_commit": "d61bf027b49710cdb4f45f0ab0de82c4f49b9170",
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 8,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+    "notes": ""
+  },
+  "dataset_prep_sec": 0.367,
+  "headlines": {
+    "ring.recall": 1.0,
+    "ring.detected": 518.0,
+    "reconcile.micro_f1": 0.961,
+    "reconcile.micro_precision": 0.934,
+    "reconcile.micro_recall": 0.989,
+    "risk.roc_auc": 0.937,
+    "risk.precision_at_50": 0.36,
+    "risk.precision_at_100": 0.34,
+    "embed.hit_at_10": 0.912,
+    "embed.cohesion_recall_at_10": 0.774
+  },
+  "benches": {
+    "ring_recall": {
+      "status": "ok",
+      "elapsed_sec": 1.115,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "n_rings_planted": 8,
+          "seed": 42
+        },
+        "counts": {
+          "edges": 3718,
+          "planted_rings": 8,
+          "detected_rings": 518,
+          "recovered_rings": 8,
+          "missed_rings": 0,
+          "non_planted_detected": 510
+        },
+        "recall": 1.0,
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.166,
+          "detect": 0.908
+        },
+        "sample_recovered": [
+          {
+            "ring_id_truth": "RING-42-00000",
+            "ring_id_detected": "R-68383043e2e47603",
+            "members": [
+              "27CYFCE3784B1ZW",
+              "27KKRPO1560C1ZL",
+              "27IBZFN9011M1ZP",
+              "27GUTPJ9684R1ZR"
+            ],
+            "score": 0.593,
+            "signals": {
+              "C": 1.0,
+              "V": 0.844,
+              "T": 0.967,
+              "R": 0.0,
+              "N": 0.75,
+              "H": 0.0
+            },
+            "size": 4
+          },
+          {
+            "ring_id_truth": "RING-42-00001",
+            "ring_id_detected": "R-9626249921b647d4",
+            "members": [
+              "27JYFCR8692K1ZH",
+              "27SVUCQ0632R1ZG",
+              "27TDTFF2214L1ZS"
+            ],
+            "score": 0.602,
+            "signals": {
+              "C": 1.0,
+              "V": 0.886,
+              "T": 0.978,
+              "R": 0.0,
+              "N": 0.75,
+              "H": 0.0
+            },
+            "size": 3
+          },
+          {
+            "ring_id_truth": "RING-42-00002",
+            "ring_id_detected": "R-adc93a3132fa5dd8",
+            "members": [
+              "29BTTPB2495A1Z6",
+              "29DFIHA7802D1ZB",
+              "29FJXCW6381V1ZS",
+              "29LGDFP0871A1ZG",
+              "29JJCFK7469E1ZB",
+              "29UZDFV6245I1ZW"
+            ],
+            "score": 0.576,
+            "signals": {
+              "C": 1.0,
+              "V": 0.763,
+              "T": 0.944,
+              "R": 0.0,
+              "N": 0.75,
+              "H": 0.0
+            },
+            "size": 6
+          }
+        ],
+        "sample_missed": []
+      }
+    },
+    "reconcile_prf": {
+      "status": "ok",
+      "elapsed_sec": 1.07,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 8,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.282,
+          "reconcile": 0.759
+        },
+        "counts": {
+          "events_emitted": 1436,
+          "planted_anomalies": 256,
+          "invoices": 3718
+        },
+        "micro": {
+          "precision": 0.934,
+          "recall": 0.989,
+          "f1": 0.961
+        },
+        "per_outcome": {
+          "AMOUNT_MISMATCH": {
+            "tp": 44,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 44,
+            "n_detected": 44
+          },
+          "CANCELLED_SUPPLIER": {
+            "tp": 337,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 337,
+            "n_detected": 337
+          },
+          "DATE_MISMATCH": {
+            "tp": 11,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 11,
+            "n_detected": 11
+          },
+          "DUPLICATE": {
+            "tp": 13,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 13,
+            "n_detected": 13
+          },
+          "HSN_MISMATCH": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 5,
+            "precision": 1.0,
+            "recall": 0.444,
+            "f1": 0.615,
+            "n_planted": 9,
+            "n_detected": 4
+          },
+          "MISSING_EWB": {
+            "tp": 16,
+            "fp": 21,
+            "fn": 0,
+            "precision": 0.432,
+            "recall": 1.0,
+            "f1": 0.604,
+            "n_planted": 16,
+            "n_detected": 37
+          },
+          "MISSING_GSTR1": {
+            "tp": 649,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 649,
+            "n_detected": 649
+          },
+          "MISSING_GSTR3B": {
+            "tp": 214,
+            "fp": 0,
+            "fn": 2,
+            "precision": 1.0,
+            "recall": 0.991,
+            "f1": 0.995,
+            "n_planted": 216,
+            "n_detected": 214
+          },
+          "MISSING_TAX_PAYMENT": {
+            "tp": 29,
+            "fp": 0,
+            "fn": 7,
+            "precision": 1.0,
+            "recall": 0.806,
+            "f1": 0.892,
+            "n_planted": 36,
+            "n_detected": 29
+          },
+          "NEAR_DUPLICATE": {
+            "tp": 24,
+            "fp": 37,
+            "fn": 0,
+            "precision": 0.393,
+            "recall": 1.0,
+            "f1": 0.565,
+            "n_planted": 24,
+            "n_detected": 61
+          },
+          "NEAR_MATCH": {
+            "tp": 0,
+            "fp": 37,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "n_planted": 0,
+            "n_detected": 37
+          },
+          "CANCELLED_SUPPLIER (gstin-level)": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 1,
+            "precision": 1.0,
+            "recall": 0.923,
+            "f1": 0.96,
+            "n_planted": 13,
+            "n_detected": 12
+          }
+        }
+      }
+    },
+    "risk_discrimination": {
+      "status": "ok",
+      "elapsed_sec": 13.364,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 8,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.171,
+          "reconcile": 0.753,
+          "rings": 2.117,
+          "compose": 10.287
+        },
+        "counts": {
+          "gstins": 500,
+          "planted_ring_members": 34,
+          "detected_rings": 518,
+          "match_events": 1436
+        },
+        "roc_auc": 0.937,
+        "precision_at_k": {
+          "10": 0.3,
+          "25": 0.32,
+          "50": 0.36,
+          "100": 0.34
+        },
+        "band_histogram": {
+          "LOW": 471,
+          "MED": 28,
+          "HIGH": 1,
+          "CRITICAL": 0
+        },
+        "score_summary": {
+          "median": 0.068,
+          "p90": 0.255,
+          "max": 0.555
+        },
+        "sample_top": [
+          {
+            "gstin_id": "24JEDFI3336V1ZL",
+            "score": 0.5551,
+            "band": "HIGH",
+            "planted": true,
+            "top_scorer": "reconcile",
+            "n_reasons": 6
+          },
+          {
+            "gstin_id": "27JAZCW4796N1ZH",
+            "score": 0.4553,
+            "band": "MED",
+            "planted": false,
+            "top_scorer": "reconcile",
+            "n_reasons": 8
+          },
+          {
+            "gstin_id": "27SVUCQ0632R1ZG",
+            "score": 0.4472,
+            "band": "MED",
+            "planted": true,
+            "top_scorer": "rings",
+            "n_reasons": 6
+          },
+          {
+            "gstin_id": "24GBTAB4263M1ZV",
+            "score": 0.4436,
+            "band": "MED",
+            "planted": false,
+            "top_scorer": "reconcile",
+            "n_reasons": 4
+          },
+          {
+            "gstin_id": "27VQTFY6237S1ZP",
+            "score": 0.4436,
+            "band": "MED",
+            "planted": true,
+            "top_scorer": "rings",
+            "n_reasons": 4
+          },
+          {
+            "gstin_id": "07PPQFJ0579X1ZT",
+            "score": 0.4301,
+            "band": "MED",
+            "planted": false,
+            "top_scorer": "reconcile",
+            "n_reasons": 8
+          },
+          {
+            "gstin_id": "06ATKCB0349U1ZR",
+            "score": 0.4085,
+            "band": "MED",
+            "planted": false,
+            "top_scorer": "reconcile",
+            "n_reasons": 3
+          },
+          {
+            "gstin_id": "06NMBPJ7434T1ZZ",
+            "score": 0.4027,
+            "band": "MED",
+            "planted": false,
+            "top_scorer": "reconcile",
+            "n_reasons": 5
+          }
+        ]
+      }
+    },
+    "embed_lookalike": {
+      "status": "ok",
+      "elapsed_sec": 3.726,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 8,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "embed_config": {
+          "dim": 64,
+          "walks_per_node": 15,
+          "walk_len": 25,
+          "window": 5,
+          "seed": 42
+        },
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.056,
+          "train_embed": 3.648
+        },
+        "counts": {
+          "n_edges": 3718,
+          "n_indexed_gstins": 497,
+          "n_planted_rings": 8,
+          "n_planted_members": 34
+        },
+        "stats": {
+          "n_nodes": 497,
+          "n_indexed": 497,
+          "n_walks": 7455,
+          "n_pairs": 1640100,
+          "sppmi_density": 0.15467452602941592
+        },
+        "per_k": [
+          {
+            "k": 3,
+            "n_queries": 34,
+            "cohesion_recall_mean": 0.48,
+            "cohesion_recall_median": 0.333,
+            "hit_at_k": 0.824
+          },
+          {
+            "k": 5,
+            "n_queries": 34,
+            "cohesion_recall_mean": 0.515,
+            "cohesion_recall_median": 0.5,
+            "hit_at_k": 0.853
+          },
+          {
+            "k": 10,
+            "n_queries": 34,
+            "cohesion_recall_mean": 0.774,
+            "cohesion_recall_median": 1.0,
+            "hit_at_k": 0.912
+          },
+          {
+            "k": 25,
+            "n_queries": 34,
+            "cohesion_recall_mean": 0.978,
+            "cohesion_recall_median": 1.0,
+            "hit_at_k": 1
+          }
+        ],
+        "random_baseline_recall": {
+          "3": 0.0,
+          "5": 0.0,
+          "10": 0.0,
+          "25": 0.036
+        }
+      }
+    }
+  }
+}

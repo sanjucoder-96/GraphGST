@@ -5,6 +5,7 @@ import { CaseQueuePage } from './pages/CaseQueue/CaseQueue';
 import { InvestigationPage } from './pages/Investigation/Investigation';
 import { RingExplorerPage } from './pages/RingExplorer/RingExplorer';
 import { DataHealthPage } from './pages/DataHealth/DataHealth';
+import { ModelCardPage } from './pages/ModelCard/ModelCard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/entity/:gstin" element={<InvestigationPage mode="entity" />} />
           <Route path="/ring/:ring_id" element={<RingExplorerPage />} />
           <Route path="/data-health" element={<DataHealthPage />} />
+          <Route path="/model-card" element={<ModelCardPage />} />
           <Route path="/docs" element={<DocsPlaceholder />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

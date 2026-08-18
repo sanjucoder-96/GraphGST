@@ -11,6 +11,7 @@ import type {
   AuditTrail,
   DashboardSummary,
   GraphPayload,
+  ModelCard,
   Ring,
   Vendor
 } from '../types/domain';
@@ -18,6 +19,7 @@ import {
   MOCK_AUDIT_TRAILS,
   MOCK_DASHBOARD,
   MOCK_GRAPH,
+  MOCK_MODEL_CARD,
   MOCK_RINGS,
   MOCK_VENDORS
 } from './mocks';
@@ -122,4 +124,8 @@ export function postAgentQuery(payload: { intent: string; payload: unknown }): P
     error: 'agent_unavailable'
   };
   return safePost<AgentResponse>('/api/agent/query', payload, fallback);
+}
+
+export function getModelCard(): Promise<ApiResult<ModelCard>> {
+  return safeGet<ModelCard>('/api/benchmarks/model-card', MOCK_MODEL_CARD);
 }

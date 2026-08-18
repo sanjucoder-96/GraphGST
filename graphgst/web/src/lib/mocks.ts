@@ -592,3 +592,61 @@ function buildGraphFromRings(rings: ReadonlyArray<Ring>): GraphPayload {
 }
 
 export const MOCK_GRAPH: GraphPayload = buildGraphFromRings([RING_1, RING_2, RING_3]);
+
+// ---- Model card (Phase 7) -----------------------------------------------
+// DEMO fixture — mirrors the exact shape of /api/benchmarks/model-card.
+// Numbers seeded from benchmarks/baseline.json so the UI shows a real
+// snapshot even when the FastAPI backend is offline.
+import type { ModelCard } from '../types/domain';
+
+export const MOCK_MODEL_CARD: ModelCard = {
+  generated_at: '2026-08-19T00:00:00.000000+00:00',
+  git_commit: 'd61bf027b49710cdb4f45f0ab0de82c4f49b9170',
+  dataset_config: { n_gstins: 500, months: 3, n_rings: 8, seed: 42 },
+  tolerance_abs: 0.02,
+  overall_pass: true,
+  cards: [
+    { module: 'rings', metric: 'ring.recall',
+      headline: 'Ring member-multiset recall',
+      value: 1.000, baseline: 1.000, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'Fraction of planted rings recovered by SCC → Johnson pipeline.' },
+    { module: 'reconcile', metric: 'reconcile.micro_f1',
+      headline: 'Reconciliation micro-F1',
+      value: 0.961, baseline: 0.961, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'Cascade-aware match of MatchEvent outcomes to planted anomalies.' },
+    { module: 'reconcile', metric: 'reconcile.micro_precision',
+      headline: 'Precision',
+      value: 0.934, baseline: 0.934, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio', notes: '' },
+    { module: 'reconcile', metric: 'reconcile.micro_recall',
+      headline: 'Recall',
+      value: 0.989, baseline: 0.989, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio', notes: '' },
+    { module: 'risk', metric: 'risk.roc_auc',
+      headline: 'Composed risk ROC-AUC',
+      value: 0.937, baseline: 0.937, delta: 0.000, status: 'UNCHANGED',
+      unit: 'auc',
+      notes: 'Binary rank task: is this GSTIN a planted ring member?' },
+    { module: 'risk', metric: 'risk.precision_at_50',
+      headline: 'Risk Precision@50',
+      value: 0.360, baseline: 0.360, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'Of the top-50 ranked GSTINs, fraction that are planted ring members.' },
+    { module: 'risk', metric: 'risk.precision_at_100',
+      headline: 'Risk Precision@100',
+      value: 0.340, baseline: 0.340, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio', notes: '' },
+    { module: 'embed', metric: 'embed.hit_at_10',
+      headline: 'Lookalike Hit@10',
+      value: 0.912, baseline: 0.912, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'For each planted ring member, does its top-10 lookalike list contain ≥ 1 OTHER member of the same ring?' },
+    { module: 'embed', metric: 'embed.cohesion_recall_at_10',
+      headline: 'Lookalike Cohesion Recall@10',
+      value: 0.774, baseline: 0.774, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'Mean fraction of a ring\'s other members appearing in each member\'s top-10 lookalikes.' }
+  ]
+};

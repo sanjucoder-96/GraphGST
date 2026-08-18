@@ -110,6 +110,30 @@ try:
 except Exception as e:  # noqa: BLE001
     logger.info(f"reconcile2 router not available yet: {e}")
 
+# ── Optional risk router (Phase 4) ────────────────────────────────────────────
+try:
+    from risk.api import router as risk_router  # type: ignore
+    app.include_router(risk_router, prefix="/api/risk", tags=["risk"])
+    logger.info("risk router mounted at /api/risk")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"risk router not available yet: {e}")
+
+# ── Optional embed router (Phase 5) ───────────────────────────────────────────
+try:
+    from embed.api import router as embed_router  # type: ignore
+    app.include_router(embed_router, prefix="/api/embed", tags=["embed"])
+    logger.info("embed router mounted at /api/embed")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"embed router not available yet: {e}")
+
+# ── Optional benchmarks router (Phase 7) ──────────────────────────────────────
+try:
+    from benchmarks.api import router as bench_router  # type: ignore
+    app.include_router(bench_router, prefix="/api/benchmarks", tags=["benchmarks"])
+    logger.info("benchmarks router mounted at /api/benchmarks")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"benchmarks router not available yet: {e}")
+
 # ── Request models ─────────────────────────────────────────────────────────────
 
 class InvoiceCreate(BaseModel):

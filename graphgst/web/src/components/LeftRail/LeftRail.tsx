@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FolderKanban, Radar, Users, Activity, FileText, HelpCircle } from 'lucide-react';
+import { FolderKanban, Radar, Users, Activity, FileText, HelpCircle, Gauge } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import styles from './LeftRail.module.css';
 
@@ -10,6 +10,7 @@ const items: Item[] = [
   { to: '/rings',       label: 'Rings',   hint: 'g r', icon: <Radar        size={20} strokeWidth={1.5} /> },
   { to: '/vendors',     label: 'Vendors', hint: 'g v', icon: <Users        size={20} strokeWidth={1.5} /> },
   { to: '/data-health', label: 'Health',  hint: 'g h', icon: <Activity     size={20} strokeWidth={1.5} /> },
+  { to: '/model-card',  label: 'Model',   hint: 'g m', icon: <Gauge        size={20} strokeWidth={1.5} /> },
   { to: '/docs',        label: 'Docs',    hint: '',    icon: <FileText     size={20} strokeWidth={1.5} /> }
 ];
 

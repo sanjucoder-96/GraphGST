@@ -198,16 +198,15 @@ def _score(events: list[dict], truth: dict, gstins: list[dict],
     return per_outcome
 
 
-def bench(cfg: GenerationConfig) -> dict:
-    t0 = time.perf_counter()
-    _generate(cfg)
-    t_gen = time.perf_counter() - t0
+def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
+    """Run the reconcile PRF benchmark on an already-generated dataset dir."""
+    t_gen = 0.0
 
-    with open(os.path.join(cfg.out_dir, "truth.json"), encoding="utf-8") as f:
+    with open(os.path.join(out_dir, "truth.json"), encoding="utf-8") as f:
         truth = json.load(f)
 
     t1 = time.perf_counter()
-    graph_source = _load_graph_source(cfg.out_dir)
+    graph_source = _load_graph_source(out_dir)
     t_load = time.perf_counter() - t1
 
     t2 = time.perf_counter()
@@ -238,6 +237,11 @@ def bench(cfg: GenerationConfig) -> dict:
         "micro": {"precision": round(p, 3), "recall": round(r, 3), "f1": round(f, 3)},
         "per_outcome": per_outcome,
     }
+
+
+def bench(cfg: GenerationConfig) -> dict:
+    _generate(cfg)
+    return bench_prepared(cfg, cfg.out_dir)
 
 
 def main() -> None:

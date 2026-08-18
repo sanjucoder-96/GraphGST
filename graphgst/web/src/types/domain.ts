@@ -171,6 +171,32 @@ export interface AgentResponse {
   error?: string;
 }
 
+// ---- Model card (Phase 7 benchmarks) -------------------------------------
+
+export type ModelCardStatus =
+  | 'IMPROVED' | 'UNCHANGED' | 'REGRESSED' | 'NEW' | 'MISSING' | 'INFO';
+
+export interface ModelCardEntry {
+  module: string;
+  metric: string;
+  headline: string;
+  value: number | null;
+  baseline: number | null;
+  delta: number | null;
+  status: ModelCardStatus;
+  unit: string;
+  notes: string;
+}
+
+export interface ModelCard {
+  generated_at: string | null;
+  git_commit: string | null;
+  dataset_config: Record<string, unknown> | null;
+  tolerance_abs: number | null;
+  overall_pass: boolean | null;
+  cards: ModelCardEntry[];
+}
+
 // ---- Toast ---------------------------------------------------------------
 
 export interface ToastMsg {
