@@ -110,10 +110,15 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
     # Load truth
     with open(os.path.join(out_dir, "truth.json"), encoding="utf-8") as f:
         truth = json.load(f)
-    planted = truth.get("planted_rings", [])
+    planted = truth.get("planted_rings", [])          # CLOSED rings = recall target
+    near = truth.get("planted_near_rings", [])         # broken → must NOT be flagged
+    hardneg = truth.get("hard_negatives", [])          # legit cycles → must score LOW
     planted_by_members = {
         _canonical_members(r["members"]): r for r in planted
     }
+    # member-SETS of broken rings + hard negatives (any detected cycle whose
+    # members are a subset counts as a false positive against them).
+    neg_member_sets = [frozenset(r["members"]) for r in (near + hardneg)]
 
     # Build in-memory graph_source
     t1 = time.perf_counter()
@@ -157,23 +162,81 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
             else:
                 missed.append(prow)
 
-    # Detected rings not in truth — count as potential FPs (may be legitimate
-    # tiny cycles emerging from the normal population).
-    fp = [d for k, d in detected_by_members.items() if k not in planted_by_members]
+    # Detected rings not matching a CLOSED planted ring.
+    non_planted = [d for k, d in detected_by_members.items() if k not in planted_by_members]
+
+    # Score-thresholded confusion: at a decision threshold, how many closed
+    # rings are recovered vs how many negatives (broken/hard-neg/incidental)
+    # are wrongly flagged. This is the honest fraud story on hard data.
+    def _matches_neg(members) -> bool:
+        ms = frozenset(members)
+        return any(ms.issubset(n) or n.issubset(ms) for n in neg_member_sets)
+
+    # Fixed decision threshold = the RingScorer min_ring_score prior (0.45),
+    # chosen in Phase 3 on separate data, NOT tuned on this eval. A full
+    # sweep is reported for transparency.
+    THRESH = 0.45
+
+    def _confusion(th: float) -> dict:
+        rec_at = [(p, d) for (p, d) in recovered if d.score >= th]
+        det_at = [d for d in detected if d.score >= th]
+        tp = len(rec_at)
+        fp = len(det_at) - tp
+        prec = tp / (tp + fp) if (tp + fp) else 0.0
+        rec = tp / len(planted) if planted else 0.0
+        f1 = (2 * prec * rec / (prec + rec)) if (prec + rec) else 0.0
+        neg = sum(1 for d in det_at if _matches_neg(d.members))
+        return {"threshold": th, "recall": round(rec, 3), "precision": round(prec, 3),
+                "f1": round(f1, 3), "rings_flagged": len(det_at),
+                "negatives_flagged": neg}
+
+    sweep = [_confusion(t) for t in (0.35, 0.40, 0.45, 0.50, 0.55, 0.60)]
+    at = _confusion(THRESH)
+
+    # Threshold-FREE ranking quality: Average Precision (area under the
+    # precision-recall curve). Each detected cycle is a TP iff it matches a
+    # CLOSED planted ring (broken/hard-neg/incidental all count as negatives).
+    # This is the honest headline — no operating point is tuned on the eval.
+    labeled = sorted(
+        ((d.score, 1 if _canonical_members(tuple(d.members)) in planted_by_members else 0)
+         for d in detected),
+        key=lambda x: -x[0],
+    )
+    n_pos = len(planted)
+    tp = 0; fp = 0; ap = 0.0
+    for _score, y in labeled:
+        if y:
+            tp += 1
+            ap += tp / (tp + fp)   # precision at this recall step
+        else:
+            fp += 1
+    average_precision = round(ap / n_pos, 4) if n_pos else 0.0
 
     return {
         "config": {
             "n_gstins": cfg.n_gstins, "months": cfg.months,
             "n_rings_planted": cfg.n_rings, "seed": cfg.seed,
+            "ring_difficulty": getattr(cfg, "ring_difficulty", 0.0),
+            "ring_broken_share": getattr(cfg, "ring_broken_share", 0.0),
+            "n_hard_negatives": getattr(cfg, "n_hard_negatives", 0),
         },
         "counts": {
-            "edges": len(edges), "planted_rings": len(planted),
+            "edges": len(edges),
+            "planted_closed_rings": len(planted),
+            "planted_broken_rings": len(near),
+            "hard_negatives": len(hardneg),
             "detected_rings": len(detected),
             "recovered_rings": len(recovered),
             "missed_rings": len(missed),
-            "non_planted_detected": len(fp),
+            "non_planted_detected": len(non_planted),
         },
+        # member-multiset recall (any score) — recoverability upper bound
         "recall": (len(recovered) / len(planted)) if planted else None,
+        # honest, threshold-FREE headline
+        "average_precision": average_precision,
+        # thresholded metrics + full sweep for operating-point transparency
+        "at_threshold": at,
+        "threshold_sweep": sweep,
         "timing_sec": {
             "generate": round(t_gen, 3),
             "load_csv": round(t_load, 3),

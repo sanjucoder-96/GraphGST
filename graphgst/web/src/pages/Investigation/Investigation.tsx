@@ -7,7 +7,7 @@ import { getAuditTrail, getGraphFull, getRing, getVendorRisk, postAgentQuery } f
 import { GraphCanvas } from '../../components/GraphCanvas/GraphCanvas';
 import { EvidencePanel } from '../../components/EvidencePanel/EvidencePanel';
 import { TimelineScrubber } from '../../components/TimelineScrubber/TimelineScrubber';
-import { Pill } from '../../components/ui/Pill';
+import { RelatedVendors } from '../../components/RelatedVendors/RelatedVendors';
 import { Button } from '../../components/ui/Button';
 import { MOCK_AUDIT_TRAILS, MOCK_RINGS } from '../../lib/mocks';
 import { useStore } from '../../lib/store';
@@ -163,19 +163,38 @@ export function InvestigationPage({ mode }: Props) {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <span className={styles.title}>
-          {ring ? ring.ring_id : gstinFromUrl ?? 'Investigation'}
-        </span>
-        <span className={styles.subtitle}>{mode === 'ring' ? 'Ring investigation' : 'Entity investigation'}</span>
+        <div className={styles.headerId}>
+          <span className={styles.kicker}>{mode === 'ring' ? 'Ring investigation' : 'Entity investigation'}</span>
+          <h1 className={styles.headerTitle} data-mono>{ring ? ring.ring_id : gstinFromUrl ?? 'Investigation'}</h1>
+        </div>
+
         {ring && (
-          <>
-            <Pill tone="neutral"><span data-mono>score {ring.score.toFixed(3)}</span></Pill>
-            <Pill tone="neutral"><span data-mono>{ring.members.length} members</span></Pill>
-            <Pill tone="neutral"><span data-mono>{ring.date_span_days}d span</span></Pill>
-          </>
+          <div className={styles.summaryStrip}>
+            <div className={`${styles.stat} ${styles.statRisk}`}>
+              <span className={styles.statLabel}>Risk</span>
+              <span className={`${styles.statValue} ${styles.riskValue}`} data-mono>{ring.score.toFixed(3)}</span>
+            </div>
+            <div className={styles.statSep} />
+            <div className={styles.stat}>
+              <span className={styles.statLabel}>Exposure</span>
+              <span className={styles.statValue} data-mono>₹{(ring.total_gst/100000).toFixed(2)}L</span>
+            </div>
+            <div className={styles.statSep} />
+            <div className={styles.stat}>
+              <span className={styles.statLabel}>Network</span>
+              <span className={styles.statValue} data-mono>{ring.members.length} nodes</span>
+            </div>
+            <div className={styles.statSep} />
+            <div className={styles.stat}>
+              <span className={styles.statLabel}>Window</span>
+              <span className={styles.statValue} data-mono>{ring.date_span_days}d</span>
+            </div>
+          </div>
         )}
-        <div style={{ flex: 1 }} />
-        {ring && <Button variant="primary" size="sm" onClick={draftSCN}>Draft SCN</Button>}
+
+        <div className={styles.headerSpacer} />
+
+        {ring && <Button variant="primary" size="sm" onClick={draftSCN}>Draft notice</Button>}
       </div>
 
       <div className={styles.left}>
@@ -193,6 +212,16 @@ export function InvestigationPage({ mode }: Props) {
               ring={ring}
               initialDate={timelineDate}
               onDateChange={setTimelineDate}
+            />
+          </div>
+        )}
+        {(ring || gstinFromUrl) && (
+          <div className={styles.relatedSlot}>
+            <RelatedVendors
+              gstin={(ring?.members[0]) ?? gstinFromUrl ?? ''}
+              ringMembers={ring?.members}
+              k={5}
+              compact
             />
           </div>
         )}

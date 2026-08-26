@@ -20,6 +20,7 @@ from .enumerate import build_digraph, enumerate_cycles_in_scc
 from .scc import compute_sccs
 from .scoring import DEFAULT_WEIGHTS, DEFAULT_WINDOW_DAYS, score_ring
 from .temporal import group_edges_by_pair, materialize_and_filter
+from .temporal_signals import temporal_descriptors
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class DetectedRing:
     contribution: Dict[str, float]
     share: Dict[str, float]
     break_edge: Optional[Dict[str, Any]]
+    temporal: Optional[Dict[str, Any]] = None   # Phase D descriptors
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -62,6 +64,7 @@ class DetectedRing:
             "contribution": self.contribution,
             "share": self.share,
             "break_edge": self.break_edge,
+            "temporal": self.temporal,
         }
 
 
@@ -82,8 +85,17 @@ def load_graph_from_neo4j(horizon_days: Optional[int] = None) -> Dict[str, Any]:
     """
     from db import run_query
 
+    # Property-name contract: the writers (seeder.py and datagen/loader.py)
+    # store Invoice values as `i.date`, `i.amount`, and `i.total_gst`. An
+    # earlier version of this read query used `i.invoice_date`, `i.total_amount`
+    # and `i.gst_amount`, which do not exist on the node — so every edge came
+    # back with null date/amount/gst on the LIVE Neo4j path, silently zeroing
+    # the closure (C) and value (V) signals and total_gst. It was invisible
+    # because all tests/benchmarks feed a graph_source dict and never exercise
+    # this query. Keep the RETURN aliases (invoice_date/amount/gst_amount) so
+    # the Python below is unchanged; only the source properties are corrected.
     where = (
-        "WHERE i.invoice_date >= date() - duration({days:$window}) "
+        "WHERE i.date >= date() - duration({days:$window}) "
         if horizon_days
         else ""
     )
@@ -95,8 +107,8 @@ def load_graph_from_neo4j(horizon_days: Optional[int] = None) -> Dict[str, Any]:
         # deterministic representative. Guarantees ONE row per invoice.
         + "WITH a, b, i, head(collect(DISTINCT v.vehicle_number)) AS vehicle_id "
         + "RETURN a.gstin_id AS src, b.gstin_id AS dst, i.invoice_id AS invoice_id, "
-        + "       i.invoice_date AS invoice_date, i.total_amount AS amount, "
-        + "       i.gst_amount AS gst_amount, vehicle_id, "
+        + "       i.date AS invoice_date, i.amount AS amount, "
+        + "       i.total_gst AS gst_amount, vehicle_id, "
         + "       i.hsn AS hsn, b.pincode AS buyer_pin"
     )
     params = {"window": horizon_days} if horizon_days else {}
@@ -233,6 +245,7 @@ def run_pipeline(
                 contribution=scored["contribution"],
                 share=scored["share"],
                 break_edge=cf.get("break_edge"),
+                temporal=temporal_descriptors(total_gst, span, ring_edges),
             )
         )
 

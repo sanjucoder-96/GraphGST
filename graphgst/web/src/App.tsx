@@ -23,19 +23,22 @@ function VendorsRedirect() {
 
 function DocsPlaceholder() {
   return (
-    <div style={{ padding: 24, maxWidth: 720, color: 'var(--text)' }}>
-      <h2 style={{ fontSize: 'var(--fs-h)', color: 'var(--text-strong)', fontWeight: 500, marginBottom: 8 }}>Docs</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', lineHeight: 1.6 }}>
-        Graph GST V6 investigator console. Backend: FastAPI on :8000. Real data flows through
-        <span data-mono> /api/rings, /api/vendors, /api/graph/full, /api/reconcile/audit-trail/:id</span>.
-        When the backend is unreachable the app falls back to a bundled DEMO fixture so a hackathon
-        demo never depends on Neo4j being up.
+    <div style={{ padding: '32px 40px', maxWidth: 760, color: 'var(--text-1)' }}>
+      <div style={{ fontSize: 'var(--fs-2xs)', fontWeight: 500, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Documentation</div>
+      <h1 style={{ fontSize: 'var(--fs-2xl)', color: 'var(--text-0)', fontWeight: 600, letterSpacing: '-0.025em', marginBottom: 12 }}>Graph GST intelligence workspace</h1>
+      <p style={{ color: 'var(--text-2)', fontSize: 'var(--fs-md)', lineHeight: 1.6 }}>
+        Backend: FastAPI on :8000. Live data flows through
+        <span data-mono style={{ color: 'var(--text-1)', background: 'var(--bg-3)', padding: '1px 6px', borderRadius: 4, margin: '0 2px' }}>/api/rings</span>,
+        <span data-mono style={{ color: 'var(--text-1)', background: 'var(--bg-3)', padding: '1px 6px', borderRadius: 4, margin: '0 2px' }}>/api/vendors</span>,
+        <span data-mono style={{ color: 'var(--text-1)', background: 'var(--bg-3)', padding: '1px 6px', borderRadius: 4, margin: '0 2px' }}>/api/graph/full</span>, and
+        <span data-mono style={{ color: 'var(--text-1)', background: 'var(--bg-3)', padding: '1px 6px', borderRadius: 4, margin: '0 2px' }}>/api/embed/lookalike</span>.
+        When the backend is unreachable the app serves a bundled demo fixture so the workspace never depends on Neo4j being up.
       </p>
-      <ul style={{ marginTop: 16, color: 'var(--text-muted)', fontSize: 'var(--fs-body)', lineHeight: 1.8 }}>
-        <li>Case Queue — ranked open alerts (j/k, Enter to open)</li>
-        <li>Investigation — Cytoscape + evidence panel with three tabs</li>
-        <li>Ring Explorer — timeline scrubber + break simulator</li>
-        <li>Data Health — Neo4j + backend status</li>
+      <ul style={{ marginTop: 20, color: 'var(--text-2)', fontSize: 'var(--fs-md)', lineHeight: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <li><strong style={{ color: 'var(--text-1)', fontWeight: 500 }}>Cases</strong> — entities ranked by composed risk (j/k, Enter to open)</li>
+        <li><strong style={{ color: 'var(--text-1)', fontWeight: 500 }}>Investigation</strong> — graph canvas + evidence panel with risk decomposition</li>
+        <li><strong style={{ color: 'var(--text-1)', fontWeight: 500 }}>Timeline</strong> — transaction-formation replay + break-edge simulator</li>
+        <li><strong style={{ color: 'var(--text-1)', fontWeight: 500 }}>Model Card</strong> — benchmark metrics gated against a committed baseline</li>
       </ul>
     </div>
   );

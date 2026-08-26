@@ -156,7 +156,8 @@ def _hydrate_from_neo4j() -> Dict[str, Any]:
     gstins = run_query(
         "MATCH (g:GSTIN) "
         "RETURN g.gstin_id AS gstin_id, g.status AS status, g.state_code AS state_code, "
-        "       g.cancellation_date AS cancellation_date"
+        "       g.cancellation_date AS cancellation_date, "
+        "       coalesce(g.name, g.legal_name, g.trade_name) AS name, g.scenario AS scenario"
     )
     gstr1_keys = {
         (r["gstin"], r["period"]) for r in run_query(

@@ -24,12 +24,7 @@ _LATEST = _BENCH_DIR / "latest.json"
 _BASELINE = _BENCH_DIR / "baseline.json"
 
 
-def _require_admin(x_admin_token: str = Header(default="")) -> None:
-    expected = os.environ.get("ADMIN_TOKEN", "")
-    if not expected:
-        raise HTTPException(503, "ADMIN_TOKEN not configured; run disabled")
-    if not x_admin_token or x_admin_token != expected:
-        raise HTTPException(401, "X-Admin-Token required")
+from security import require_admin as _require_admin
 
 
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
@@ -99,33 +94,45 @@ def model_card() -> Dict[str, Any]:
         }
 
     cards = [
-        _card("rings", "ring.recall",
-                "Ring member-multiset recall",
+        _card("rings", "ring.average_precision",
+                "Ring detection — Average Precision",
                 "ratio",
-                "Fraction of planted rings recovered by SCC → Johnson pipeline."),
+                "Threshold-free ranking quality on HARD data (rings with dropped "
+                "shared-vehicle/director tells, jittered timing, broken near-rings, "
+                "and legitimate cyclic-trade negatives). AP over score-ranked "
+                "detected cycles vs closed planted rings."),
+        _card("rings", "ring.f1_at_thresh",
+                "Ring detection F1 @0.45",
+                "ratio",
+                "F1 at the fixed 0.45 RingScorer prior (not eval-tuned). See the "
+                "full precision/recall sweep in the report."),
         _card("reconcile", "reconcile.micro_f1",
                 "Reconciliation micro-F1",
                 "ratio",
                 "Cascade-aware match of MatchEvent outcomes to planted anomalies."),
-        _card("reconcile", "reconcile.micro_precision", "Precision", "ratio", ""),
-        _card("reconcile", "reconcile.micro_recall", "Recall", "ratio", ""),
-        _card("risk", "risk.roc_auc",
-                "Composed risk ROC-AUC",
+        _card("reconcile", "reconcile.micro_precision", "Reconciliation precision", "ratio", ""),
+        _card("reconcile", "reconcile.micro_recall", "Reconciliation recall", "ratio", ""),
+        _card("risk", "risk.recon_auc",
+                "Composed risk — ROC-AUC (ring-independent)",
                 "auc",
-                "Binary rank task: is this GSTIN a planted ring member?"),
-        _card("risk", "risk.precision_at_50",
-                "Risk Precision@50",
+                "Honest task: rank GSTINs by composed risk against a "
+                "RING-INDEPENDENT label (supplier of a planted reconciliation "
+                "anomaly, ring members excluded). The circular ring-membership "
+                "AUC is reported separately and NOT gated (audit F1)."),
+        _card("risk", "risk.recon_p_at_50",
+                "Risk Precision@50 (ring-independent)",
                 "ratio",
-                "Of the top-50 ranked GSTINs, fraction that are planted ring members."),
-        _card("risk", "risk.precision_at_100",
-                "Risk Precision@100", "ratio", ""),
-        _card("embed", "embed.hit_at_10",
-                "Lookalike Hit@10",
+                "Of the top-50 GSTINs by composed risk, fraction that are true "
+                "reconciliation-anomaly suppliers."),
+        _card("embed", "embed.structural_hit_at_10",
+                "Lookalike structural Hit@10",
                 "ratio",
-                "For each planted ring member, does its top-10 lookalike list "
-                "contain ≥ 1 OTHER member of the same ring?"),
+                "For each ring member, does its top-10 lookalike list contain a "
+                "same-ring member that is NOT a direct transaction partner "
+                "(≥2 hops in the cycle)? Isolates genuine structural similarity "
+                "from trivial adjacency (audit F3)."),
         _card("embed", "embed.cohesion_recall_at_10",
-                "Lookalike Cohesion Recall@10",
+                "Lookalike cohesion recall@10",
                 "ratio",
                 "Mean fraction of a ring's other members appearing in each "
                 "member's top-10 lookalikes."),
@@ -155,8 +162,9 @@ def run_now() -> Dict[str, Any]:
     import tempfile
 
     cfg = GenerationConfig(
-        n_gstins=500, months=3, n_rings=8,
+        n_gstins=500, months=3, n_rings=12,
         ring_size_min=3, ring_size_max=6, seed=42,
+        ring_difficulty=0.6, ring_broken_share=0.25, n_hard_negatives=5,
         out_dir=os.path.join(tempfile.gettempdir(), "graphgst_bench_all"),
     )
     report = run_all(cfg)

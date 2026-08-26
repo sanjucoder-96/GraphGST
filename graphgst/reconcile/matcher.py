@@ -90,19 +90,23 @@ def match_one_invoice(
     hsn_catalog = hsn_catalog or {}
 
     # ── 1. GSTIN format checks ────────────────────────────────────────
-    for who, gid in (("supplier", sup_id), ("buyer", buy_id)):
-        if not fuzzy.is_valid_gstin(gid):
-            events.append(_event(
-                inv_id, sup_id, buy_id, INVALID_GSTIN_FORMAT, delta=None,
-                reasons=[_reason(
-                    "invalid-gstin-shape", 1.0,
-                    f"{who} GSTIN {gid!r} does not match the 15-char state+PAN+entity+Z+check pattern",
-                    node_type="GSTIN", node_id=gid,
-                )],
-            ))
-    # short-circuit further semantic checks if either party has a broken GSTIN
-    if events and any(e["outcome"] == INVALID_GSTIN_FORMAT for e in events):
-        return events
+    # Emit at most ONE INVALID_GSTIN_FORMAT event per invoice, even when BOTH
+    # parties are malformed. The persisted MatchEvent is keyed by
+    # (invoice, supplier, buyer, outcome) — two events here would carry the
+    # SAME event_id and the second would overwrite the first on MERGE, silently
+    # dropping one party's reason. Collect every invalid party and attach one
+    # reason each to a single event, so the in-memory and persisted views agree.
+    invalid = [(who, gid) for who, gid in (("supplier", sup_id), ("buyer", buy_id))
+               if not fuzzy.is_valid_gstin(gid)]
+    if invalid:
+        return [_event(
+            inv_id, sup_id, buy_id, INVALID_GSTIN_FORMAT, delta=None,
+            reasons=[_reason(
+                "invalid-gstin-shape", 1.0,
+                f"{who} GSTIN {gid!r} does not match the 15-char state+PAN+entity+Z+check pattern",
+                node_type="GSTIN", node_id=gid,
+            ) for who, gid in invalid],
+        )]
 
     # ── 2. Supplier cancellation ──────────────────────────────────────
     if (supplier or {}).get("status") == "CANCELLED":

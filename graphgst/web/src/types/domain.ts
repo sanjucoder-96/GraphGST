@@ -171,6 +171,19 @@ export interface AgentResponse {
   error?: string;
 }
 
+// ---- Lookalike (Phase 5 embeddings) --------------------------------------
+
+export interface LookalikeNeighbour {
+  gstin_id: string;
+  similarity: number;
+}
+
+export interface LookalikeResp {
+  gstin_id: string;
+  k: number;
+  neighbours: LookalikeNeighbour[];
+}
+
 // ---- Model card (Phase 7 benchmarks) -------------------------------------
 
 export type ModelCardStatus =

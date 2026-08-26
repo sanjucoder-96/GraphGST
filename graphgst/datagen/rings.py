@@ -17,6 +17,7 @@ Each ring is planted as follows:
 """
 from __future__ import annotations
 
+import math
 import random
 from datetime import date, timedelta
 from typing import Optional
@@ -52,6 +53,26 @@ def _pick_ring_members(
 
 
 def plant_rings(
+    cfg: GenerationConfig,
+    gstins: list[GSTINRecord],
+) -> tuple[
+    list[TransactionBundle], list[GSTR1Rec], list[GSTR3BRec],
+    list[TaxPaymentRec], list[dict],
+]:
+    """Dispatch to the legacy (byte-stable) or hard planter by difficulty.
+
+    `cfg.ring_difficulty <= 0` → the exact legacy planter (used by the
+    reproducible demo; RNG draw order is preserved so HERO_RING never
+    drifts). `> 0` → the hard planter with per-ring tell-dropping, broken
+    rings, and hard-negative communities.
+    """
+    if cfg.ring_difficulty <= 0.0:
+        return _plant_rings_easy(cfg, gstins)
+    from .rings_hard import plant_rings_hard
+    return plant_rings_hard(cfg, gstins)
+
+
+def _plant_rings_easy(
     cfg: GenerationConfig,
     gstins: list[GSTINRecord],
 ) -> tuple[

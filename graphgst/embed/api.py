@@ -19,12 +19,7 @@ from .train import EmbedConfig, EmbedModel, train
 router = APIRouter()
 
 
-def _require_admin(x_admin_token: str = Header(default="")) -> None:
-    expected = os.environ.get("ADMIN_TOKEN", "")
-    if not expected:
-        raise HTTPException(503, "ADMIN_TOKEN not configured; training disabled")
-    if not x_admin_token or x_admin_token != expected:
-        raise HTTPException(401, "X-Admin-Token required")
+from security import require_admin as _require_admin
 
 
 class TrainBody(BaseModel):

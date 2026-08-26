@@ -15,11 +15,29 @@ docker compose up --build
 ```
 
 Then:
-- Web UI:    <http://localhost:3000>
-- API docs:  <http://localhost:8000/docs>
-- Neo4j:     <http://localhost:7474>  (`neo4j` / `graphgst-dev-password`)
+- Investigator Console (React):  <http://localhost:5173>
+- Legacy vanilla-JS shell:       <http://localhost:3000>
+- API docs:                       <http://localhost:8000/docs>
+- Neo4j Browser:                  <http://localhost:7474>  (`neo4j` / `graphgst-dev-password`)
 
-The compose file starts three services: `neo4j` (with APOC + GDS plugins), `backend` (FastAPI), and `web` (nginx serving the static shell).
+The compose file starts four services: `neo4j` (with APOC + GDS plugins), `backend` (FastAPI on :8000), `web` (React SPA on :5173) and `web-legacy` (vanilla-JS shell on :3000 for regression comparison).
+
+## Scripted 3-5 minute demo
+
+Graph GST ships with a fully reproducible investigation story built around one controlled hero ring with known ground truth. See [`demo/README.md`](demo/README.md).
+
+```bash
+# 1. Reset — regenerates the fixed dataset (byte-deterministic, seed 42)
+python -m demo.reset
+
+# 2. Verify — asserts every narrator number against real engine output
+python -m demo.verify
+
+# 3. Present — /model-card shows the numbers gating each claim, /ring/…
+#    walks the case queue → investigation → timeline → break-simulator flow
+```
+
+Verification runs in-memory (no Neo4j needed) and exits non-zero if any story number drifts.
 
 ## Quick start — without Docker
 
@@ -75,18 +93,36 @@ curl -X POST -H "X-Admin-Token: <your-token>" \
 
 ## Where things live
 
-| Path | Purpose |
-|---|---|
-| `main.py` | FastAPI app, all HTTP routes |
-| `db.py` | Neo4j driver singleton, `run_query`, `run_write` |
-| `seeder.py` | Nine hand-crafted scenarios + graph constraints and indexes |
-| `risk_engine.py` | Rule scoring, cycle detection, audit narrative, IsolationForest |
-| `datagen/` | Synthetic GST generator with ground truth (Phase 1) |
-| `pages/`, `assets/`, `index.html` | Vanilla-JS investigator shell |
-| `tests/` | Pytest test suite |
-| `ARCHITECTURE.md` | Design of V6 |
-| `IMPLEMENTATION_LOG.md` | Running change log |
-| `DEV_GUIDE.md` | Beginner-friendly walkthrough |
+| Path | Purpose | Phase |
+|---|---|---|
+| `main.py` | FastAPI app, mounts every module router | 0 |
+| `db.py` | Neo4j driver singleton (`run_query`, `run_write`) | 0 |
+| `seeder.py` | Hand-crafted scenarios + graph constraints + indexes | 0 |
+| `datagen/` | Synthetic GST generator with `truth.json` | 1 |
+| `reconcile/` | MatchEvent nodes + fuzzy matchers | 2 |
+| `rings/` | SCC → bounded Johnson → six-signal ring engine + counterfactual | 3 |
+| `risk/` | Composable scorers + `Reason[]` attribution + composed score | 4 |
+| `embed/` | Random walks + PMI-SVD embeddings + cosine lookalike | 5 |
+| `web/` | React 18 + TS Investigator Console (Vite) | 6 |
+| `benchmarks/` | Unified runner + baseline + comparator + Model Card | 7 |
+| `demo/` | Reproducible 3-5 minute scripted story | 8 |
+| `tests/` | Pytest test suite (160+ tests) | — |
+| `pages/`, `assets/`, `index.html` | Vanilla-JS legacy shell (kept for regression) | 0 |
+| `.github/workflows/ci.yml` | pytest + benchmarks + web build on push | — |
+| `ARCHITECTURE.md` | V6 target design | — |
+| `IMPLEMENTATION_LOG.md` | Running change log | — |
+| `DEV_GUIDE.md` | Beginner-friendly walkthrough | — |
+
+## What Graph GST claims and what number backs it
+
+| Claim | Number | Where measured |
+|---|---:|---|
+| Ring member-multiset recall | **1.000** | `benchmarks/bench_ring_recall.py` |
+| Reconciliation micro-F1 | **0.961** | `benchmarks/bench_reconcile_prf.py` |
+| Composed risk ROC-AUC | **0.937** | `benchmarks/bench_risk_discrimination.py` |
+| Embedding hit@10 (ring cohesion) | **0.912** | `benchmarks/bench_embed_lookalike.py` |
+
+All four numbers are baseline-gated. `python -m benchmarks.run_all` exits 1 if any regresses by more than 0.02. The [Model Card page](http://localhost:5173/model-card) renders them live in the Investigator Console.
 
 ## Historical notes
 

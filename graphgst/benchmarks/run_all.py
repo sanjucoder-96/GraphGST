@@ -86,11 +86,19 @@ def run_all(
     embed_k: int = 10,
     embed_walks: int = 15,
     embed_walk_len: int = 25,
+    fast: bool = False,
 ) -> Dict[str, Any]:
-    """Run every bench against one shared dataset. Returns the merged report."""
+    """Run every bench against one shared dataset. Returns the merged report.
+
+    HEADLINE uses the HARD generator (ring_difficulty 0.6, 25 % broken rings,
+    5 hard-negative legit cycles) so every published metric reflects a
+    realistic, non-trivial benchmark — see audit F4. The reproducible demo
+    keeps ring_difficulty 0 for a byte-stable hero ring.
+    """
     cfg = cfg or GenerationConfig(
-        n_gstins=500, months=3, n_rings=8,
+        n_gstins=500, months=3, n_rings=12,
         ring_size_min=3, ring_size_max=6, seed=42,
+        ring_difficulty=0.6, ring_broken_share=0.25, n_hard_negatives=5,
         out_dir=os.path.join(tempfile.gettempdir(), "graphgst_bench_all"),
     )
     cfg.validate()
@@ -109,7 +117,8 @@ def run_all(
     benches = {
         "ring_recall":      lambda: bench_ring_recall.bench_prepared(cfg, cfg.out_dir),
         "reconcile_prf":    lambda: bench_reconcile_prf.bench_prepared(cfg, cfg.out_dir),
-        "risk_discrimination": lambda: bench_risk_discrimination.bench_prepared(cfg, cfg.out_dir),
+        "risk_discrimination": lambda: bench_risk_discrimination.bench_prepared(
+            cfg, cfg.out_dir, fast=fast),
         "embed_lookalike":  lambda: bench_embed_lookalike.bench_prepared(
             cfg, cfg.out_dir, embed_k, embed_walks, embed_walk_len),
     }
@@ -125,6 +134,7 @@ def run_all(
         "schema_version": METRICS_SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
+        "mode": "fast" if fast else "full",
         "config": cfg.to_dict(),
         "dataset_prep_sec": prep_sec,
         "headlines": headlines,
@@ -148,7 +158,17 @@ def _extract_headlines(per_bench: Dict[str, Any]) -> Dict[str, float]:
 
     r = _rep("ring_recall")
     if r:
-        out["ring.recall"] = float(r.get("recall") or 0.0)
+        # Thresholded precision/recall/F1 are the HONEST headline on hard data:
+        # they reflect whether the SCORER separates real rings from broken /
+        # hard-negative / incidental cycles. member-multiset recall is only a
+        # recoverability upper bound (Johnson finds every cycle) — kept as info.
+        # Threshold-free Average Precision is the honest headline (no operating
+        # point tuned on eval). F1 at the fixed 0.45 prior is a secondary
+        # gated metric; the full sweep lives in the report.
+        out["ring.average_precision"] = float(r.get("average_precision") or 0.0)
+        at = r.get("at_threshold") or {}
+        out["ring.f1_at_thresh"] = float(at.get("f1") or 0.0)
+        out["ring.recoverability_recall"] = float(r.get("recall") or 0.0)   # info
         out["ring.detected"] = float((r.get("counts") or {}).get("detected_rings", 0))
 
     r = _rep("reconcile_prf")
@@ -160,19 +180,25 @@ def _extract_headlines(per_bench: Dict[str, Any]) -> Dict[str, float]:
 
     r = _rep("risk_discrimination")
     if r:
-        out["risk.roc_auc"] = float(r.get("roc_auc") or 0.0)
-        pk = r.get("precision_at_k") or {}
-        out["risk.precision_at_50"] = float(pk.get("50") or 0.0)
-        out["risk.precision_at_100"] = float(pk.get("100") or 0.0)
+        # Honest, ring-INDEPENDENT discrimination (gated headline).
+        out["risk.recon_auc"] = float(r.get("recon_auc") or 0.0)
+        pk = r.get("recon_precision_at_k") or {}
+        out["risk.recon_p_at_50"] = float(pk.get("50") or 0.0)
+        # Circular ring-label AUC kept for transparency, NOT gated.
+        out["risk.ring_auc_circular"] = float(r.get("ring_auc_circular") or 0.0)
 
     r = _rep("embed_lookalike")
     if r:
         for row in r.get("per_k") or []:
             if int(row.get("k") or 0) == 10:
+                # adjacency hit — largely trivial (ring members are 1-hop); info
                 out["embed.hit_at_10"] = float(row.get("hit_at_k") or 0.0)
                 out["embed.cohesion_recall_at_10"] = float(
-                    row.get("cohesion_recall_mean") or 0.0
-                )
+                    row.get("cohesion_recall_mean") or 0.0)
+                # structural hit — the HONEST claim (non-adjacent co-members)
+                sh = row.get("structural_hit_at_k")
+                if sh is not None:
+                    out["embed.structural_hit_at_10"] = float(sh)
 
     return out
 
@@ -186,12 +212,16 @@ def _reexec_with_hashseed_if_needed() -> None:
     """Python's per-process hash randomisation changes set-iteration order
     across runs, which cascades into NetworkX SCC / random walks and makes
     numeric benchmarks non-byte-deterministic. If PYTHONHASHSEED isn't
-    already fixed, re-exec self with PYTHONHASHSEED=0."""
+    already fixed, re-invoke self as a subprocess with PYTHONHASHSEED=0.
+    (subprocess instead of os.execvpe because execvpe with `python -m …`
+    is silently broken on Windows.)"""
     if os.environ.get("PYTHONHASHSEED") == "0":
         return
+    import subprocess
     env = dict(os.environ)
     env["PYTHONHASHSEED"] = "0"
-    os.execvpe(sys.executable, [sys.executable, "-m", "benchmarks.run_all", *sys.argv[1:]], env)
+    ret = subprocess.call([sys.executable, "-m", "benchmarks.run_all", *sys.argv[1:]], env=env)
+    sys.exit(ret)
 
 
 def main() -> int:
@@ -199,8 +229,12 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--n-gstins", type=int, default=500)
     p.add_argument("--months", type=int, default=3)
-    p.add_argument("--n-rings", type=int, default=8)
+    p.add_argument("--n-rings", type=int, default=12)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--difficulty", type=float, default=0.6,
+                    help="ring difficulty 0..1 (headline default 0.6). 0 = legacy easy.")
+    p.add_argument("--broken-share", type=float, default=0.25)
+    p.add_argument("--hard-negatives", type=int, default=5)
     p.add_argument("--out", default=str(Path(__file__).with_name("latest.json")))
     p.add_argument("--baseline",
                     default=str(Path(__file__).with_name("baseline.json")))
@@ -209,15 +243,22 @@ def main() -> int:
                           "you've verified the numbers improved intentionally)")
     p.add_argument("--tolerance-abs", type=float, default=0.02,
                     help="absolute drop that counts as a regression (default 0.02)")
+    p.add_argument("--fast", action="store_true",
+                    help="skip MLScorer + PropagationScorer in risk_discrimination "
+                          "(sub-second run for PR CI). Headline metrics still measured "
+                          "but risk.roc_auc will differ from full-mode baseline — do "
+                          "NOT --write-baseline in --fast mode.")
     args = p.parse_args()
 
     cfg = GenerationConfig(
         n_gstins=args.n_gstins, months=args.months, n_rings=args.n_rings,
         ring_size_min=3, ring_size_max=6, seed=args.seed,
+        ring_difficulty=args.difficulty, ring_broken_share=args.broken_share,
+        n_hard_negatives=args.hard_negatives,
         out_dir=os.path.join(tempfile.gettempdir(), "graphgst_bench_all"),
     )
     try:
-        report = run_all(cfg)
+        report = run_all(cfg, fast=args.fast)
     except Exception as e:
         print(f"BENCH CRASHED: {e!r}", file=sys.stderr)
         return 2
@@ -236,6 +277,10 @@ def main() -> int:
     print()
 
     if args.write_baseline:
+        if args.fast:
+            print("REFUSING to write baseline in --fast mode "
+                    "(risk.* metrics differ; run without --fast)", file=sys.stderr)
+            return 2
         _write(report, args.baseline)
         print(f"baseline updated -> {args.baseline}")
         return 0

@@ -9,6 +9,9 @@ pydantic>=2.7,<3.0
 # Graph database driver
 neo4j>=5.20,<6.0
 
+# Environment configuration (.env → os.environ, loaded in db.py)
+python-dotenv>=1.0,<2.0
+
 # Graph analytics fallback (used when GDS is unavailable; otherwise Cypher/GDS runs in-DB)
 networkx>=3.3,<4.0
 

@@ -42,12 +42,13 @@ export function ModelCardPage() {
     <div className={styles.wrap}>
       <header className={styles.header}>
         <div>
-          <div className={styles.eyebrow}>MODEL CARD</div>
-          <h1 className={styles.title}>Measured claims</h1>
+          <div className={styles.eyebrow}>Model Card · Benchmarks</div>
+          <h1 className={styles.title}>Measured performance</h1>
           <p className={styles.sub}>
-            Every headline number this project quotes, produced by running
+            Every headline metric this system reports, produced by
             <span data-mono> python -m benchmarks.run_all </span>
-            against a deterministic 500-GSTIN synthetic dataset with ground truth.
+            against a deterministic 500-GSTIN synthetic dataset with ground
+            truth. Each metric is gated against a committed baseline.
           </p>
         </div>
         <div className={styles.meta}>

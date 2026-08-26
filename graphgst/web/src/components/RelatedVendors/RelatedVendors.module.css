@@ -1,0 +1,124 @@
+/* Network similarity — graph-embedding lookalike strip.
+   Ring co-members get brand emphasis; others are neutral rows with a
+   cosine meter. */
+
+.wrap {
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-6) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.wrap.compact { padding: var(--sp-4) var(--sp-5); }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-5);
+}
+.eyebrow {
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hint {
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.hint [data-mono] { font-family: var(--font-mono); color: var(--text-2); }
+.hitBadge {
+  color: var(--brand-2);
+  padding: 2px 7px;
+  border: 1px solid var(--brand-line);
+  border-radius: var(--r-full);
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  background: var(--brand-dim);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 40px 1fr 64px 96px 20px;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 7px var(--sp-4);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.row:hover, .row:focus-visible { background: var(--bg-3); outline: none; }
+.row.member { background: var(--brand-veil); }
+.row.member:hover, .row.member:focus-visible { background: var(--brand-dim); }
+
+.dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-3);
+  padding: 2px 5px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-xs);
+}
+.row.member .dot { color: var(--brand-2); border-color: var(--brand-line); background: var(--brand-dim); }
+.plainDot { display: none; }
+
+.gstin {
+  font-family: var(--font-mono);
+  font-size: var(--fs-num-sm);
+  color: var(--text-0);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.sim {
+  font-family: var(--font-mono);
+  font-size: var(--fs-num-sm);
+  font-weight: 600;
+  color: var(--text-0);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  letter-spacing: -0.03em;
+}
+.row.member .sim { color: var(--brand-2); }
+
+.bar { height: 4px; border-radius: 2px; background: var(--bg-4); overflow: hidden; }
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--text-3);
+  border-radius: 2px;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.row.member .barFill { background: var(--brand); }
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-4);
+  font-size: 12px;
+}
+.row:hover .chevron, .row.member .chevron { color: var(--brand-2); }

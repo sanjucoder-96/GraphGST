@@ -134,6 +134,14 @@ try:
 except Exception as e:  # noqa: BLE001
     logger.info(f"benchmarks router not available yet: {e}")
 
+# ── Optional demo router (Phase 8) ────────────────────────────────────────────
+try:
+    from demo.api import router as demo_router  # type: ignore
+    app.include_router(demo_router, prefix="/api/demo", tags=["demo"])
+    logger.info("demo router mounted at /api/demo")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"demo router not available yet: {e}")
+
 # ── Request models ─────────────────────────────────────────────────────────────
 
 class InvoiceCreate(BaseModel):
@@ -151,7 +159,7 @@ class AgentQuery(BaseModel):
 # ── Root ───────────────────────────────────────────────────────────────────────
 
 @app.get("/")
-def root(): return {"message": "GraphGST API v4.0", "status": "running", "docs": "/docs"}
+def root(): return {"message": "GraphGST API v6.0", "status": "running", "docs": "/docs"}
 
 # ── Health ─────────────────────────────────────────────────────────────────────
 
@@ -452,7 +460,8 @@ def scenarios():
 
 @app.get("/api/analytics/multi-hop/{gstin_id}")
 def multi_hop(gstin_id: str, depth: int = 3):
-    return {"target_gstin": gstin_id, "upstream_risks": run_query(f"MATCH path=(t:GSTIN {{gstin_id:$g}})<-[:SUPPLIES_TO*1..{min(depth,5)}]-(u:GSTIN) RETURN u.gstin_id AS upstream_gstin,u.name AS upstream_name,u.risk_score AS risk_score,u.is_defaulter AS is_defaulter,length(path) AS hops ORDER BY hops,risk_score DESC", {"g": gstin_id})}
+    safe_depth = max(1, min(int(depth), 5))   # clamp: 1..5, prevents invalid var-length Cypher
+    return {"target_gstin": gstin_id, "upstream_risks": run_query(f"MATCH path=(t:GSTIN {{gstin_id:$g}})<-[:SUPPLIES_TO*1..{safe_depth}]-(u:GSTIN) RETURN u.gstin_id AS upstream_gstin,u.name AS upstream_name,u.risk_score AS risk_score,u.is_defaulter AS is_defaulter,length(path) AS hops ORDER BY hops,risk_score DESC", {"g": gstin_id})}
 
 @app.get("/api/analytics/tax-payments")
 def tax_payments():

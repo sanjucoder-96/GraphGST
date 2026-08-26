@@ -18,14 +18,25 @@ from typing import Any, Dict, List, Optional
 # if it regresses beyond tolerance. Keep this list tight — headline
 # claims only. Everything else lives inside `benches/*/report`.
 HEADLINE_METRICS: List[str] = [
-    "ring.recall",
+    # Ring detection on HARD data. Average Precision (threshold-free) is the
+    # honest headline; F1 at the fixed 0.45 prior is a secondary gate. The old
+    # "ring.recall = 1.0" was a recoverability upper bound (Johnson finds every
+    # cycle), not a detection metric — replaced. See audit F4.
+    "ring.average_precision",
+    "ring.f1_at_thresh",
     "reconcile.micro_f1",
     "reconcile.micro_precision",
     "reconcile.micro_recall",
-    "risk.roc_auc",
-    "risk.precision_at_50",
-    "risk.precision_at_100",
-    "embed.hit_at_10",
+    # Risk: gate the HONEST ring-independent metric only. The circular
+    # ring-label AUC (risk.ring_auc_circular) is reported but NOT gated —
+    # see audit F1/F2. Old risk.roc_auc / precision_at_50/100 were removed
+    # for being circular re-measurements of ring detection.
+    "risk.recon_auc",
+    "risk.recon_p_at_50",
+    # Embed: gate the HONEST structural hit (non-adjacent ring co-members).
+    # embed.hit_at_10 (adjacency) is near-tautological — reported, not gated.
+    # See audit F3.
+    "embed.structural_hit_at_10",
     "embed.cohesion_recall_at_10",
 ]
 

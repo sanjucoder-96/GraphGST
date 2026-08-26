@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-18T18:56:22.161292+00:00",
-  "git_commit": "d61bf027b49710cdb4f45f0ab0de82c4f49b9170",
+  "generated_at": "2026-08-21T03:07:58.613876+00:00",
+  "git_commit": "bab4b653a12e944a26072094ed97cb835f191455",
+  "mode": "full",
   "config": {
     "n_gstins": 500,
     "months": 3,
@@ -13,13 +14,16 @@
     "avg_out_degree": 4.0,
     "degree_power_law": 2.2,
     "intra_state_pref": 0.7,
-    "n_rings": 8,
+    "n_rings": 12,
     "ring_size_min": 3,
     "ring_size_max": 6,
     "ring_temporal_window_days": 7,
     "ring_value_inflation": 0.15,
     "ring_common_vehicle": true,
     "ring_common_directors": true,
+    "ring_difficulty": 0.6,
+    "ring_broken_share": 0.25,
+    "n_hard_negatives": 5,
     "anom_mix_missing_gstr1": 0.3,
     "anom_mix_missing_gstr3b": 0.15,
     "anom_mix_missing_tax": 0.1,
@@ -35,102 +39,168 @@
     "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
     "notes": ""
   },
-  "dataset_prep_sec": 0.426,
+  "dataset_prep_sec": 1.13,
   "headlines": {
-    "ring.recall": 1.0,
-    "ring.detected": 518.0,
+    "ring.average_precision": 0.9714,
+    "ring.f1_at_thresh": 0.769,
+    "ring.recoverability_recall": 1.0,
+    "ring.detected": 752.0,
     "reconcile.micro_f1": 0.961,
-    "reconcile.micro_precision": 0.934,
-    "reconcile.micro_recall": 0.989,
-    "risk.roc_auc": 0.937,
-    "risk.precision_at_50": 0.36,
-    "risk.precision_at_100": 0.34,
-    "embed.hit_at_10": 0.912,
-    "embed.cohesion_recall_at_10": 0.774
+    "reconcile.micro_precision": 0.935,
+    "reconcile.micro_recall": 0.988,
+    "risk.recon_auc": 0.887,
+    "risk.recon_p_at_50": 0.74,
+    "risk.ring_auc_circular": 0.892,
+    "embed.hit_at_10": 1.0,
+    "embed.cohesion_recall_at_10": 0.761,
+    "embed.structural_hit_at_10": 0.667
   },
   "benches": {
     "ring_recall": {
       "status": "ok",
-      "elapsed_sec": 1.003,
+      "elapsed_sec": 3.399,
       "report": {
         "config": {
           "n_gstins": 500,
           "months": 3,
-          "n_rings_planted": 8,
-          "seed": 42
+          "n_rings_planted": 12,
+          "seed": 42,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5
         },
         "counts": {
-          "edges": 3718,
-          "planted_rings": 8,
-          "detected_rings": 518,
-          "recovered_rings": 8,
+          "edges": 3749,
+          "planted_closed_rings": 10,
+          "planted_broken_rings": 2,
+          "hard_negatives": 5,
+          "detected_rings": 752,
+          "recovered_rings": 10,
           "missed_rings": 0,
-          "non_planted_detected": 510
+          "non_planted_detected": 742
         },
         "recall": 1.0,
+        "average_precision": 0.9714,
+        "at_threshold": {
+          "threshold": 0.45,
+          "recall": 1.0,
+          "precision": 0.625,
+          "f1": 0.769,
+          "rings_flagged": 16,
+          "negatives_flagged": 1
+        },
+        "threshold_sweep": [
+          {
+            "threshold": 0.35,
+            "recall": 1.0,
+            "precision": 0.07,
+            "f1": 0.132,
+            "rings_flagged": 142,
+            "negatives_flagged": 12
+          },
+          {
+            "threshold": 0.4,
+            "recall": 1.0,
+            "precision": 0.208,
+            "f1": 0.345,
+            "rings_flagged": 48,
+            "negatives_flagged": 4
+          },
+          {
+            "threshold": 0.45,
+            "recall": 1.0,
+            "precision": 0.625,
+            "f1": 0.769,
+            "rings_flagged": 16,
+            "negatives_flagged": 1
+          },
+          {
+            "threshold": 0.5,
+            "recall": 0.9,
+            "precision": 1.0,
+            "f1": 0.947,
+            "rings_flagged": 9,
+            "negatives_flagged": 0
+          },
+          {
+            "threshold": 0.55,
+            "recall": 0.4,
+            "precision": 1.0,
+            "f1": 0.571,
+            "rings_flagged": 4,
+            "negatives_flagged": 0
+          },
+          {
+            "threshold": 0.6,
+            "recall": 0.0,
+            "precision": 0.0,
+            "f1": 0.0,
+            "rings_flagged": 0,
+            "negatives_flagged": 0
+          }
+        ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.111,
-          "detect": 0.862
+          "load_csv": 0.219,
+          "detect": 3.098
         },
         "sample_recovered": [
           {
             "ring_id_truth": "RING-42-00000",
-            "ring_id_detected": "R-68383043e2e47603",
+            "ring_id_detected": "R-39fc83f3574b84c3",
             "members": [
-              "27CYFCE3784B1ZW",
-              "27KKRPO1560C1ZL",
-              "27IBZFN9011M1ZP",
-              "27GUTPJ9684R1ZR"
+              "27LASPQ0513O1ZB",
+              "27NFBAZ5557O1ZH",
+              "27VQTFY6237S1ZP"
             ],
-            "score": 0.593,
+            "score": 0.531,
             "signals": {
               "C": 1.0,
-              "V": 0.844,
-              "T": 0.967,
-              "R": 0.0,
-              "N": 0.75,
-              "H": 0.0
-            },
-            "size": 4
-          },
-          {
-            "ring_id_truth": "RING-42-00001",
-            "ring_id_detected": "R-9626249921b647d4",
-            "members": [
-              "27JYFCR8692K1ZH",
-              "27SVUCQ0632R1ZG",
-              "27TDTFF2214L1ZS"
-            ],
-            "score": 0.602,
-            "signals": {
-              "C": 1.0,
-              "V": 0.886,
+              "V": 0.958,
               "T": 0.978,
               "R": 0.0,
-              "N": 0.75,
+              "N": 0.25,
               "H": 0.0
             },
             "size": 3
           },
           {
-            "ring_id_truth": "RING-42-00002",
-            "ring_id_detected": "R-adc93a3132fa5dd8",
+            "ring_id_truth": "RING-42-00001",
+            "ring_id_detected": "R-56effa2f577e3e35",
             "members": [
-              "29BTTPB2495A1Z6",
-              "29DFIHA7802D1ZB",
-              "29FJXCW6381V1ZS",
-              "29LGDFP0871A1ZG",
-              "29JJCFK7469E1ZB",
-              "29UZDFV6245I1ZW"
+              "27CVYTO3745O1ZJ",
+              "27EGXFF3522S1Z1",
+              "27TDTFF2214L1ZS"
             ],
-            "score": 0.576,
+            "score": 0.511,
             "signals": {
               "C": 1.0,
-              "V": 0.763,
+              "V": 0.871,
               "T": 0.944,
               "R": 0.0,
-              "N": 0.75,
+              "N": 0.25,
+              "H": 0.0
+            },
+            "size": 3
+          },
+          {
+            "ring_id_truth": "RING-42-00004",
+            "ring_id_detected": "R-1a45966e165466fc",
+            "members": [
+              "09GVXTS3731V1Z9",
+              "09KOZFE5054V1ZE",
+              "09YFZPT4473N1ZR",
+              "09YCSFA5231Z1ZK",
+              "09JVUCQ6600N1Z5",
+              "09UPIFF2315B1Z8"
+            ],
+            "score": 0.533,
+            "signals": {
+              "C": 1.0,
+              "V": 0.801,
+              "T": 0.844,
+              "R": 0.0,
+              "N": 0.55,
               "H": 0.0
             },
             "size": 6
@@ -141,7 +211,7 @@
     },
     "reconcile_prf": {
       "status": "ok",
-      "elapsed_sec": 0.709,
+      "elapsed_sec": 0.978,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -154,13 +224,16 @@
           "avg_out_degree": 4.0,
           "degree_power_law": 2.2,
           "intra_state_pref": 0.7,
-          "n_rings": 8,
+          "n_rings": 12,
           "ring_size_min": 3,
           "ring_size_max": 6,
           "ring_temporal_window_days": 7,
           "ring_value_inflation": 0.15,
           "ring_common_vehicle": true,
           "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
           "anom_mix_missing_gstr1": 0.3,
           "anom_mix_missing_gstr3b": 0.15,
           "anom_mix_missing_tax": 0.1,
@@ -178,17 +251,17 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.17,
-          "reconcile": 0.515
+          "load_csv": 0.283,
+          "reconcile": 0.622
         },
         "counts": {
-          "events_emitted": 1436,
-          "planted_anomalies": 256,
-          "invoices": 3718
+          "events_emitted": 1440,
+          "planted_anomalies": 258,
+          "invoices": 3749
         },
         "micro": {
-          "precision": 0.934,
-          "recall": 0.989,
+          "precision": 0.935,
+          "recall": 0.988,
           "f1": 0.961
         },
         "per_outcome": {
@@ -203,14 +276,14 @@
             "n_detected": 44
           },
           "CANCELLED_SUPPLIER": {
-            "tp": 337,
+            "tp": 338,
             "fp": 0,
             "fn": 0,
             "precision": 1.0,
             "recall": 1.0,
             "f1": 1.0,
-            "n_planted": 337,
-            "n_detected": 337
+            "n_planted": 338,
+            "n_detected": 338
           },
           "DATE_MISMATCH": {
             "tp": 11,
@@ -223,14 +296,14 @@
             "n_detected": 11
           },
           "DUPLICATE": {
-            "tp": 13,
+            "tp": 10,
             "fp": 0,
             "fn": 0,
             "precision": 1.0,
             "recall": 1.0,
             "f1": 1.0,
-            "n_planted": 13,
-            "n_detected": 13
+            "n_planted": 10,
+            "n_detected": 10
           },
           "HSN_MISMATCH": {
             "tp": 4,
@@ -243,54 +316,54 @@
             "n_detected": 4
           },
           "MISSING_EWB": {
-            "tp": 16,
-            "fp": 21,
+            "tp": 17,
+            "fp": 20,
             "fn": 0,
-            "precision": 0.432,
+            "precision": 0.459,
             "recall": 1.0,
-            "f1": 0.604,
-            "n_planted": 16,
+            "f1": 0.63,
+            "n_planted": 17,
             "n_detected": 37
           },
           "MISSING_GSTR1": {
-            "tp": 649,
+            "tp": 651,
             "fp": 0,
             "fn": 0,
             "precision": 1.0,
             "recall": 1.0,
             "f1": 1.0,
-            "n_planted": 649,
-            "n_detected": 649
+            "n_planted": 651,
+            "n_detected": 651
           },
           "MISSING_GSTR3B": {
-            "tp": 214,
+            "tp": 215,
             "fp": 0,
             "fn": 2,
             "precision": 1.0,
             "recall": 0.991,
             "f1": 0.995,
-            "n_planted": 216,
-            "n_detected": 214
+            "n_planted": 217,
+            "n_detected": 215
           },
           "MISSING_TAX_PAYMENT": {
             "tp": 29,
             "fp": 0,
-            "fn": 7,
+            "fn": 8,
             "precision": 1.0,
-            "recall": 0.806,
-            "f1": 0.892,
-            "n_planted": 36,
+            "recall": 0.784,
+            "f1": 0.879,
+            "n_planted": 37,
             "n_detected": 29
           },
           "NEAR_DUPLICATE": {
-            "tp": 24,
+            "tp": 27,
             "fp": 37,
             "fn": 0,
-            "precision": 0.393,
+            "precision": 0.422,
             "recall": 1.0,
-            "f1": 0.565,
-            "n_planted": 24,
-            "n_detected": 61
+            "f1": 0.593,
+            "n_planted": 27,
+            "n_detected": 64
           },
           "NEAR_MATCH": {
             "tp": 0,
@@ -317,7 +390,7 @@
     },
     "risk_discrimination": {
       "status": "ok",
-      "elapsed_sec": 12.852,
+      "elapsed_sec": 4.2,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -330,13 +403,16 @@
           "avg_out_degree": 4.0,
           "degree_power_law": 2.2,
           "intra_state_pref": 0.7,
-          "n_rings": 8,
+          "n_rings": 12,
           "ring_size_min": 3,
           "ring_size_max": 6,
           "ring_temporal_window_days": 7,
           "ring_value_inflation": 0.15,
           "ring_common_vehicle": true,
           "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
           "anom_mix_missing_gstr1": 0.3,
           "anom_mix_missing_gstr3b": 0.15,
           "anom_mix_missing_tax": 0.1,
@@ -352,108 +428,49 @@
           "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
           "notes": ""
         },
+        "scorers": [
+          "reconcile",
+          "ring",
+          "rules",
+          "temporal"
+        ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.103,
-          "reconcile": 0.53,
-          "rings": 1.69,
-          "compose": 10.504
+          "load_csv": 0.227,
+          "reconcile": 0.595,
+          "rings": 2.901,
+          "compose": 0.368
         },
         "counts": {
           "gstins": 500,
-          "planted_ring_members": 34,
-          "detected_rings": 518,
-          "match_events": 1436
+          "planted_ring_members": 42,
+          "detected_rings": 752,
+          "match_events": 1440,
+          "recon_positives": 133
         },
-        "roc_auc": 0.937,
-        "precision_at_k": {
-          "10": 0.3,
-          "25": 0.32,
-          "50": 0.36,
-          "100": 0.34
+        "recon_auc": 0.887,
+        "ring_auc_circular": 0.892,
+        "recon_precision_at_k": {
+          "50": 0.74,
+          "100": 0.58
         },
         "band_histogram": {
-          "LOW": 471,
-          "MED": 28,
+          "LOW": 463,
+          "MED": 36,
           "HIGH": 1,
           "CRITICAL": 0
         },
         "score_summary": {
-          "median": 0.068,
-          "p90": 0.255,
-          "max": 0.555
+          "median": 0.0,
+          "p90": 0.256,
+          "max": 0.589
         },
-        "sample_top": [
-          {
-            "gstin_id": "24JEDFI3336V1ZL",
-            "score": 0.5551,
-            "band": "HIGH",
-            "planted": true,
-            "top_scorer": "reconcile",
-            "n_reasons": 6
-          },
-          {
-            "gstin_id": "27JAZCW4796N1ZH",
-            "score": 0.4553,
-            "band": "MED",
-            "planted": false,
-            "top_scorer": "reconcile",
-            "n_reasons": 8
-          },
-          {
-            "gstin_id": "27SVUCQ0632R1ZG",
-            "score": 0.4472,
-            "band": "MED",
-            "planted": true,
-            "top_scorer": "rings",
-            "n_reasons": 6
-          },
-          {
-            "gstin_id": "24GBTAB4263M1ZV",
-            "score": 0.4436,
-            "band": "MED",
-            "planted": false,
-            "top_scorer": "reconcile",
-            "n_reasons": 4
-          },
-          {
-            "gstin_id": "27VQTFY6237S1ZP",
-            "score": 0.4436,
-            "band": "MED",
-            "planted": true,
-            "top_scorer": "rings",
-            "n_reasons": 4
-          },
-          {
-            "gstin_id": "07PPQFJ0579X1ZT",
-            "score": 0.4301,
-            "band": "MED",
-            "planted": false,
-            "top_scorer": "reconcile",
-            "n_reasons": 8
-          },
-          {
-            "gstin_id": "06ATKCB0349U1ZR",
-            "score": 0.4085,
-            "band": "MED",
-            "planted": false,
-            "top_scorer": "reconcile",
-            "n_reasons": 3
-          },
-          {
-            "gstin_id": "06NMBPJ7434T1ZZ",
-            "score": 0.4027,
-            "band": "MED",
-            "planted": false,
-            "top_scorer": "reconcile",
-            "n_reasons": 5
-          }
-        ]
+        "note": "Composite is a triage aggregator. Standalone component discrimination is in benchmarks/ablation/risk_ablation.json. ring_auc_circular re-measures ring detection (RingScorer \u2248 the ring label) and is NOT independent evidence."
       }
     },
     "embed_lookalike": {
       "status": "ok",
-      "elapsed_sec": 3.531,
+      "elapsed_sec": 3.766,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -466,13 +483,16 @@
           "avg_out_degree": 4.0,
           "degree_power_law": 2.2,
           "intra_state_pref": 0.7,
-          "n_rings": 8,
+          "n_rings": 12,
           "ring_size_min": 3,
           "ring_size_max": 6,
           "ring_temporal_window_days": 7,
           "ring_value_inflation": 0.15,
           "ring_common_vehicle": true,
           "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
           "anom_mix_missing_gstr1": 0.3,
           "anom_mix_missing_gstr3b": 0.15,
           "anom_mix_missing_tax": 0.1,
@@ -497,57 +517,65 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.036,
-          "train_embed": 3.469
+          "load_csv": 0.049,
+          "train_embed": 3.677
         },
         "counts": {
-          "n_edges": 3718,
+          "n_edges": 3749,
           "n_indexed_gstins": 497,
-          "n_planted_rings": 8,
-          "n_planted_members": 34
+          "n_planted_rings": 10,
+          "n_planted_members": 42
         },
         "stats": {
           "n_nodes": 497,
           "n_indexed": 497,
           "n_walks": 7455,
           "n_pairs": 1640100,
-          "sppmi_density": 0.15467452602941592
+          "sppmi_density": 0.15805092122149395
         },
         "per_k": [
           {
             "k": 3,
-            "n_queries": 34,
-            "cohesion_recall_mean": 0.48,
-            "cohesion_recall_median": 0.333,
-            "hit_at_k": 0.824
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.5,
+            "cohesion_recall_median": 0.5,
+            "hit_at_k": 0.833,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.233
           },
           {
             "k": 5,
-            "n_queries": 34,
-            "cohesion_recall_mean": 0.515,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.588,
             "cohesion_recall_median": 0.5,
-            "hit_at_k": 0.853
+            "hit_at_k": 0.952,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.433
           },
           {
             "k": 10,
-            "n_queries": 34,
-            "cohesion_recall_mean": 0.774,
-            "cohesion_recall_median": 1.0,
-            "hit_at_k": 0.912
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.761,
+            "cohesion_recall_median": 0.9,
+            "hit_at_k": 1,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.667
           },
           {
             "k": 25,
-            "n_queries": 34,
-            "cohesion_recall_mean": 0.978,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.958,
             "cohesion_recall_median": 1.0,
-            "hit_at_k": 1
+            "hit_at_k": 1,
+            "structural_queries": 30,
+            "structural_hit_at_k": 1
           }
         ],
         "random_baseline_recall": {
           "3": 0.0,
           "5": 0.0,
           "10": 0.0,
-          "25": 0.036
+          "25": 0.034
         }
       }
     }

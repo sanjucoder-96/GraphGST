@@ -1,9 +1,11 @@
 interface Props {
   label: string;
   active?: boolean;
+  exhibit?: string;
   onClick?: () => void;
 }
 
+/* Reason chip — click to cross-highlight its evidence in the graph. */
 export function ReasonChip({ label, active, onClick }: Props) {
   return (
     <button
@@ -12,19 +14,24 @@ export function ReasonChip({ label, active, onClick }: Props) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        height: 18,
-        padding: '0 6px',
-        borderRadius: 2,
+        gap: 6,
+        padding: '4px 10px',
+        borderRadius: 'var(--r-full)',
         border: '1px solid',
-        borderColor: active ? 'var(--signal-lo)' : 'var(--border-solid-2)',
-        background: active ? 'var(--signal-veil)' : 'var(--card)',
-        color: active ? 'var(--signal)' : 'var(--text-muted)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        letterSpacing: '0.04em',
-        cursor: onClick ? 'pointer' : 'default'
+        borderColor: active ? 'var(--brand-line)' : 'var(--line-2)',
+        background: active ? 'var(--brand-dim)' : 'var(--bg-3)',
+        color: active ? 'var(--brand-2)' : 'var(--text-1)',
+        fontSize: 'var(--fs-xs)',
+        fontWeight: 450,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'border-color 120ms cubic-bezier(0.16,1,0.3,1), color 120ms cubic-bezier(0.16,1,0.3,1), background 120ms cubic-bezier(0.16,1,0.3,1)'
       }}
     >
+      <span style={{
+        width: 5, height: 5, borderRadius: '50%',
+        background: active ? 'var(--brand)' : 'var(--text-3)',
+        flexShrink: 0
+      }} />
       {label}
     </button>
   );

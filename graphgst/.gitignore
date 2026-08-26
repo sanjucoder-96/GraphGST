@@ -14,6 +14,7 @@ htmlcov/
 
 # Generated datasets — never commit synthetic output
 datagen_output/
+datagen_output*/
 *.parquet
 truth.json
 

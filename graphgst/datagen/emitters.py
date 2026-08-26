@@ -107,11 +107,19 @@ def emit(
         ],
     )
 
+    # Split ring truth by kind. Legacy entries have no `kind` → all closed
+    # rings. `planted_rings` stays the CLOSED-ring recall target; broken and
+    # hard-negative communities are recorded separately for FP measurement.
+    closed = [r for r in planted_rings if r.get("kind", "CLOSED_RING") == "CLOSED_RING"]
+    near = [r for r in planted_rings if r.get("kind") == "BROKEN_RING"]
+    hardneg = [r for r in planted_rings if r.get("kind") == "HARD_NEGATIVE"]
     truth = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "config": cfg.to_dict(),
         "counts": counts,
-        "planted_rings": planted_rings,
+        "planted_rings": closed,
+        "planted_near_rings": near,
+        "hard_negatives": hardneg,
         "planted_anomalies": planted_anomalies,
     }
     with open(p("truth.json"), "w", encoding="utf-8") as f:

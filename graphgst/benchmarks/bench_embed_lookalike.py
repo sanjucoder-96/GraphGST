@@ -60,12 +60,24 @@ def _load_edges(dir: str) -> list[dict]:
               "amount": float(r.get("taxable_value") or 0)} for r in rows]
 
 
-def _cohesion_at_k(index: LookalikeIndex, rings: list[dict], k: int) -> dict:
+def _cohesion_at_k(index: LookalikeIndex, rings: list[dict], k: int,
+                    adjacency: dict[str, set] | None = None) -> dict:
+    """Cohesion recall / hit@k over planted-ring members.
+
+    Two flavours (audit F3):
+      * adjacency   — do a member's top-K neighbours include ANY same-ring
+                      member? Ring members transact in a cycle so their cycle
+                      neighbours are 1-hop; this is largely an adjacency check.
+      * structural  — do the top-K include a same-ring member that is NOT a
+                      direct transaction counterparty (≥2 hops away in the
+                      cycle)? This isolates genuine structural similarity from
+                      trivial adjacency and is the HONEST lookalike claim.
+    """
+    adjacency = adjacency or {}
     per_member_recall: list[float] = []
     hit_flags: list[int] = []
-    all_ring_gstins: set[str] = set()
-    for r in rings:
-        all_ring_gstins.update(r.get("members") or [])
+    struct_hit_flags: list[int] = []
+    struct_queries = 0
 
     for r in rings:
         members = r.get("members") or []
@@ -73,15 +85,20 @@ def _cohesion_at_k(index: LookalikeIndex, rings: list[dict], k: int) -> dict:
             continue
         others = set(members)
         for m in members:
-            in_index = m in index.id_to_idx
-            if not in_index:
+            if m not in index.id_to_idx:
                 continue
-            neighbours = index.similar_to(m, k=k)
-            other_hits = {g for g, _ in neighbours} & (others - {m})
+            neighbours = {g for g, _ in index.similar_to(m, k=k)}
+            other_hits = neighbours & (others - {m})
             max_possible = min(k, len(others) - 1)
-            recall = len(other_hits) / max_possible if max_possible > 0 else 0.0
-            per_member_recall.append(recall)
+            per_member_recall.append(len(other_hits) / max_possible if max_possible else 0.0)
             hit_flags.append(1 if other_hits else 0)
+
+            # structural: co-members that are NOT direct transaction partners
+            direct = adjacency.get(m, set())
+            non_adjacent_comembers = (others - {m}) - direct
+            if non_adjacent_comembers:      # only rings with ≥1 non-adjacent co-member
+                struct_queries += 1
+                struct_hit_flags.append(1 if (neighbours & non_adjacent_comembers) else 0)
 
     if not per_member_recall:
         return {"k": k, "n_queries": 0}
@@ -91,6 +108,10 @@ def _cohesion_at_k(index: LookalikeIndex, rings: list[dict], k: int) -> dict:
         "cohesion_recall_mean": round(statistics.mean(per_member_recall), 3),
         "cohesion_recall_median": round(statistics.median(per_member_recall), 3),
         "hit_at_k": round(statistics.mean(hit_flags), 3),
+        # honest structural metric
+        "structural_queries": struct_queries,
+        "structural_hit_at_k": (round(statistics.mean(struct_hit_flags), 3)
+                                 if struct_hit_flags else None),
     }
 
 
@@ -136,8 +157,16 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str, k: int,
     t_train = time.perf_counter() - t2
     index = LookalikeIndex(ids=list(model.ids), matrix=model.matrix)
 
+    # Direct-transaction adjacency (both directions) for the structural metric.
+    adjacency: dict[str, set] = {}
+    for e in edges:
+        s, d = e.get("src"), e.get("dst")
+        if s and d:
+            adjacency.setdefault(s, set()).add(d)
+            adjacency.setdefault(d, set()).add(s)
+
     ks = [3, 5, 10, 25]
-    per_k = [_cohesion_at_k(index, planted_rings, k=kk) for kk in ks]
+    per_k = [_cohesion_at_k(index, planted_rings, k=kk, adjacency=adjacency) for kk in ks]
     baselines = {kk: _random_baseline(list(model.ids), planted_rings,
                                          k=kk, seed=cfg.seed) for kk in ks}
 

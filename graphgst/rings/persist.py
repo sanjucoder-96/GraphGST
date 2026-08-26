@@ -106,11 +106,15 @@ RETURN r.ring_id        AS ring_id,
        n_members,
        n_invoices,
        members,
-       r.detected_at    AS detected_at,
-       r.last_scored_at AS last_scored_at
+       toString(r.detected_at)    AS detected_at,
+       toString(r.last_scored_at) AS last_scored_at
 ORDER BY r.score DESC, r.detected_at DESC
 """
 
+# Neo4j temporal values (neo4j.time.DateTime/Date) are NOT JSON-serializable by
+# FastAPI/Pydantic. `r{.*}` would splat the raw `detected_at` / `last_scored_at`
+# / `break_edge_computed_at` DateTimes into the response and 500 the endpoint.
+# Override those keys with toString() so the projection is pure JSON scalars.
 GET_RING_CQL = """
 MATCH (r:Ring {ring_id: $ring_id})
 OPTIONAL MATCH (r)-[:INCLUDES]->(g:GSTIN)
@@ -118,7 +122,12 @@ OPTIONAL MATCH (r)-[:CONTAINS]->(i:Invoice)
 WITH r,
      collect(DISTINCT g.gstin_id) AS members,
      collect(DISTINCT i.invoice_id) AS invoices
-RETURN r{.*, members: members, invoices: invoices} AS ring
+RETURN r{.*,
+         detected_at: toString(r.detected_at),
+         last_scored_at: toString(r.last_scored_at),
+         break_edge_computed_at: toString(r.break_edge_computed_at),
+         members: members,
+         invoices: invoices} AS ring
 """
 
 SEEN_MEMBERS_CQL = (
