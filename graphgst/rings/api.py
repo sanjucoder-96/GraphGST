@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
+
+from security import require_admin as _require_admin
 
 from .engine import EngineConfig, run_pipeline
 
@@ -22,8 +24,13 @@ class DetectRequest(BaseModel):
     window_days: int = Field(30, ge=1, le=365)
     weights: Optional[Dict[str, float]] = Field(None)
     use_gds: bool = True
-    persist: bool = True
-    propagate: bool = True
+    # Write flags default to FALSE. Both `persist` (writes Ring/Break nodes) and
+    # `propagate` (writes ring_propagated_score) mutate Neo4j; an earlier version
+    # defaulted both to True with NO auth on this route, so an unauthenticated
+    # POST wrote to the graph. Detection-for-display now needs no token; writing
+    # requires the admin token (see the guard in detect_rings, and docs/SECURITY.md).
+    persist: bool = False
+    propagate: bool = False
     horizon_days: Optional[int] = Field(None)
 
 
@@ -42,7 +49,14 @@ class DetectedRingOut(BaseModel):
 
 
 @router.post("/detect", response_model=List[DetectedRingOut])
-def detect_rings(req: DetectRequest) -> List[DetectedRingOut]:
+def detect_rings(
+    req: DetectRequest,
+    x_admin_token: str = Header(default=""),
+) -> List[DetectedRingOut]:
+    # Any Neo4j-mutating run must be authenticated; a pure read (the default,
+    # and what the frontend sends) is open.
+    if req.persist or req.propagate:
+        _require_admin(x_admin_token=x_admin_token)
     cfg = EngineConfig(
         hop_max=req.hop_max,
         window_days=req.window_days,

@@ -1,0 +1,250 @@
+{
+  "generated_at": "2026-08-26T15:04:06.578121+00:00",
+  "cfg": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 8,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "ring_difficulty": 0.0,
+    "ring_broken_share": 0.0,
+    "n_hard_negatives": 0,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "D:\\GraphGST\\graphgst\\demo\\artifacts",
+    "notes": ""
+  },
+  "counts": {
+    "gstins": 500,
+    "invoices": 3718,
+    "gstr1": 1051,
+    "gstr3b": 1094,
+    "gstr2b": 1196,
+    "taxpayments": 1105,
+    "planted_rings": 8,
+    "planted_anomalies": 256
+  },
+  "planted_rings": [
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00000",
+      "size": 4,
+      "members": [
+        "27IBZFN9011M1ZP",
+        "27GUTPJ9684R1ZR",
+        "27CYFCE3784B1ZW",
+        "27KKRPO1560C1ZL"
+      ],
+      "invoices": [
+        "INV-202406-RING-000-00",
+        "INV-202406-RING-000-01",
+        "INV-202406-RING-000-02",
+        "INV-202406-RING-000-03"
+      ],
+      "hsn": "2202",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 3,
+      "common_vehicle": "TN84WC2559",
+      "shared_director": "DIR-500000-Meera-Kumar",
+      "total_ring_gst": 219229.14,
+      "closure_start_date": "2024-06-19"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00001",
+      "size": 3,
+      "members": [
+        "27SVUCQ0632R1ZG",
+        "27TDTFF2214L1ZS",
+        "27JYFCR8692K1ZH"
+      ],
+      "invoices": [
+        "INV-202406-RING-001-00",
+        "INV-202406-RING-001-01",
+        "INV-202406-RING-001-02"
+      ],
+      "hsn": "2901",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 2,
+      "common_vehicle": "WB44HU9033",
+      "shared_director": "DIR-500001-Neha-Sharma",
+      "total_ring_gst": 120342.96,
+      "closure_start_date": "2024-06-21"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00002",
+      "size": 6,
+      "members": [
+        "29JJCFK7469E1ZB",
+        "29UZDFV6245I1ZW",
+        "29BTTPB2495A1Z6",
+        "29DFIHA7802D1ZB",
+        "29FJXCW6381V1ZS",
+        "29LGDFP0871A1ZG"
+      ],
+      "invoices": [
+        "INV-202406-RING-002-00",
+        "INV-202406-RING-002-01",
+        "INV-202406-RING-002-02",
+        "INV-202406-RING-002-03",
+        "INV-202406-RING-002-04",
+        "INV-202406-RING-002-05"
+      ],
+      "hsn": "1006",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 5,
+      "common_vehicle": "BR48HW8243",
+      "shared_director": "DIR-500002-Rahul-Singh",
+      "total_ring_gst": 204399.8,
+      "closure_start_date": "2024-06-13"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00003",
+      "size": 4,
+      "members": [
+        "27CFIFF7982J1ZR",
+        "27VQTFY6237S1ZP",
+        "27XAUTC0732P1Z3",
+        "27GZIAY7111W1ZD"
+      ],
+      "invoices": [
+        "INV-202406-RING-003-00",
+        "INV-202406-RING-003-01",
+        "INV-202406-RING-003-02",
+        "INV-202406-RING-003-03"
+      ],
+      "hsn": "7208",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 3,
+      "common_vehicle": "OR19BE6588",
+      "shared_director": "DIR-500003-Priya-Iyer",
+      "total_ring_gst": 198276.93,
+      "closure_start_date": "2024-06-14"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00004",
+      "size": 5,
+      "members": [
+        "09QPFCK0732L1Z3",
+        "09EZXPG8719Y1ZG",
+        "09RKICV4720N1ZC",
+        "09TXKTW5785U1ZK",
+        "09OIQPJ6732S1Z3"
+      ],
+      "invoices": [
+        "INV-202406-RING-004-00",
+        "INV-202406-RING-004-01",
+        "INV-202406-RING-004-02",
+        "INV-202406-RING-004-03",
+        "INV-202406-RING-004-04"
+      ],
+      "hsn": "9401",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 4,
+      "common_vehicle": "BR74JI2847",
+      "shared_director": "DIR-500004-Seema-Verma",
+      "total_ring_gst": 174034.34,
+      "closure_start_date": "2024-06-15"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00005",
+      "size": 3,
+      "members": [
+        "27YAECF3249W1ZU",
+        "27SORFI8209J1Z3",
+        "27QTFAF9956R1ZH"
+      ],
+      "invoices": [
+        "INV-202405-RING-005-00",
+        "INV-202406-RING-005-01",
+        "INV-202406-RING-005-02"
+      ],
+      "hsn": "4820",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 2,
+      "common_vehicle": "MP11NZ7356",
+      "shared_director": "DIR-500005-Ravi-Reddy",
+      "total_ring_gst": 95424.3,
+      "closure_start_date": "2024-05-31"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00006",
+      "size": 3,
+      "members": [
+        "24JEDFI3336V1ZL",
+        "24NGWFQ7715P1ZQ",
+        "24TBUFR4129T1ZN"
+      ],
+      "invoices": [
+        "INV-202406-RING-006-00",
+        "INV-202406-RING-006-01",
+        "INV-202406-RING-006-02"
+      ],
+      "hsn": "9401",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 2,
+      "common_vehicle": "MP58GI6744",
+      "shared_director": "DIR-500006-Sanjay-Khan",
+      "total_ring_gst": 32377.59,
+      "closure_start_date": "2024-06-19"
+    },
+    {
+      "type": "RING",
+      "ring_id": "RING-42-00007",
+      "size": 6,
+      "members": [
+        "29EYQCT9955B1ZZ",
+        "29SSDPP8685A1Z3",
+        "29EQHPG8661U1ZZ",
+        "29WTLCZ1329T1ZY",
+        "29GXHCM2055Y1ZV",
+        "29SJSCO0270L1ZC"
+      ],
+      "invoices": [
+        "INV-202406-RING-007-00",
+        "INV-202406-RING-007-01",
+        "INV-202406-RING-007-02",
+        "INV-202406-RING-007-03",
+        "INV-202406-RING-007-04",
+        "INV-202406-RING-007-05"
+      ],
+      "hsn": "2901",
+      "hop_inflation": 0.15,
+      "temporal_window_days": 5,
+      "common_vehicle": "HR37VJ2281",
+      "shared_director": "DIR-500007-Anil-Nair",
+      "total_ring_gst": 315554.76,
+      "closure_start_date": "2024-06-06"
+    }
+  ],
+  "artifact_dir": "D:\\GraphGST\\graphgst\\demo\\artifacts",
+  "neo4j_loaded": false,
+  "neo4j_error": "skipped by caller"
+}

@@ -9,12 +9,12 @@ interface Props {
   onPreview?: (invoiceId: string | null) => void;
 }
 
-// OKLCH-ish blend along amber for score_drop 0..1 (approximated in linear sRGB
-// so we don't depend on a color library).
+// Blend neutral → brand-blue by score_drop magnitude. Higher drop =
+// more impactful cut = stronger brand emphasis. sRGB lerp, no dependency.
 function edgeColor(drop: number): string {
   const t = Math.max(0, Math.min(1, drop / 0.35));
-  const lo = [0x3a, 0x40, 0x48]; // #3a4048
-  const hi = [0xf2, 0xa6, 0x3a]; // #f2a63a
+  const lo = [0x35, 0x43, 0x5a]; // line-3
+  const hi = [0x4f, 0x80, 0xff]; // brand
   const rgb = lo.map((v, i) => Math.round(v + t * (hi[i]! - v)));
   return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
 }
@@ -136,7 +136,7 @@ export function BreakSimulator({ ring, onPreview }: Props) {
                   padding: '4px 8px',
                   cursor: 'pointer',
                   color: 'var(--text)',
-                  background: activeIdx === i ? 'rgba(242,166,58,0.06)' : 'transparent',
+                  background: activeIdx === i ? 'var(--brand-dim)' : 'transparent',
                   borderBottom: '1px solid var(--border-solid)',
                   fontFamily: 'var(--font-mono)',
                   fontSize: 'var(--fs-body)'

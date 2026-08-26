@@ -107,8 +107,11 @@ def _truncated_svd(M: np.ndarray, dim: int, seed: int = 42) -> np.ndarray:
     if V == 0:
         return np.zeros((0, dim), dtype=np.float32)
     dim = int(min(dim, V - 1)) if V >= 2 else 1
-    # Deterministic randomised SVD for speed. For V ≤ 5000 this is a
-    # rounding error, but caps memory nicely at larger scale.
+    # Exact truncated SVD (numpy.linalg.svd, full_matrices=False) — deterministic
+    # and, for the V ≤ few-thousand graphs here, fast enough. The embedding is
+    # U[:, :dim] · sqrt(s[:dim]), the standard symmetric factorization of the
+    # SPPMI matrix (Levy-Goldberg). A Gaussian random projection is used ONLY as
+    # a fallback if SVD ever fails to converge.
     try:
         from numpy.linalg import svd
         U, s, _Vt = svd(M, full_matrices=False)

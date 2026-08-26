@@ -593,6 +593,57 @@ function buildGraphFromRings(rings: ReadonlyArray<Ring>): GraphPayload {
 
 export const MOCK_GRAPH: GraphPayload = buildGraphFromRings([RING_1, RING_2, RING_3]);
 
+// ---- Lookalike (Phase 5) ------------------------------------------------
+// DEMO fixture keyed by GSTIN. Numbers below for the four hero members
+// come from the real embedding run — see demo/scenario.py and
+// benchmarks/bench_embed_lookalike.py. Every other GSTIN falls through to
+// a deterministic per-GSTIN top-5 derived from MOCK_GSTINS.
+import type { LookalikeResp } from '../types/domain';
+
+const HERO_LOOKALIKE: Record<string, LookalikeResp> = {
+  '27IBZFN9011M1ZP': { gstin_id: '27IBZFN9011M1ZP', k: 5, neighbours: [
+    { gstin_id: '27AXTPK7535K1ZC', similarity: 0.894 },
+    { gstin_id: '27KKRPO1560C1ZL', similarity: 0.844 }, // HERO MEMBER
+    { gstin_id: '27NFBAZ5557O1ZH', similarity: 0.762 },
+    { gstin_id: '27JYFCR8692K1ZH', similarity: 0.750 },
+    { gstin_id: '27QYDPQ2629I1ZX', similarity: 0.746 },
+  ]},
+  '27GUTPJ9684R1ZR': { gstin_id: '27GUTPJ9684R1ZR', k: 5, neighbours: [
+    { gstin_id: '27CYFCE3784B1ZW', similarity: 0.804 }, // HERO MEMBER
+    { gstin_id: '32IZOPP6207G1Z6', similarity: 0.799 },
+    { gstin_id: '27IOKFK8173Q1ZX', similarity: 0.716 },
+    { gstin_id: '27ILPFQ2284A1ZV', similarity: 0.692 },
+    { gstin_id: '27AVDPY3419Y1Z5', similarity: 0.669 },
+  ]},
+  '27CYFCE3784B1ZW': { gstin_id: '27CYFCE3784B1ZW', k: 5, neighbours: [
+    { gstin_id: '27SORFI8209J1Z3', similarity: 0.808 },
+    { gstin_id: '27GUTPJ9684R1ZR', similarity: 0.804 }, // HERO MEMBER
+    { gstin_id: '27DIZFU9259W1ZH', similarity: 0.727 },
+    { gstin_id: '27KKRPO1560C1ZL', similarity: 0.725 }, // HERO MEMBER
+    { gstin_id: '27AVDPY3419Y1Z5', similarity: 0.723 },
+  ]},
+  '27KKRPO1560C1ZL': { gstin_id: '27KKRPO1560C1ZL', k: 5, neighbours: [
+    { gstin_id: '06OILFR1010I1Z9', similarity: 0.861 },
+    { gstin_id: '27IBZFN9011M1ZP', similarity: 0.844 }, // HERO MEMBER
+    { gstin_id: '27QYDPQ2629I1ZX', similarity: 0.750 },
+    { gstin_id: '27JYFCR8692K1ZH', similarity: 0.731 },
+    { gstin_id: '27AXTPK7535K1ZC', similarity: 0.726 },
+  ]},
+};
+
+export function lookMockFor(gstin: string, k: number): LookalikeResp {
+  const hit = HERO_LOOKALIKE[gstin];
+  if (hit) return { ...hit, k, neighbours: hit.neighbours.slice(0, k) };
+  // Deterministic fallback: pick K other GSTINs from the demo pool
+  const others = MOCK_GSTINS.filter(g => g.id !== gstin).slice(0, k);
+  return {
+    gstin_id: gstin, k,
+    neighbours: others.map((o, i) => ({
+      gstin_id: o.id, similarity: Math.max(0.35, 0.85 - i * 0.05),
+    })),
+  };
+}
+
 // ---- Model card (Phase 7) -----------------------------------------------
 // DEMO fixture — mirrors the exact shape of /api/benchmarks/model-card.
 // Numbers seeded from benchmarks/baseline.json so the UI shows a real
@@ -606,46 +657,47 @@ export const MOCK_MODEL_CARD: ModelCard = {
   tolerance_abs: 0.02,
   overall_pass: true,
   cards: [
-    { module: 'rings', metric: 'ring.recall',
-      headline: 'Ring member-multiset recall',
-      value: 1.000, baseline: 1.000, delta: 0.000, status: 'UNCHANGED',
+    { module: 'rings', metric: 'ring.average_precision',
+      headline: 'Ring detection — Average Precision',
+      value: 0.971, baseline: 0.971, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio',
-      notes: 'Fraction of planted rings recovered by SCC → Johnson pipeline.' },
+      notes: 'Threshold-free ranking quality on HARD data (dropped tells, broken near-rings, legit-cycle negatives).' },
+    { module: 'rings', metric: 'ring.f1_at_thresh',
+      headline: 'Ring detection F1 @0.45',
+      value: 0.769, baseline: 0.769, delta: 0.000, status: 'UNCHANGED',
+      unit: 'ratio',
+      notes: 'F1 at the fixed 0.45 prior (not eval-tuned). At 0.50: precision 1.0 / recall 0.9.' },
     { module: 'reconcile', metric: 'reconcile.micro_f1',
       headline: 'Reconciliation micro-F1',
       value: 0.961, baseline: 0.961, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio',
       notes: 'Cascade-aware match of MatchEvent outcomes to planted anomalies.' },
     { module: 'reconcile', metric: 'reconcile.micro_precision',
-      headline: 'Precision',
-      value: 0.934, baseline: 0.934, delta: 0.000, status: 'UNCHANGED',
+      headline: 'Reconciliation precision',
+      value: 0.935, baseline: 0.935, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio', notes: '' },
     { module: 'reconcile', metric: 'reconcile.micro_recall',
-      headline: 'Recall',
-      value: 0.989, baseline: 0.989, delta: 0.000, status: 'UNCHANGED',
+      headline: 'Reconciliation recall',
+      value: 0.988, baseline: 0.988, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio', notes: '' },
-    { module: 'risk', metric: 'risk.roc_auc',
-      headline: 'Composed risk ROC-AUC',
-      value: 0.937, baseline: 0.937, delta: 0.000, status: 'UNCHANGED',
+    { module: 'risk', metric: 'risk.recon_auc',
+      headline: 'Composed risk — ROC-AUC (ring-independent)',
+      value: 0.887, baseline: 0.887, delta: 0.000, status: 'UNCHANGED',
       unit: 'auc',
-      notes: 'Binary rank task: is this GSTIN a planted ring member?' },
-    { module: 'risk', metric: 'risk.precision_at_50',
-      headline: 'Risk Precision@50',
-      value: 0.360, baseline: 0.360, delta: 0.000, status: 'UNCHANGED',
+      notes: 'Ranks GSTINs by composed risk against a ring-INDEPENDENT reconciliation-anomaly label. The circular ring-membership AUC is not gated.' },
+    { module: 'risk', metric: 'risk.recon_p_at_50',
+      headline: 'Risk Precision@50 (ring-independent)',
+      value: 0.740, baseline: 0.740, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio',
-      notes: 'Of the top-50 ranked GSTINs, fraction that are planted ring members.' },
-    { module: 'risk', metric: 'risk.precision_at_100',
-      headline: 'Risk Precision@100',
-      value: 0.340, baseline: 0.340, delta: 0.000, status: 'UNCHANGED',
-      unit: 'ratio', notes: '' },
-    { module: 'embed', metric: 'embed.hit_at_10',
-      headline: 'Lookalike Hit@10',
-      value: 0.912, baseline: 0.912, delta: 0.000, status: 'UNCHANGED',
+      notes: 'Of the top-50 GSTINs by composed risk, fraction that are true reconciliation-anomaly suppliers.' },
+    { module: 'embed', metric: 'embed.structural_hit_at_10',
+      headline: 'Lookalike structural Hit@10',
+      value: 0.667, baseline: 0.667, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio',
-      notes: 'For each planted ring member, does its top-10 lookalike list contain ≥ 1 OTHER member of the same ring?' },
+      notes: 'Top-10 contains a same-ring member that is NOT a direct transaction partner (≥2 hops). Isolates similarity from adjacency.' },
     { module: 'embed', metric: 'embed.cohesion_recall_at_10',
-      headline: 'Lookalike Cohesion Recall@10',
-      value: 0.774, baseline: 0.774, delta: 0.000, status: 'UNCHANGED',
+      headline: 'Lookalike cohesion recall@10',
+      value: 0.761, baseline: 0.761, delta: 0.000, status: 'UNCHANGED',
       unit: 'ratio',
       notes: 'Mean fraction of a ring\'s other members appearing in each member\'s top-10 lookalikes.' }
   ]

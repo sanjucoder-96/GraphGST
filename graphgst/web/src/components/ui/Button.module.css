@@ -1,63 +1,64 @@
+/* Button system — SIGNAL.
+   default: subtle surface · primary: brand-filled · signal: brand outline
+   · ghost: minimal. */
+
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  height: 24px;
-  padding: 0 var(--sp-4);
-  border-radius: var(--r-chip);
-  border: 1px solid var(--border-solid-2);
-  background: var(--card);
-  color: var(--text);
-  font-size: var(--fs-body);
+  justify-content: center;
+  gap: var(--sp-3);
+  height: 32px;
+  padding: 0 var(--sp-5);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-2);
+  background: var(--bg-3);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: 0.02em;
-  transition: background 80ms ease-out, border-color 80ms ease-out, color 80ms ease-out;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.btn:hover  { background: var(--elevated); border-color: #333b48; }
-.btn:active { background: #191e28; }
+.btn:hover  { background: var(--bg-4); border-color: var(--line-3); color: var(--text-0); }
+.btn:active { transform: translateY(0.5px); }
 .btn:disabled {
-  color: var(--text-dim);
-  background: var(--panel);
+  color: var(--text-4);
+  background: var(--bg-2);
   cursor: not-allowed;
-  border-color: var(--border-solid);
-}
-.btn:focus-visible {
-  border-color: var(--signal);
-  outline: none;
+  border-color: var(--line-1);
 }
 
-/* Primary — the standard CTA. Elevated surface, strong text, 1px neutral rail.
-   No amber: amber is reserved for the single per-screen action tied to a live
-   signal (accepting the recommended break-edge). */
+/* Primary — brand-filled CTA */
 .primary {
-  background: var(--elevated);
-  border-color: var(--border-solid-2);
-  color: var(--text-strong);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 0 0 1px rgba(79,128,255,0.2) inset;
 }
-.primary:hover { background: #232936; border-color: #333b48; }
+.primary:hover { background: var(--brand-2); border-color: var(--brand-2); color: #fff; }
+.primary:disabled { background: var(--brand); opacity: 0.4; }
 
-/* Signal — the loud amber variant. Use only on a per-screen action tied to a
-   live signal, e.g. accepting the recommended break-edge on the counterfactual
-   tab. Do NOT use as a default CTA. */
+/* Signal — brand outline, secondary emphasis on a live action */
 .signal {
-  background: transparent;
-  border-color: var(--signal-lo);
-  color: var(--signal);
+  background: var(--brand-dim);
+  border-color: var(--brand-line);
+  color: var(--brand-2);
 }
-.signal:hover { background: var(--signal-veil); border-color: var(--signal); }
+.signal:hover { background: rgba(79,128,255,0.18); border-color: var(--brand); color: var(--brand-3); }
 
 .ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--text-muted);
+  color: var(--text-2);
 }
-.ghost:hover { color: var(--text); background: var(--row-hover); }
+.ghost:hover { color: var(--text-0); background: var(--bg-3); }
 
-.sm { height: 20px; padding: 0 var(--sp-3); font-size: var(--fs-micro); }
-.lg { height: 28px; padding: 0 var(--sp-5); font-size: var(--fs-strong); }
+.sm { height: 28px; padding: 0 var(--sp-4); font-size: var(--fs-sm); }
+.lg { height: 36px; padding: 0 var(--sp-6); font-size: var(--fs-md); }
 
 .icon {
-  width: 24px;
+  width: 32px;
   padding: 0;
-  justify-content: center;
 }

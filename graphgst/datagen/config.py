@@ -39,6 +39,22 @@ class GenerationConfig:
     ring_common_vehicle: bool = True     # all EWBs use the same vehicle number
     ring_common_directors: bool = True   # ring members share Director nodes
 
+    # ── difficulty / realism (default 0 → legacy easy rings, demo-stable) ──
+    # ring_difficulty ∈ [0,1]. 0 keeps the exact legacy planter (perfect
+    # closure + shared vehicle + shared director + 1-day hops + geometric
+    # inflation) so the reproducible demo is byte-stable. >0 assigns each
+    # ring a random profile that DROPS tells: shared vehicle/director are
+    # kept only with prob (1-difficulty), timing is jittered, amounts get
+    # multiplicative noise. Detection then has to actually work.
+    ring_difficulty: float = 0.0
+    # Fraction of planted rings that do NOT close (broken / near-rings).
+    # These are ground-truthed separately and must NOT be recovered as
+    # closed rings — they test false-positive control.
+    ring_broken_share: float = 0.0
+    # Dense-but-legitimate communities (no closed cycle) planted as HARD
+    # NEGATIVES. A detector flagging them is a false positive.
+    n_hard_negatives: int = 0
+
     # ── reconciliation anomaly mix (conditional on recon_issue_share) ────
     anom_mix_missing_gstr1: float = 0.30
     anom_mix_missing_gstr3b: float = 0.15

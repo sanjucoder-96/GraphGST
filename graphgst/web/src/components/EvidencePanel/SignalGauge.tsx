@@ -5,77 +5,82 @@ interface Props {
   value: number;      // 0..1
   onClick?: () => void;
   active?: boolean;
-  isMax?: boolean;    // amber notch reserved for the highest-value signal
+  isMax?: boolean;    // brand emphasis on the dominant signal
 }
 
 const LABEL: Record<SignalKey, string> = {
   C: 'Closure',
-  V: 'Value',
+  V: 'Value parity',
   T: 'Temporal',
   R: 'Recurrence',
   N: 'Network',
-  H: 'Prior'
+  H: 'Prior history'
 };
 
-// Signal strength is encoded by BAR LENGTH, not hue. This keeps the six
-// signals reading as a compact meter row instead of a rainbow of donuts,
-// and stays inside the amber budget: the single highest-value signal in
-// the row gets a 2px amber notch at its right edge — nothing else does.
+/* One row of the risk decomposition. Full-width horizontal meter:
+   label · track · value. The dominant signal is emphasised in brand;
+   others use a neutral fill. Clicking filters the graph to that signal's
+   evidence (handled by the parent). */
 export function SignalGauge({ k, value, onClick, active, isMax }: Props) {
   const clamped = Math.max(0, Math.min(1, value));
-  const width = 44; // matches meter width in px
-  const filled = Math.round(clamped * width);
+  const pct = Math.round(clamped * 100);
+  const fill = isMax ? 'var(--brand)' : 'var(--text-3)';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      title={`${LABEL[k]}: ${(value * 100).toFixed(1)}%`}
+      title={`${LABEL[k]}: ${pct}%`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 4,
-        padding: 6,
-        background: active ? 'var(--card)' : 'transparent',
-        border: '1px solid',
-        borderColor: active ? 'var(--border-solid-2)' : 'transparent',
-        borderRadius: 2,
+        display: 'grid',
+        gridTemplateColumns: '96px 1fr 40px',
+        alignItems: 'center',
+        gap: 12,
+        padding: '5px 8px',
+        margin: '0 -8px',
+        background: active ? 'var(--brand-dim)' : 'transparent',
+        border: 0,
+        borderRadius: 6,
         cursor: onClick ? 'pointer' : 'default',
-        width: '100%'
+        width: 'calc(100% + 16px)',
+        transition: 'background 120ms cubic-bezier(0.16,1,0.3,1)'
       }}
     >
-      <div style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        justifyContent: 'space-between',
-        width: '100%',
-        gap: 6
+      <span style={{
+        fontSize: 'var(--fs-sm)',
+        color: isMax ? 'var(--text-0)' : 'var(--text-2)',
+        fontWeight: isMax ? 500 : 450,
+        textAlign: 'left',
+        letterSpacing: '-0.01em'
+      }}>{LABEL[k]}</span>
+
+      <span style={{
+        position: 'relative',
+        height: 6,
+        borderRadius: 3,
+        background: 'var(--bg-4)',
+        overflow: 'hidden',
+        display: 'block'
       }}>
         <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
-          fontWeight: 500,
-          color: 'var(--text-strong)',
-          letterSpacing: '0.04em'
-        }}>{k}</span>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: 'var(--text-dim)',
-          fontVariantNumeric: 'tabular-nums'
-        }}>{value.toFixed(2)}</span>
-      </div>
-      <svg width={width + 2} height={14} viewBox={`0 0 ${width + 2} 14`} aria-hidden style={{ display: 'block' }}>
-        {/* Track */}
-        <rect x={0} y={6} width={width} height={2} rx={1} fill="rgba(255,255,255,0.10)" />
-        {/* Meter */}
-        <rect x={0} y={6} width={filled} height={2} rx={1} fill="var(--text-muted)" />
-        {/* Amber notch — only for the highest-value signal in the row */}
-        {isMax && (
-          <rect x={Math.max(0, filled - 2)} y={2} width={2} height={10} fill="var(--signal)" />
-        )}
-      </svg>
+          position: 'absolute',
+          inset: 0,
+          width: `${pct}%`,
+          background: fill,
+          borderRadius: 3,
+          boxShadow: isMax ? '0 0 8px var(--brand-glow)' : 'none',
+          transition: 'width 320ms cubic-bezier(0.16,1,0.3,1)'
+        }} />
+      </span>
+
+      <span style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--fs-num-sm)',
+        color: isMax ? 'var(--brand-2)' : 'var(--text-2)',
+        fontVariantNumeric: 'tabular-nums',
+        textAlign: 'right',
+        letterSpacing: '-0.03em'
+      }}>{value.toFixed(2)}</span>
     </button>
   );
 }

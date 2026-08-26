@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 interface Props { children: ReactNode; }
 
-// Compact keyboard-hint chip. Used inline in menus, palette hints, tooltips.
+/* Keyboard hint chip. */
 export function KBD({ children }: Props) {
   return (
     <span
@@ -11,15 +11,16 @@ export function KBD({ children }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
         minWidth: 18,
-        height: 16,
-        padding: '0 4px',
+        height: 18,
+        padding: '0 5px',
         fontFamily: 'var(--font-mono)',
-        fontSize: 'var(--fs-chrome)',
-        lineHeight: '12px',
-        color: 'var(--text-muted)',
-        background: 'var(--card)',
-        border: '1px solid var(--border-solid)',
-        borderRadius: 2,
+        fontSize: 10,
+        fontWeight: 500,
+        lineHeight: 1,
+        color: 'var(--text-2)',
+        background: 'var(--bg-3)',
+        border: '1px solid var(--line-2)',
+        borderRadius: 'var(--r-xs)',
         letterSpacing: 0
       }}
     >

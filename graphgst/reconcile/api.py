@@ -23,12 +23,7 @@ from .engine import ReconcileConfig, run_reconcile
 router = APIRouter()
 
 
-def _require_admin(x_admin_token: str = Header(default="")) -> None:
-    expected = os.environ.get("ADMIN_TOKEN", "")
-    if not expected:
-        raise HTTPException(503, "ADMIN_TOKEN not configured; persist=true disabled")
-    if not x_admin_token or x_admin_token != expected:
-        raise HTTPException(401, "X-Admin-Token required")
+from security import require_admin as _require_admin
 
 
 class RunBody(BaseModel):

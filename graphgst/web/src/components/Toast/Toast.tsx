@@ -1,22 +1,20 @@
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, Info, XCircle } from 'lucide-react';
 import { useStore } from '../../lib/store';
 
-// Toasts appear and dismiss WITHOUT animation. The design rationale
-// enumerates four sanctioned motion moments — toast isn't one of them.
-// A coloured 2px left border encodes kind; dismissal is on click or after 6s
-// via the auto-expire timer set at push time in the store.
+/* Modern toast — icon + title + optional mono body. Coloured accent by
+   kind. Dismiss on click or after 6s (timer set at push time). */
 
 export function ToastStack() {
   const toasts = useStore(s => s.toasts);
   const dismiss = useStore(s => s.dismissToast);
 
-  const colorFor = (k: string): string => {
+  const meta = (k: string) => {
     switch (k) {
-      case 'ok':   return 'var(--ok)';
-      case 'warn': return 'var(--signal)';
-      case 'bad':  return 'var(--bad)';
-      default:     return 'var(--info)';
+      case 'ok':   return { color: 'var(--ok)',   icon: <CheckCircle2 size={15} strokeWidth={2} /> };
+      case 'warn': return { color: 'var(--warn)', icon: <AlertTriangle size={15} strokeWidth={2} /> };
+      case 'bad':  return { color: 'var(--bad)',  icon: <XCircle size={15} strokeWidth={2} /> };
+      default:     return { color: 'var(--brand-2)', icon: <Info size={15} strokeWidth={2} /> };
     }
   };
 
@@ -24,48 +22,62 @@ export function ToastStack() {
     <div
       style={{
         position: 'fixed',
-        right: 16,
-        bottom: 32,
+        right: 20,
+        bottom: 40,
         display: 'flex',
         flexDirection: 'column-reverse',
-        gap: 8,
+        gap: 10,
         zIndex: 50,
-        maxWidth: 340
+        maxWidth: 380
       }}
     >
-      {toasts.map((t) => (
-        <div
-          key={t.id}
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--border-solid-2)',
-            borderLeft: `2px solid ${colorFor(t.kind)}`,
-            borderRadius: 3,
-            padding: '8px 10px',
-            boxShadow: 'var(--shadow-modal)',
-            minWidth: 280
-          }}
-          onClick={() => dismiss(t.id)}
-          role="status"
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 'var(--fs-strong)', color: 'var(--text-strong)' }}>{t.title}</div>
+      {toasts.map((t) => {
+        const m = meta(t.kind);
+        return (
+          <div
+            key={t.id}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              background: 'var(--bg-3)',
+              border: '1px solid var(--line-2)',
+              borderRadius: 'var(--r-lg)',
+              padding: '12px 14px',
+              boxShadow: 'var(--shadow-lg)',
+              minWidth: 300
+            }}
+            onClick={() => dismiss(t.id)}
+            role="status"
+          >
+            <span style={{ color: m.color, marginTop: 1, flexShrink: 0 }}>{m.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 'var(--fs-base)',
+                fontWeight: 500,
+                color: 'var(--text-0)',
+                letterSpacing: '-0.01em'
+              }}>{t.title}</div>
               {t.body ? (
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-chrome)', color: 'var(--text-dim)', marginTop: 2 }}>{t.body}</div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--fs-2xs)',
+                  color: 'var(--text-3)',
+                  marginTop: 3
+                }}>{t.body}</div>
               ) : null}
             </div>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); dismiss(t.id); }}
-              style={{ background: 'transparent', border: 0, color: 'var(--text-dim)', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 0, color: 'var(--text-3)', cursor: 'pointer', padding: 2, flexShrink: 0 }}
               aria-label="Dismiss"
             >
-              <X size={12} strokeWidth={1.5} />
+              <X size={13} strokeWidth={2} />
             </button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>,
     document.body
   );

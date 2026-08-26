@@ -1,18 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { PlayCircle } from 'lucide-react';
-import { getVendorRisk, getRings, postDetect } from '../../lib/api';
+import { Play, ArrowRight, TrendingUp, ShieldAlert, Wallet, Search } from 'lucide-react';
+import { getCases, postDetect } from '../../lib/api';
 import { RiskSparkline } from '../../components/RiskSparkline/RiskSparkline';
-import { Pill } from '../../components/ui/Pill';
 import { Button } from '../../components/ui/Button';
-import { ReasonChip } from '../../components/EvidencePanel/ReasonChip';
 import { useStore } from '../../lib/store';
 import { useShortcuts } from '../../lib/keyboard';
 import type { Vendor } from '../../types/domain';
 import styles from './CaseQueue.module.css';
 
 type SortKey = 'score' | 'exposure' | 'age';
+
+const SEV: Record<string, { label: string; cls: string }> = {
+  high: { label: 'Critical',    cls: 'crit' },
+  med:  { label: 'Elevated',    cls: 'elev' },
+  low:  { label: 'Watch',       cls: 'watch' },
+};
+
+function riskClass(score: number): string {
+  if (score >= 0.75) return 'crit';
+  if (score >= 0.55) return 'high';
+  if (score >= 0.30) return 'med';
+  return 'low';
+}
 
 export function CaseQueuePage() {
   const [params, setParams] = useSearchParams();
@@ -26,27 +37,18 @@ export function CaseQueuePage() {
   const sort = (params.get('sort') as SortKey | null) ?? 'score';
   const q = params.get('q') ?? '';
 
-  const vendors = useQuery({
-    queryKey: ['vendors', 'risk'] as const,
-    queryFn: getVendorRisk,
-    staleTime: 30_000
-  });
-  const rings = useQuery({
-    queryKey: ['rings', 'list'] as const,
-    queryFn: getRings,
-    staleTime: 30_000
-  });
+  const vendors = useQuery({ queryKey: ['cases', 'risk'] as const, queryFn: getCases, staleTime: 30_000 });
 
   useEffect(() => {
-    if (vendors.data?.fromMock || rings.data?.fromMock) {
-      pushToast({ kind: 'warn', title: 'Backend unreachable', body: 'Serving DEMO fixtures.' });
+    if (vendors.data?.fromMock) {
+      pushToast({ kind: 'warn', title: 'Backend unreachable', body: 'Serving demo fixtures' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vendors.data?.fromMock, rings.data?.fromMock]);
+  }, [vendors.data?.fromMock]);
 
+  const all = vendors.data?.data ?? [];
   const rows = useMemo(() => {
-    const list = vendors.data?.data ?? [];
-    const filtered = list.filter(v => {
+    const filtered = all.filter(v => {
       if (severity && v.severity !== severity) return false;
       if (type && v.entity_type !== type) return false;
       if (scenario && v.scenario !== scenario) return false;
@@ -62,7 +64,7 @@ export function CaseQueuePage() {
       return b.risk_score - a.risk_score;
     });
     return filtered;
-  }, [vendors.data, severity, type, scenario, q, sort]);
+  }, [all, severity, type, scenario, q, sort]);
 
   const [cursor, setCursor] = useState(0);
   useEffect(() => { if (cursor >= rows.length) setCursor(0); }, [rows, cursor]);
@@ -70,118 +72,167 @@ export function CaseQueuePage() {
   useShortcuts({
     'j': () => setCursor(c => Math.min(rows.length - 1, c + 1)),
     'k': () => setCursor(c => Math.max(0, c - 1)),
-    'enter': () => { const row = rows[cursor]; if (!row) return; openRow(row); }
+    'enter': () => { const row = rows[cursor]; if (row) openRow(row); }
   });
 
   function openRow(v: Vendor): void {
     if (v.rings.length > 0) navigate(`/ring/${v.rings[0]}?tab=overview&node=${v.gstin}`);
     else navigate(`/entity/${v.gstin}?tab=overview`);
   }
-
   function updateParam(k: string, val: string | null): void {
     const next = new URLSearchParams(params);
-    if (val == null || val === '') next.delete(k);
-    else next.set(k, val);
+    if (val == null || val === '') next.delete(k); else next.set(k, val);
     setParams(next, { replace: true });
   }
-
   const onDetect = async () => {
-    pushToast({ kind: 'info', title: 'Detection started', body: 'POST /api/rings/detect' });
+    pushToast({ kind: 'info', title: 'Detection running', body: 'POST /api/rings/detect' });
     const res = await postDetect();
     qc.invalidateQueries({ queryKey: ['rings'] });
     qc.invalidateQueries({ queryKey: ['vendors'] });
-    pushToast({
-      kind: res.fromMock ? 'warn' : 'ok',
-      title: res.fromMock ? 'Detection fell back to DEMO' : `Detection returned ${res.data.length} rings`,
-      body: `${res.latency_ms} ms`
-    });
+    pushToast({ kind: res.fromMock ? 'warn' : 'ok', title: res.fromMock ? 'Detection fell back to demo' : `Detection returned ${res.data.length} rings`, body: `${res.latency_ms}ms` });
   };
+  const ageDays = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
 
-  const ageDays = (iso: string): number => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+  const totalExposure = all.reduce((s, r) => s + r.exposure_inr, 0);
+  const critCount = all.filter(r => r.severity === 'high').length;
+  const ringCount = new Set(all.flatMap(r => r.rings)).size;
 
   return (
     <div className={styles.page}>
-      <div className={styles.toolbar}>
-        <span style={{ color: 'var(--text-strong)', fontSize: 'var(--fs-strong)', fontWeight: 500 }}>Case Queue</span>
-        <div className={styles.filters}>
-          <select className={styles.select} value={severity} onChange={(e) => updateParam('severity', e.target.value || null)}>
-            <option value="">Severity</option>
-            <option value="high">High</option>
-            <option value="med">Medium</option>
-            <option value="low">Low</option>
-          </select>
-          <select className={styles.select} value={type} onChange={(e) => updateParam('type', e.target.value || null)}>
-            <option value="">Type</option>
-            <option value="vendor">Vendor</option>
-            <option value="buyer">Buyer</option>
-            <option value="transporter">Transporter</option>
-          </select>
-          <select className={styles.select} value={scenario} onChange={(e) => updateParam('scenario', e.target.value || null)}>
-            <option value="">Scenario</option>
-            <option value="circular_itc_chain">Circular ITC chain</option>
-            <option value="polymer_layered_ring">Polymer layered ring</option>
-            <option value="flash_steel_triad">Flash steel triad</option>
-            <option value="watchlist">Watchlist</option>
-          </select>
-          <select className={styles.select} value={sort} onChange={(e) => updateParam('sort', e.target.value)}>
-            <option value="score">Sort · Risk</option>
-            <option value="exposure">Sort · Exposure</option>
-            <option value="age">Sort · Age</option>
-          </select>
+      {/* Header */}
+      <div className={styles.head}>
+        <div className={styles.headText}>
+          <h1 className={styles.title}>Cases</h1>
+          <p className={styles.subtitle}>Entities ranked by composed risk across reconciliation, network, and temporal signals.</p>
         </div>
-        <div className={styles.spacer} />
-        <span className={styles.count} data-mono>{rows.length} / {vendors.data?.data.length ?? 0}</span>
-        <Button variant="primary" size="sm" onClick={onDetect}>
-          <PlayCircle size={12} strokeWidth={1.5} /> Detect
-        </Button>
+        <Button variant="primary" onClick={onDetect}><Play size={13} strokeWidth={2} /> Run detection</Button>
       </div>
 
-      <div className={styles.wrap}>
-        {rows.length === 0 ? (
-          <div className={styles.emptyBox}>0 rows match the current filters. <button onClick={() => setParams(new URLSearchParams(), { replace: true })} style={{ color: 'var(--signal)', background:'transparent', border: 0, cursor: 'pointer' }}>Clear filters</button></div>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Risk</th>
-                <th>Trend</th>
-                <th>Entity</th>
-                <th>GSTIN</th>
-                <th>Primary evidence</th>
-                <th className={styles.right}>Exposure ₹</th>
-                <th className={styles.right}>First seen</th>
-                <th>Reasons</th>
-                <th>Status</th>
+      {/* Metric cards */}
+      <div className={styles.metrics}>
+        <MetricCard icon={<TrendingUp size={15} strokeWidth={1.75} />} label="Under review" value={all.length.toString()} accent="brand" foot={`${rows.length} match filters`} />
+        <MetricCard icon={<ShieldAlert size={15} strokeWidth={1.75} />} label="Critical" value={critCount.toString()} accent="bad" foot="risk ≥ 0.75" />
+        <MetricCard icon={<Wallet size={15} strokeWidth={1.75} />} label="ITC exposure" value={`₹${(totalExposure/100000).toFixed(1)}L`} accent="warn" foot={totalExposure.toLocaleString('en-IN')} mono />
+        <MetricCard icon={<Search size={15} strokeWidth={1.75} />} label="Rings" value={ringCount.toString()} accent="cyan" foot="detected networks" />
+      </div>
+
+      {/* Filter bar */}
+      <div className={styles.filters}>
+        <Segmented label="Severity" value={severity} onChange={(v) => updateParam('severity', v)} options={[['','All'],['high','Critical'],['med','Elevated'],['low','Watch']]} />
+        <Segmented label="Type" value={type} onChange={(v) => updateParam('type', v)} options={[['','All'],['vendor','Vendor'],['buyer','Buyer'],['transporter','Transporter']]} />
+        <div className={styles.filterSpacer} />
+        <Segmented label="Sort" value={sort} onChange={(v) => updateParam('sort', v || 'score')} options={[['score','Risk'],['exposure','Exposure'],['age','Age']]} />
+      </div>
+
+      {/* Table */}
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={styles.colRisk}>Risk</th>
+              <th className={styles.colEntity}>Entity</th>
+              <th className={styles.colEvidence}>Primary signal</th>
+              <th className={styles.colReasons}>Reasons</th>
+              <th className={styles.colExp}>Exposure</th>
+              <th className={styles.colAge}>Age</th>
+              <th className={styles.colSev}>Status</th>
+              <th className={styles.colGo} />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr><td colSpan={8}>
+                <div className={styles.empty}>
+                  <Search size={22} strokeWidth={1.5} />
+                  <div className={styles.emptyTitle}>No cases match these filters</div>
+                  <button className={styles.emptyBtn} onClick={() => setParams(new URLSearchParams(), { replace: true })}>Clear filters</button>
+                </div>
+              </td></tr>
+            ) : rows.map((v, i) => (
+              <tr
+                key={v.gstin}
+                className={i === cursor ? styles.selected : ''}
+                onClick={() => setCursor(i)}
+                onDoubleClick={() => openRow(v)}
+              >
+                <td className={styles.colRisk}>
+                  <div className={styles.riskCell}>
+                    <span className={`${styles.riskScore} ${styles[riskClass(v.risk_score)]}`}>{v.risk_score.toFixed(3)}</span>
+                    <span className={styles.spark}><RiskSparkline data={v.sparkline} /></span>
+                  </div>
+                </td>
+                <td className={styles.colEntity}>
+                  <div className={styles.entityName}>{v.name}</div>
+                  <div className={styles.entityMeta}>
+                    <span className={styles.gstin} data-mono>{v.gstin}</span>
+                    <span className={styles.state}>{v.state}</span>
+                  </div>
+                </td>
+                <td className={styles.colEvidence}>
+                  {v.rings.length > 0
+                    ? <span className={styles.ringTag} data-mono>{v.rings[0]}</span>
+                    : <span className={styles.signalText}>{v.reasons[0] ?? '—'}</span>}
+                </td>
+                <td className={styles.colReasons}>
+                  <div className={styles.chips}>
+                    {v.reasons.slice(0, 2).map(r => <span key={r} className={styles.chip}>{r}</span>)}
+                    {v.reasons.length > 2 && <span className={styles.chipMore}>+{v.reasons.length - 2}</span>}
+                  </div>
+                </td>
+                <td className={styles.colExp}>
+                  <span className={styles.expVal} data-mono>₹{(v.exposure_inr/100000).toFixed(2)}L</span>
+                </td>
+                <td className={styles.colAge}>
+                  <span className={styles.ageVal} data-mono>{ageDays(v.first_seen)}d</span>
+                </td>
+                <td className={styles.colSev}>
+                  <span className={`${styles.sev} ${styles[SEV[v.severity]?.cls ?? 'watch']}`}>
+                    <span className={styles.sevDot} />{SEV[v.severity]?.label ?? v.severity}
+                  </span>
+                </td>
+                <td className={styles.colGo}>
+                  <button className={styles.go} onClick={(e) => { e.stopPropagation(); openRow(v); }} aria-label={`Open ${v.name}`}>
+                    <ArrowRight size={14} strokeWidth={2} />
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {rows.map((v, i) => (
-                <tr
-                  key={v.gstin}
-                  className={i === cursor ? styles.selected : ''}
-                  onClick={() => setCursor(i)}
-                  onDoubleClick={() => openRow(v)}
-                >
-                  <td className={`${styles.mono} ${styles.strong}`}>{v.risk_score.toFixed(3)}</td>
-                  <td><RiskSparkline data={v.sparkline} /></td>
-                  <td>{v.name} <span style={{color:'var(--text-dim)', fontSize:'var(--fs-micro)'}}> {v.state}</span></td>
-                  <td className={styles.mono}>{v.gstin}</td>
-                  <td className={styles.dim}>{v.rings.length ? `ring member: ${v.rings[0]}` : v.reasons[0] ?? '—'}</td>
-                  <td className={`${styles.mono} ${styles.right}`}>{v.exposure_inr.toLocaleString('en-IN')}</td>
-                  <td className={`${styles.mono} ${styles.right}`}>{ageDays(v.first_seen)}d ago</td>
-                  <td>
-                    <div className={styles.chipCell}>
-                      {v.reasons.slice(0, 3).map(r => (<ReasonChip key={r} label={r} />))}
-                    </div>
-                  </td>
-                  <td>
-                    <Pill tone={v.severity === 'high' ? 'bad' : v.severity === 'med' ? 'warn' : 'info'} dot>{v.severity}</Pill>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ icon, label, value, accent, foot, mono }: {
+  icon: React.ReactNode; label: string; value: string; accent: string; foot: string; mono?: boolean;
+}) {
+  return (
+    <div className={styles.metric}>
+      <div className={styles.metricTop}>
+        <span className={`${styles.metricIcon} ${styles[`ac_${accent}`]}`}>{icon}</span>
+        <span className={styles.metricLabel}>{label}</span>
+      </div>
+      <div className={`${styles.metricValue} ${mono ? styles.metricValueMono : ''}`}>{value}</div>
+      <div className={styles.metricFoot} data-mono>{foot}</div>
+    </div>
+  );
+}
+
+function Segmented({ label, value, onChange, options }: {
+  label: string; value: string; onChange: (v: string) => void; options: [string, string][];
+}) {
+  return (
+    <div className={styles.seg}>
+      <span className={styles.segLabel}>{label}</span>
+      <div className={styles.segTrack}>
+        {options.map(([val, lbl]) => (
+          <button
+            key={val}
+            className={`${styles.segBtn} ${value === val ? styles.segActive : ''}`}
+            onClick={() => onChange(val)}
+          >{lbl}</button>
+        ))}
       </div>
     </div>
   );

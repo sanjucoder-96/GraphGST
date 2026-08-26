@@ -135,8 +135,14 @@ def _precision_at_k(scores_labels: list[tuple[float, int]], k: int) -> float:
     return sum(y for _, y in top_k) / len(top_k)
 
 
-def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
-    """Run the risk-discrimination benchmark on a pre-generated dataset dir."""
+def bench_prepared(cfg: GenerationConfig, out_dir: str, fast: bool = False) -> dict:
+    """Run the risk-discrimination benchmark on a pre-generated dataset dir.
+
+    When `fast=True`, drops MLScorer (IsolationForest fit dominates
+    wall-time) and PropagationScorer (PageRank over the whole graph)
+    from the composer. The remaining four scorers still produce a
+    defensible AUC — the headline metric this bench gates.
+    """
     t_gen = 0.0
 
     with open(os.path.join(out_dir, "truth.json"), encoding="utf-8") as f:
@@ -168,26 +174,41 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
     t_rings = time.perf_counter() - t3
 
     # 3) risk composition
+    # Evaluation integrity: strip planted-label columns (scenario, invoice
+    # status, ewb phantom) BEFORE any scorer sees the rows. See
+    # benchmarks/evalsafe.py and F5 in docs/V6_1_TECHNICAL_AUDIT.md.
+    from benchmarks.evalsafe import strip_graph_source
+    gs_safe = strip_graph_source(gs)
     ctx = build_context_from_graph_source(
-        gs, match_events=events,
+        gs_safe, match_events=events,
         detected_rings=[r.__dict__ for r in rings],
-        member_meta=_member_meta(gs["gstins"]),
+        member_meta=_member_meta(gs_safe["gstins"]),
     )
+    # Default composer = the four scorers with positive/neutral marginal
+    # value (ML + Propagation removed; see audit F1/F2 + ablation). `fast`
+    # is retained for CLI compatibility but no longer changes the scorer set.
+    _ = fast
     composer = RiskComposer(ComposerConfig(scorers=[
-        RingScorer(weight=0.35),
-        ReconcileScorer(weight=0.20),
-        RuleScorer(weight=0.15),
-        PropagationScorer(weight=0.15),
-        TemporalScorer(weight=0.10),
-        MLScorer(weight=0.10),
+        ReconcileScorer(weight=0.35),
+        RingScorer(weight=0.30),
+        RuleScorer(weight=0.20),
+        TemporalScorer(weight=0.15),
     ]))
     t4 = time.perf_counter()
     ranked = composer.compose_all(ctx)
     t_compose = time.perf_counter() - t4
 
-    # 4) score against truth
-    scores_labels = [(r.score, int(r.gstin_id in ring_members)) for r in ranked]
-    auc = _roc_auc(scores_labels)
+    # 4) score against truth — TWO labels:
+    #    ring  = is a planted-ring member (RingScorer trivially owns this →
+    #            circular; reported as informational only)
+    #    recon = supplier of a planted RECONCILIATION anomaly, ring members
+    #            EXCLUDED. Ring-independent → the honest general-fraud
+    #            discrimination the composite is judged on.
+    _rl, recon_label = build_labels(gs, truth)   # gs (pre-strip) has invoices
+    ring_pairs = [(r.score, int(r.gstin_id in ring_members)) for r in ranked]
+    recon_pairs = [(r.score, recon_label.get(r.gstin_id, 0)) for r in ranked]
+    ring_auc = _roc_auc(ring_pairs)
+    recon_auc = _roc_auc(recon_pairs)
 
     band_counts = {"LOW": 0, "MED": 0, "HIGH": 0, "CRITICAL": 0}
     for r in ranked:
@@ -197,6 +218,7 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
 
     return {
         "config": cfg.to_dict(),
+        "scorers": ["reconcile", "ring", "rules", "temporal"],
         "timing_sec": {"generate": round(t_gen, 3),
                         "load_csv": round(t_load, 3),
                         "reconcile": round(t_reconcile, 3),
@@ -204,13 +226,15 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
                         "compose": round(t_compose, 3)},
         "counts": {"gstins": len(ranked), "planted_ring_members": n_planted,
                     "detected_rings": len(rings),
-                    "match_events": len(events)},
-        "roc_auc": round(auc, 3),
-        "precision_at_k": {
-            "10": round(_precision_at_k(scores_labels, 10), 3),
-            "25": round(_precision_at_k(scores_labels, 25), 3),
-            "50": round(_precision_at_k(scores_labels, 50), 3),
-            "100": round(_precision_at_k(scores_labels, 100), 3),
+                    "match_events": len(events),
+                    "recon_positives": sum(recon_label.values())},
+        # Headline: ring-independent discrimination (honest). Ring AUC kept
+        # for transparency, explicitly labelled circular.
+        "recon_auc": round(recon_auc, 3),
+        "ring_auc_circular": round(ring_auc, 3),
+        "recon_precision_at_k": {
+            "50": round(_precision_at_k(recon_pairs, 50), 3),
+            "100": round(_precision_at_k(recon_pairs, 100), 3),
         },
         "band_histogram": band_counts,
         "score_summary": {
@@ -219,15 +243,40 @@ def bench_prepared(cfg: GenerationConfig, out_dir: str) -> dict:
                     if ranked else 0.0,
             "max": round(max((r.score for r in ranked), default=0.0), 3),
         },
-        "sample_top": [
-            {"gstin_id": r.gstin_id, "score": r.score, "band": r.band,
-                "planted": r.gstin_id in ring_members,
-                "top_scorer": max(r.contributions.items(), key=lambda kv: kv[1])[0]
-                                if r.contributions else None,
-                "n_reasons": len(r.reasons)}
-            for r in ranked[:8]
-        ],
+        "note": ("Composite is a triage aggregator. Standalone component "
+                  "discrimination is in benchmarks/ablation/risk_ablation.json. "
+                  "ring_auc_circular re-measures ring detection (RingScorer ≈ "
+                  "the ring label) and is NOT independent evidence."),
     }
+
+
+def build_labels(gs: dict, truth: dict) -> tuple[dict, dict]:
+    """Return (ring_label, recon_label) keyed by gstin_id.
+
+    ring_label  : 1 iff GSTIN is a planted-ring member.
+    recon_label : 1 iff GSTIN is the SUPPLIER of an invoice carrying a
+                  planted reconciliation anomaly (or a cancelled-supplier
+                  GSTIN), with ring members EXCLUDED → ring-independent.
+    """
+    ring_members: set[str] = set()
+    for pr in truth.get("planted_rings", []):
+        ring_members.update(pr.get("members") or [])
+    inv_supplier = {i["invoice_id"]: i["supplier_gstin"] for i in gs["invoices"]}
+    recon_suppliers: set[str] = set()
+    for a in truth.get("planted_anomalies", []):
+        if a.get("type") == "CANCELLED_SUPPLIER":
+            gid = a.get("gstin_id")
+            if gid:
+                recon_suppliers.add(gid)
+            continue
+        iid = a.get("invoice_id") or a.get("of_invoice")
+        sup = inv_supplier.get(iid) if iid else None
+        if sup:
+            recon_suppliers.add(sup)
+    recon_suppliers -= ring_members
+    ids = [g["gstin_id"] for g in gs["gstins"]]
+    return ({g: int(g in ring_members) for g in ids},
+            {g: int(g in recon_suppliers) for g in ids})
 
 
 def bench(cfg: GenerationConfig) -> dict:

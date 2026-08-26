@@ -27,16 +27,13 @@ from .network import sample_edges, sample_gstins
 from .rings import plant_rings
 from .transactions import derive_returns, sample_transactions
 
+# Use the SHARED, constant-time admin guard (hmac.compare_digest) rather than a
+# local `!=` comparison. The previous local copy compared tokens with `!=`,
+# which is timing-variable and diverged from every other router's guard.
+from security import require_admin as _require_admin
+
 
 router = APIRouter()
-
-
-def _require_admin(x_admin_token: str = Header(default="")) -> None:
-    expected = os.environ.get("ADMIN_TOKEN", "")
-    if not expected:
-        raise HTTPException(503, "ADMIN_TOKEN not configured — datagen mutations disabled")
-    if not x_admin_token or x_admin_token != expected:
-        raise HTTPException(401, "X-Admin-Token header required")
 
 
 class GenerateBody(BaseModel):
@@ -79,18 +76,23 @@ def generate(body: GenerateBody) -> dict:
 
 @router.post("/load", dependencies=[Depends(_require_admin)])
 def load(dir: str = Query(..., description="Path to a datagen output directory")) -> dict:
+    from security import resolve_within
     from .loader import load_directory
-    if not os.path.isdir(dir):
-        raise HTTPException(404, f"Directory not found: {dir}")
-    stats = load_directory(dir)
+    safe = resolve_within(dir)                 # blocks path traversal
+    if not safe.is_dir():
+        raise HTTPException(404, "Directory not found")
+    stats = load_directory(str(safe))
     return {"ok": True, "loaded": stats}
 
 
 @router.get("/truth")
 def read_truth(dir: str = Query(...)) -> dict:
-    tpath = os.path.join(dir, "truth.json")
-    if not os.path.exists(tpath):
-        raise HTTPException(404, f"truth.json not found under {dir}")
+    # Path-traversal safe: `dir` must resolve under an allowed data root.
+    from security import resolve_within
+    safe = resolve_within(dir)
+    tpath = safe / "truth.json"
+    if not tpath.exists():
+        raise HTTPException(404, "truth.json not found")
     with open(tpath, "r", encoding="utf-8") as f:
         return json.load(f)
 

@@ -53,6 +53,24 @@ def test_clean_chain_matches():
     assert _outcomes(ev) == ["MATCHED"]
 
 
+def test_both_parties_invalid_emits_single_event():
+    """Audit Phase I: an invoice with BOTH GSTINs malformed must yield exactly
+    one INVALID_GSTIN_FORMAT event (two would collide on event_id and lose a
+    reason on persist), carrying one reason per invalid party."""
+    from reconcile.outcomes import INVALID_GSTIN_FORMAT
+    ev = match_one_invoice(
+        _invoice(supplier_gstin="BAD1", buyer_gstin="BAD2"),
+        [_pr()], _supplier(),
+        supplier_filed_gstr1=True, supplier_filed_gstr3b=True,
+        supplier_gstr3b_settled=True, ewb_present=True)
+    invalid = [e for e in ev if e["outcome"] == INVALID_GSTIN_FORMAT]
+    assert len(invalid) == 1, f"expected exactly 1 event, got {len(invalid)}"
+    reasons = invalid[0].get("reasons") or []
+    assert len(reasons) == 2
+    ids = {(r.get("evidence") or {}).get("node_id") for r in reasons}
+    assert ids == {"BAD1", "BAD2"}
+
+
 def test_missing_gstr1():
     ev = match_one_invoice(_invoice(), [_pr()], _supplier(),
                             supplier_filed_gstr1=False, supplier_filed_gstr3b=True,
