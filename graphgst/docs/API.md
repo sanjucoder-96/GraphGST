@@ -28,7 +28,8 @@ guarded. The endpoints requiring admin are:
 `DELETE /api/seed`, `POST /api/seed?force=true`, `POST /api/datagen/generate`,
 `POST /api/datagen/load`, `POST /api/embed/train`, `POST /api/benchmarks/run`,
 `POST /api/demo/reset`, `POST /api/reconcile2/run` (only when `persist=true`),
-and `POST /api/rings/detect` (only when `persist=true` or `propagate=true`).
+`POST /api/rings/detect` (only when `persist=true` or `propagate=true`), and
+`POST /api/risk/refresh`.
 Every guard is the shared, constant-time `security.require_admin`.
 
 ## Conventions
@@ -87,12 +88,29 @@ newer engine lives at [`/api/reconcile2`](#apireconcile2--reconciliation-20-phas
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/vendors/risk` | none | Per-vendor risk scores + anomaly flags. `summary.model_used = "IsolationForest"`. |
-| GET | `/api/vendors` | none | Flat GSTIN list with invoice count + total GST, ordered by `risk_score` desc. |
-| GET | `/api/risk-engine/model-status` | none | Saved IsolationForest model info: `model_trained`, path, file size, saved-at, `features[]`, `contamination` (0.12), `n_estimators` (200). |
+| GET | `/api/vendors/risk` | none | **DEPRECATED (V6.3).** Now serves the **materialized composer risk** off GSTIN nodes (`summary.model_used = "composer/v1 (materialized)"`, ~378 ms), not the old ~9 s NetworkX+IsolationForest recompute. Superseded by [`/api/cases`](#apicases--canonical-case-api-v63) and `/api/risk/summary`. Kept until the Investigation page migrates. |
+| GET | `/api/vendors` | none | Flat GSTIN list with invoice count + total GST, ordered by `risk_score` desc. Effectively dead from the UI. |
+| GET | `/api/risk-engine/model-status` | none | Orphaned info about the legacy IsolationForest `.pkl` (the composer deliberately does not ship it). |
 
-> This IsolationForest scorer (`risk_engine.py`) is distinct from the composable
-> [`/api/risk`](#apirisk--composable-risk-engine-phase-4) engine (Phase 4).
+> **V6.3:** `compute_risk_scores` is retired as the scoring authority. The
+> composable [`/api/risk`](#apirisk--composable-risk-engine-phase-4) engine is
+> the single canonical source, materialized onto GSTIN nodes; the dashboard and
+> `/api/vendors/risk` read those materialized values. See
+> [`INVESTIGATION_MODEL.md`](./INVESTIGATION_MODEL.md).
+
+## `/api/cases` — Canonical Case API (V6.3)
+
+The coherent investigation object — the frontend consumes these instead of
+reassembling a case from 6-10 endpoints. Typed via `schemas.py` (mirrored by
+`web/src/types/case.ts`); both declare a `response_model`.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET | `/api/cases/` | none | Ranked `CaseList` from materialized risk. Query `band` (LOW/MED/HIGH/CRITICAL), `min_score: float=0`, `limit: int=100` (1..1000), `q` (free-text). Each row: `risk_score` (0-1), `band`, `exposure_inr`, `ring_ids`, `top_reasons`, `investigation_status`. Cheap indexed read (~1.5 s). |
+| GET | `/api/cases/{gstin_id}` | none | One `Case`: `entity`, `risk` (score/band/reasons/`materialized`), `exposure`, `rings[]`, `reconciliation[]`, `related_vendors[]`, `timeline[]`, `subgraph`, `materialization`. **404** if the entity is absent. One coherent request (~0.5-0.8 s warm). Query `subgraph: bool=true`. |
+
+Every response carries a `materialization` block with a `stale` flag so stale
+risk is never served as current.
 
 ## Invoices (`main.py`)
 
@@ -179,8 +197,10 @@ persists to Neo4j when `persist=true`.
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/risk/gstin/{gstin_id}` | none | Composed risk for one GSTIN with full scorer attribution. **404** if the GSTIN is absent; **503** if the context can't be hydrated. |
-| GET | `/api/risk/summary` | none | Ranked GSTINs + band counts. Query `limit: int = 50` (1..1000). **503** if context unavailable. |
+| GET | `/api/risk/gstin/{gstin_id}` | none | Composed risk for one GSTIN with full scorer attribution (live compose). **404** if absent; **503** if the context can't be hydrated. |
+| GET | `/api/risk/summary` | none | Ranked GSTINs + band counts + a `materialization` block. Live compose. Query `limit: int = 50` (1..1000). **503** if context unavailable. |
+| POST | `/api/risk/refresh` | **admin** | **(V6.3)** Materialize composed risk onto the graph — the canonical "make risk current" op. Query `persist_intelligence: bool=true` (also detect+persist rings and reconcile+persist events first). Returns rings/events persisted + gstins scored + fingerprint. |
+| GET | `/api/risk/materialization` | none | **(V6.3)** Materialization stamp + live staleness verdict (`stale`, `fingerprint` vs `current_fingerprint`, `materialized_at`, `n_scored`). |
 
 The default composer blends four scorers — Reconcile (0.35), Ring (0.30),
 Rules (0.20), Temporal (0.15). `MLScorer` and `PropagationScorer` are

@@ -16,6 +16,7 @@ import type {
   Ring,
   Vendor
 } from '../types/domain';
+import type { CaseList, InvestigationCase } from '../types/case';
 import {
   MOCK_AUDIT_TRAILS,
   MOCK_DASHBOARD,
@@ -124,8 +125,12 @@ function normalizeLiveVendors(raw: unknown): Vendor[] {
   const sev: Record<string, 'high' | 'med' | 'low'> =
     { HIGH: 'high', CRITICAL: 'high', MEDIUM: 'med', MED: 'med', LOW: 'low' };
   return list.map((v: any): Vendor => {
+    // Prefer the explicit canonical 0-1 field the endpoint now provides; only
+    // fall back to the 0-100 heuristic when it is absent (a score100 of exactly
+    // 1 would otherwise be mis-read as a full-risk 1.0).
     const raw01 = typeof v.risk_score === 'number' ? v.risk_score : 0;
-    const score = raw01 > 1 ? raw01 / 100 : raw01;   // live is 0-100, UI is 0-1
+    const score = typeof v.risk_norm === 'number' ? v.risk_norm
+                : (raw01 > 1 ? raw01 / 100 : raw01);
     const gstin = v.gstin_id ?? v.gstin ?? '';
     return {
       gstin,
@@ -201,6 +206,44 @@ export async function getCases(): Promise<ApiResult<Vendor[]>> {
   const res = await safeGet<unknown>('/api/risk/summary?limit=200', MOCK_VENDORS);
   if (res.fromMock) return res as ApiResult<Vendor[]>;
   return { ...res, data: normalizeComposerRows(res.data) };
+}
+
+// ── Canonical Case API (V6.3) ───────────────────────────────────────────
+// The final Investigator UI should consume these two functions: getCaseList()
+// for the queue and getCase(gstin) for the whole investigation object. Both
+// return the backend's canonical, strongly-typed shapes (see types/case.ts).
+const _EMPTY_MATERIALIZATION = {
+  stale: true, fingerprint: {}, current_fingerprint: {}, n_scored: 0,
+};
+
+export function getCaseList(
+  params: { band?: string; min_score?: number; limit?: number; q?: string } = {},
+): Promise<ApiResult<CaseList>> {
+  const qs = new URLSearchParams();
+  if (params.band) qs.set('band', params.band);
+  if (params.min_score != null) qs.set('min_score', String(params.min_score));
+  qs.set('limit', String(params.limit ?? 100));
+  if (params.q) qs.set('q', params.q);
+  const fallback: CaseList = {
+    count: 0, band_counts: {}, materialization: _EMPTY_MATERIALIZATION, cases: [],
+  };
+  return safeGet<CaseList>(`/api/cases/?${qs.toString()}`, fallback);
+}
+
+export function getCase(gstin: string): Promise<ApiResult<InvestigationCase>> {
+  const fallback: InvestigationCase = {
+    case_id: gstin,
+    entity: { gstin_id: gstin },
+    risk: {
+      score: 0, score_100: 0, band: 'LOW', contributions: {}, reasons: [],
+      scorers_fired: [], scorers_run: [], materialized: false,
+    },
+    exposure: { total_inr: 0, by_outcome: {}, invoice_count: 0 },
+    rings: [], reconciliation: [], related_vendors: [], timeline: [],
+    subgraph: null, investigation_status: 'open',
+    materialization: _EMPTY_MATERIALIZATION,
+  };
+  return safeGet<InvestigationCase>(`/api/cases/${encodeURIComponent(gstin)}`, fallback);
 }
 export function getGraphFull(): Promise<ApiResult<GraphPayload>> {
   return safeGet<GraphPayload>('/api/graph/full', MOCK_GRAPH);

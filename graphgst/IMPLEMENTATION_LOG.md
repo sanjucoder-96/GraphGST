@@ -17,6 +17,91 @@ New entries go at the top.
 
 ---
 
+## 2026-08-26 — V6.3: Canonical Case API + materialized risk + clean schemas
+
+**1. What did we change?**
+Made the backend/API contract canonical and live-data-backed for the final
+Investigator UI: one materialized risk source, a coherent Case API, canonical
+Pydantic schemas, and a single shared hydration. No UI redesign; no new ML.
+
+**2. Why?**
+A 5-way architecture audit (workflow) found: TWO competing risk engines exposed
+as equivalent (legacy `compute_risk_scores` 0-100/~9s/never-persisted/feature-leak
+vs modern composer 0-1/live-only); NO Case endpoint (the UI assembled a case
+from 4 endpoints + MOCK_RINGS in the browser); 1 of 48 endpoints had a
+`response_model`; 3 `Reason` shapes, 4 `Ring` shapes, 2 risk scales; and a latent
+bug hydrating the risk graph 3× while passing no `edges` (starving TemporalScorer).
+
+**3. How does it work?**
+
+*Canonical materialized risk (`risk/materialize.py`).* The composer is the
+single source of truth, materialized onto `:GSTIN` — `risk_score` (0-100 int,
+keeps the index/legacy readers), `risk_score_norm` (0-1 canonical), `risk_band`
+(LOW/MED/HIGH/CRITICAL — one vocabulary), `risk_reasons_json` (Reason[]),
+`risk_scored_at`. A `:RiskMeta` singleton stores a graph fingerprint; every risk
+/case response carries `materialization.stale = fingerprint != current`, so stale
+risk can never read as current. `refresh_intelligence()` (deterministic; clears
+the prior :Ring/:MatchEvent overlay first) runs on ingestion (demo reset,
+datagen load) and on demand (`POST /api/risk/refresh`, admin). `compute_risk_scores`
+is RETIRED as the scoring authority; `/api/vendors/risk` and the dashboard now
+read materialized values.
+
+*Case API (`investigation/`, `schemas.py`).* `GET /api/cases/{id}` returns ONE
+coherent object — entity, risk (materialized-first, single live-compose
+fallback), exposure (ITC ₹ from blocking outcomes), rings, reconciliation
+(supplier/buyer role), related vendors (enriched lookalikes), timeline, and a
+1-hop subgraph — via a bounded set of gstin_id-indexed queries. `GET /api/cases`
+is a ranked list read straight from materialized risk. Both declare
+`response_model` (Pydantic v2), mirrored 1:1 by `web/src/types/case.ts`.
+
+*Shared hydration (`risk/hydrate.py`).* Replaces the 3×-hydrate + missing-edges
+path with one pass that feeds reconcile, rings, and the neighbour indexes
+together — fixing the TemporalScorer starvation on the live risk path.
+
+**4. Beginner explanation.**
+We had two calculators giving different "risk" numbers and a screen that built
+an investigation by making many calls and even reading fake demo data. Now there
+is ONE risk number, saved onto each entity so pages load instantly, and ONE
+endpoint that hands the whole investigation over in a single, typed response —
+with a flag that tells you if the saved numbers are out of date.
+
+**5. Small example.**
+`GET /api/cases/29ZQAHP7526P1ZX` → `{entity:{name:"Tirupati Foods & Co"},
+risk:{score:0.562, band:"HIGH", materialized:true}, exposure:{total_inr:34320},
+rings:[3], reconciliation:[10], timeline:[21], subgraph:{6 nodes,21 edges},
+materialization:{stale:false}}`.
+
+**6. Files touched (major).**
+Created: `schemas.py`, `risk/hydrate.py`, `risk/materialize.py`,
+`investigation/{__init__,service,api}.py`, `docs/{INVESTIGATION_MODEL,ARCHITECTURE}.md`,
+`web/src/types/case.ts`.
+Modified: `risk/api.py` (shared hydrate + `/refresh` + `/materialization` +
+staleness), `main.py` (mount cases router; retire compute_risk_scores; vendors/risk
++ dashboard read materialized), `demo/reset.py` + `datagen/api.py` (refresh hook),
+`web/src/lib/api.ts` (getCase/getCaseList), `docs/{API,README}.md`.
+
+**7. Tests.** 217 unit + 18 live Neo4j (6 new: materialize writes risk+meta,
+not-stale-after-refresh, staleness-detects-change, cases list, case detail
+coherent, vendors/risk-reads-materialized). All against real Aura.
+
+**8. Results.** `pytest` 217 pass; `pytest -m neo4j` 18 pass; full & fast
+benchmarks PASS (9/9 unchanged); demo probe NO DRIFT; demo verify PASS; frontend
+build clean. Latency vs remote Aura: `/api/vendors/risk` 9000ms→378ms (24×),
+`/api/cases/{id}` ~500-800ms, case list ~1.5s. Metrics did not change (the
+composer is unchanged; only its persistence/plumbing).
+
+**9. Limitations.** Ring-level workflow metadata (assignee, status transitions),
+per-date ring score series, and enriched shared-asset evidence are in the schema
+but not yet populated — UI-phase follow-ups. Most legacy `main.py` endpoints
+still return ad-hoc dicts (migrated incrementally). `/api/risk/summary` stays a
+live compose (~3.9s) by design — the explainable on-demand path.
+
+**10. Next step.** Migrate the Investigation page to `getCase()`; add case
+workflow-status write endpoint; populate the deferred ring metadata; add
+`response_model` to the remaining legacy endpoints.
+
+---
+
 ## 2026-08-26 — V6.2: Real Neo4j integration + live full-stack verification
 
 **1. What did we change?**

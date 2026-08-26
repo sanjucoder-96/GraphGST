@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-26T15:10:54.106735+00:00",
-  "git_commit": "bab4b653a12e944a26072094ed97cb835f191455",
-  "mode": "fast",
+  "generated_at": "2026-08-26T16:07:46.743936+00:00",
+  "git_commit": "870d51188ccb59d60f94d16b5798d1a340ddf8d0",
+  "mode": "full",
   "config": {
     "n_gstins": 500,
     "months": 3,
@@ -39,7 +39,7 @@
     "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
     "notes": ""
   },
-  "dataset_prep_sec": 0.372,
+  "dataset_prep_sec": 0.267,
   "headlines": {
     "ring.average_precision": 0.9714,
     "ring.f1_at_thresh": 0.769,
@@ -58,7 +58,7 @@
   "benches": {
     "ring_recall": {
       "status": "ok",
-      "elapsed_sec": 1.286,
+      "elapsed_sec": 0.961,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -141,8 +141,8 @@
         ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.107,
-          "detect": 1.139
+          "load_csv": 0.102,
+          "detect": 0.838
         },
         "sample_recovered": [
           {
@@ -211,7 +211,7 @@
     },
     "reconcile_prf": {
       "status": "ok",
-      "elapsed_sec": 0.685,
+      "elapsed_sec": 0.319,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -251,8 +251,8 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.191,
-          "reconcile": 0.456
+          "load_csv": 0.136,
+          "reconcile": 0.161
         },
         "counts": {
           "events_emitted": 1440,
@@ -390,7 +390,7 @@
     },
     "risk_discrimination": {
       "status": "ok",
-      "elapsed_sec": 2.717,
+      "elapsed_sec": 1.789,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -436,10 +436,10 @@
         ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.093,
-          "reconcile": 0.422,
-          "rings": 1.954,
-          "compose": 0.197
+          "load_csv": 0.043,
+          "reconcile": 0.163,
+          "rings": 1.37,
+          "compose": 0.169
         },
         "counts": {
           "gstins": 500,
@@ -470,7 +470,7 @@
     },
     "embed_lookalike": {
       "status": "ok",
-      "elapsed_sec": 2.788,
+      "elapsed_sec": 2.579,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -517,8 +517,8 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.028,
-          "train_embed": 2.737
+          "load_csv": 0.027,
+          "train_embed": 2.529
         },
         "counts": {
           "n_edges": 3749,

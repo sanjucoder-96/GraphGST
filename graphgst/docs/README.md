@@ -12,6 +12,13 @@ correction is stated openly rather than hidden.
 - **[BENCHMARKS.md](./BENCHMARKS.md)** — what every published number means, how
   it is measured, why three headlines changed, and the ablation methodology.
 
+## Architecture & investigation model
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — request-flow layering: React →
+  FastAPI → Case API → domain services → Neo4j + engines; read-vs-compute split.
+- **[INVESTIGATION_MODEL.md](./INVESTIGATION_MODEL.md)** — the Case API, why the
+  frontend shouldn't reconstruct investigations, and canonical materialized risk.
+
 ## The engines
 
 - **[CIRCULAR_TRADING.md](./CIRCULAR_TRADING.md)** — SCC gate → bounded Johnson
