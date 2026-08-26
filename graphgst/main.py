@@ -24,8 +24,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db import close_driver, get_driver, run_query, run_write
-from risk_engine import (compute_risk_scores, detect_circular_trading,
-                         generate_audit_narrative, get_itc_validation_results)
+# NOTE (V6.3): compute_risk_scores() is RETIRED as the scoring authority — the
+# composable risk engine (risk/) is now canonical and materialized onto GSTIN
+# nodes. Only the ITC-validation / audit-narrative / cycle helpers are kept.
+from risk_engine import (detect_circular_trading, generate_audit_narrative,
+                         get_itc_validation_results)
 from seeder import graph_has_data, seed_all
 
 logging.basicConfig(level=logging.INFO)
@@ -141,6 +144,14 @@ try:
     logger.info("demo router mounted at /api/demo")
 except Exception as e:  # noqa: BLE001
     logger.info(f"demo router not available yet: {e}")
+
+# ── Canonical Case API (V6.3) — the coherent investigation object ─────────────
+try:
+    from investigation.api import router as cases_router  # type: ignore
+    app.include_router(cases_router, prefix="/api/cases", tags=["cases"])
+    logger.info("cases router mounted at /api/cases")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"cases router not available yet: {e}")
 
 # ── Request models ─────────────────────────────────────────────────────────────
 
@@ -309,7 +320,9 @@ def full_graph():
 def dashboard():
     c = (run_query("MATCH (g:GSTIN) WITH count(g) AS gstins MATCH (i:Invoice) WITH gstins,count(i) AS invs MATCH (r:GSTR1) WITH gstins,invs,count(r) AS g1s MATCH (r2:GSTR3B) WITH gstins,invs,g1s,count(r2) AS g3s MATCH (tp:TaxPayment) WITH gstins,invs,g1s,g3s,count(tp) AS tps RETURN gstins,invs,g1s,g3s,tps") or [{}])[0]
     itc = (run_query("MATCH (i:Invoice) RETURN sum(i.total_gst) AS total, sum(CASE WHEN i.status='MATCHED' THEN i.total_gst ELSE 0 END) AS elig, sum(CASE WHEN i.status IN ['MISSING_GSTR1','MISSING_GSTR3B','CANCELLED_GSTIN','CIRCULAR_FRAUD'] THEN i.total_gst ELSE 0 END) AS blocked, count(CASE WHEN i.status='MATCHED' THEN 1 END) AS mc, count(CASE WHEN i.status<>'MATCHED' THEN 1 END) AS mmc") or [{}])[0]
-    risk = (run_query("MATCH (g:GSTIN) RETURN count(CASE WHEN g.risk_score>=71 THEN 1 END) AS high, count(CASE WHEN g.risk_score>=31 AND g.risk_score<71 THEN 1 END) AS med, count(CASE WHEN g.risk_score<31 THEN 1 END) AS low, count(CASE WHEN g.status='CANCELLED' THEN 1 END) AS cancelled") or [{}])[0]
+    # Bucket by the canonical materialized risk_band (LOW/MED/HIGH/CRITICAL),
+    # not the legacy 0-100 cut points. HIGH counts HIGH+CRITICAL.
+    risk = (run_query("MATCH (g:GSTIN) RETURN count(CASE WHEN g.risk_band IN ['HIGH','CRITICAL'] THEN 1 END) AS high, count(CASE WHEN g.risk_band='MED' THEN 1 END) AS med, count(CASE WHEN g.risk_band='LOW' OR g.risk_band IS NULL THEN 1 END) AS low, count(CASE WHEN g.status='CANCELLED' THEN 1 END) AS cancelled") or [{}])[0]
     tp = (run_query("MATCH (tp:TaxPayment) RETURN sum(tp.amount_paid) AS total, count(CASE WHEN tp.status='CLEARED' THEN 1 END) AS cleared") or [{}])[0]
     scen = run_query("MATCH (i:Invoice) RETURN i.scenario AS scenario, count(i) AS count, sum(i.total_gst) AS gst_at_risk ORDER BY gst_at_risk DESC")
     return {
@@ -385,17 +398,50 @@ def cancelled_gstin():
 
 # ── Vendors ────────────────────────────────────────────────────────────────────
 
-@app.get("/api/vendors/risk")
+@app.get("/api/vendors/risk", deprecated=True)
 def vendor_risk():
-    scores = compute_risk_scores()
-    anomaly_count = len([v for v in scores if v.get("is_anomaly")])
-    return {"vendors": scores, "summary": {
-        "total": len(scores),
-        "high_risk": len([v for v in scores if v["risk_level"]=="HIGH"]),
-        "medium_risk": len([v for v in scores if v["risk_level"]=="MEDIUM"]),
-        "low_risk": len([v for v in scores if v["risk_level"]=="LOW"]),
-        "anomalies_detected": anomaly_count,
-        "model_used": "IsolationForest",
+    """DEPRECATED (V6.3). Superseded by GET /api/cases (investigation queue) and
+    GET /api/risk/summary (explainable composer). This endpoint no longer runs
+    the ~9s NetworkX+IsolationForest recompute; it now serves the MATERIALIZED
+    composed risk from GSTIN nodes (fast, indexed, consistent with every other
+    risk surface). Kept only until the Investigation page migrates to /api/cases.
+    """
+    import json as _json
+    from risk.materialize import read_materialization_status
+    rows = run_query(
+        "MATCH (g:GSTIN) "
+        "RETURN g.gstin_id AS gstin_id, coalesce(g.name,g.legal_name,g.trade_name) AS name, "
+        "       g.status AS status, g.scenario AS scenario, g.state_code AS state, "
+        "       coalesce(g.risk_score,0) AS risk_score, g.risk_band AS risk_band, "
+        "       g.risk_score_norm AS risk_norm, g.risk_reasons_json AS reasons_json "
+        "ORDER BY coalesce(g.risk_score,0) DESC")
+    band_to_level = {"CRITICAL": "HIGH", "HIGH": "HIGH", "MED": "MEDIUM", "LOW": "LOW"}
+    vendors = []
+    for r in rows:
+        band = r.get("risk_band") or "LOW"
+        try:
+            flags = [d.get("name") for d in (_json.loads(r.get("reasons_json") or "[]"))][:5]
+        except (ValueError, TypeError):
+            flags = []
+        vendors.append({
+            "gstin_id": r["gstin_id"], "name": r.get("name"), "status": r.get("status"),
+            "scenario": r.get("scenario"), "state": r.get("state"),
+            "risk_score": int(r.get("risk_score") or 0),
+            "risk_norm": r.get("risk_norm"),
+            "risk_band": band, "risk_level": band_to_level.get(band, "LOW"),
+            "flags": [f for f in flags if f],
+            "is_anomaly": band in ("HIGH", "CRITICAL"),
+        })
+    status = read_materialization_status()
+    return {"vendors": vendors, "summary": {
+        "total": len(vendors),
+        "high_risk": sum(1 for v in vendors if v["risk_level"] == "HIGH"),
+        "medium_risk": sum(1 for v in vendors if v["risk_level"] == "MEDIUM"),
+        "low_risk": sum(1 for v in vendors if v["risk_level"] == "LOW"),
+        "anomalies_detected": sum(1 for v in vendors if v["is_anomaly"]),
+        "model_used": "composer/v1 (materialized)",
+        "stale": status.get("stale"),
+        "materialized_at": status.get("materialized_at"),
     }}
 
 

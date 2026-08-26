@@ -1,13 +1,21 @@
-"""FastAPI router at /api/risk/* — composed risk per GSTIN + summary."""
+"""FastAPI router at /api/risk/* — composed risk per GSTIN + summary + refresh.
+
+The composer is the single canonical risk source. `/summary` and `/gstin/{id}`
+compose live (explainable, on-demand); `POST /refresh` (admin) materializes the
+composed risk onto the graph so cheap indexed reads (case list, dashboard,
+vendors) reflect it. Every response carries `materialization.stale` so stale
+risk is never silently served as current.
+"""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Header, HTTPException, Query
+
+from security import require_admin as _require_admin
 
 from .composer import ComposerConfig, RiskComposer
-from .context import ScorerContext, build_context_from_graph_source
+from .context import ScorerContext
 from .scorers import (MLScorer, PropagationScorer, ReconcileScorer,
                       RingScorer, RuleScorer, TemporalScorer)
 
@@ -40,11 +48,6 @@ def default_composer() -> RiskComposer:
     ]))
 
 
-class RunBody(BaseModel):
-    limit: int = 100
-    include_reasons: bool = True
-
-
 @router.get("/gstin/{gstin_id}")
 def gstin_risk(gstin_id: str) -> Dict[str, Any]:
     ctx = _hydrate_context_or_503()
@@ -72,11 +75,43 @@ def summary(limit: int = Query(50, ge=1, le=1000)) -> Dict[str, Any]:
         d["scenario"] = g.get("scenario")
         d["status"] = g.get("status")
         top.append(d)
+    from .materialize import read_materialization_status
     return {
         "count": len(ranked),
         "band_counts": _band_counts(ranked),
+        "materialization": read_materialization_status(),
         "top": top,
     }
+
+
+@router.post("/refresh")
+def refresh_risk(
+    persist_intelligence: bool = Query(
+        True, description="also detect+persist rings and reconcile+persist events"),
+    x_admin_token: str = Header(default=""),
+) -> Dict[str, Any]:
+    """Materialize composed risk onto the graph (admin). This is the canonical
+    'make risk current' operation — it recomputes the composer once and writes
+    risk_score/risk_band/reasons onto every GSTIN + updates the RiskMeta stamp,
+    so subsequent reads are cheap and consistent."""
+    _require_admin(x_admin_token=x_admin_token)
+    from .materialize import materialize_risk, refresh_intelligence
+    try:
+        if persist_intelligence:
+            return refresh_intelligence(persist=True)
+        return materialize_risk()
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(503, f"risk refresh failed: {e}")
+
+
+@router.get("/materialization")
+def materialization_status() -> Dict[str, Any]:
+    """Report whether materialized risk is current vs the live graph fingerprint."""
+    from .materialize import read_materialization_status
+    try:
+        return read_materialization_status()
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(503, f"materialization status unavailable: {e}")
 
 
 def _band_counts(ranked) -> Dict[str, int]:
@@ -87,25 +122,12 @@ def _band_counts(ranked) -> Dict[str, int]:
 
 
 def _hydrate_context_or_503() -> ScorerContext:
-    """Live-hydrate a ScorerContext from Neo4j + the reconcile & rings engines.
-    Anything missing is tolerated (empty list); scorers degrade gracefully."""
+    """Live-hydrate a ScorerContext via the single shared hydrator (one graph
+    hydration; merges the edge list so TemporalScorer/PropagationScorer see the
+    neighbour graph). Anything missing degrades gracefully."""
     try:
-        from reconcile.engine import ReconcileConfig, run_reconcile
-        from rings.engine import EngineConfig, run_pipeline
-        # Reconcile hydrates from Neo4j internally; use its as-is graph_source view.
-        events = run_reconcile(config=ReconcileConfig(include_matched=False))
-        # For rings we need the edge list. rings.engine also does its own hydrate.
-        rings = run_pipeline(config=EngineConfig(persist=False, propagate=False))
-        # Rebuild a ScorerContext from Neo4j directly to have all the fields.
-        from reconcile.engine import _hydrate_from_neo4j
-        gs = _hydrate_from_neo4j()
-        return build_context_from_graph_source(
-            gs,
-            match_events=[e for e in events if e.get("outcome") != "MATCHED"],
-            detected_rings=[
-                r.__dict__ if hasattr(r, "__dict__") else r  # DetectedRing dataclass
-                for r in rings
-            ],
-        )
+        from .hydrate import hydrate_context
+        ctx, _rings, _events = hydrate_context()
+        return ctx
     except Exception as e:
         raise HTTPException(503, f"risk context unavailable: {e}")

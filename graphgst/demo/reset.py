@@ -110,6 +110,16 @@ def _neo4j_reload(status: Dict[str, Any]) -> Dict[str, Any]:
         status["neo4j_loaded"] = True
         status["neo4j_summary"] = summary
         logger.info("Neo4j reloaded from demo artifacts")
+        # Materialize intelligence so the demo graph is immediately investigable:
+        # detect+persist rings, reconcile+persist events, materialize composed
+        # risk onto GSTIN nodes. Best-effort — a graph without it still loads.
+        try:
+            from risk.materialize import refresh_intelligence
+            status["intelligence"] = refresh_intelligence(persist=True)
+            logger.info("intelligence materialized: %s", status["intelligence"])
+        except Exception as ie:  # noqa: BLE001
+            status["intelligence_error"] = repr(ie)
+            logger.warning(f"intelligence refresh skipped: {ie}")
     except Exception as e:
         status["neo4j_loaded"] = False
         status["neo4j_error"] = repr(e)

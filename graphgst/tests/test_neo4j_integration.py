@@ -182,6 +182,137 @@ def test_api_endpoints_live(live, monkeypatch):
             assert row["band"] in {"LOW", "MED", "HIGH", "CRITICAL"}
 
 
+# ── V6.3: risk materialization + canonical Case API ────────────────────
+@pytest.fixture(scope="module")
+def live_materialized(live):
+    """Materialize composed risk onto the loaded graph, once."""
+    from risk.materialize import refresh_intelligence
+    refresh_intelligence(persist=True)
+    return live
+
+
+def test_materialize_writes_risk_and_meta(live_materialized):
+    scored = db.run_query(
+        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL RETURN count(g) AS c")[0]["c"]
+    assert scored > 0, "no GSTIN carries materialized risk"
+    # every scored node has all canonical risk properties
+    bad = db.run_query(
+        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL AND "
+        "(g.risk_score IS NULL OR g.risk_band IS NULL) RETURN count(g) AS c")[0]["c"]
+    assert bad == 0, "materialized node missing risk_score/risk_band"
+    meta = db.run_query("MATCH (m:RiskMeta {id:'singleton'}) RETURN count(m) AS c")[0]["c"]
+    assert meta == 1, "RiskMeta stamp not written"
+
+
+def test_materialization_not_stale_after_refresh(live_materialized):
+    from risk.materialize import read_materialization_status
+    st = read_materialization_status()
+    assert st["stale"] is False
+    assert st["n_scored"] > 0
+    assert st["fingerprint"] == st["current_fingerprint"]
+
+
+def test_staleness_detects_graph_change(live_materialized):
+    from risk.materialize import read_materialization_status
+    assert read_materialization_status()["stale"] is False
+    # Mutating the graph fingerprint must flip stale True — stale risk can never
+    # silently read as current.
+    db.run_write("CREATE (:Ring {ring_id:'TEST-STALE-SENTINEL'})")
+    try:
+        assert read_materialization_status()["stale"] is True
+    finally:
+        db.run_write("MATCH (r:Ring {ring_id:'TEST-STALE-SENTINEL'}) DETACH DELETE r")
+    assert read_materialization_status()["stale"] is False
+
+
+def test_cases_list_live(live_materialized):
+    from fastapi.testclient import TestClient
+    import main
+    with TestClient(main.app) as c:
+        r = c.get("/api/cases/?limit=10")
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["count"] > 0
+        assert body["materialization"]["stale"] is False
+        row = body["cases"][0]
+        for key in ("case_id", "gstin_id", "risk_score", "band", "exposure_inr",
+                    "ring_ids", "top_reasons"):
+            assert key in row
+        assert 0.0 <= row["risk_score"] <= 1.0
+        assert row["band"] in {"LOW", "MED", "HIGH", "CRITICAL"}
+
+
+def test_case_detail_is_coherent(live_materialized):
+    from fastapi.testclient import TestClient
+    import main
+    gid = db.run_query(
+        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL "
+        "RETURN g.gstin_id AS id ORDER BY g.risk_score_norm DESC LIMIT 1")[0]["id"]
+    with TestClient(main.app) as c:
+        r = c.get(f"/api/cases/{gid}")
+        assert r.status_code == 200, r.text
+        case = r.json()
+        # ONE response carries the whole investigation object.
+        assert case["case_id"] == gid
+        assert case["entity"]["gstin_id"] == gid
+        assert case["risk"]["materialized"] is True
+        assert case["risk"]["band"] in {"LOW", "MED", "HIGH", "CRITICAL"}
+        assert 0.0 <= case["risk"]["score"] <= 1.0
+        for key in ("exposure", "rings", "reconciliation", "related_vendors",
+                    "timeline", "subgraph", "materialization"):
+            assert key in case
+        assert case["subgraph"] is not None
+        # a 404 for an unknown entity
+        assert c.get("/api/cases/NOSUCHGSTIN").status_code == 404
+
+
+def test_vendors_risk_now_reads_materialized(live_materialized):
+    """The retired /api/vendors/risk must serve the materialized composer risk
+    (fast, band vocabulary), not recompute the legacy IsolationForest."""
+    from fastapi.testclient import TestClient
+    import main
+    with TestClient(main.app) as c:
+        r = c.get("/api/vendors/risk")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["summary"]["model_used"].startswith("composer")
+        assert body["vendors"], "no vendors returned"
+        assert all("risk_band" in v for v in body["vendors"][:5])
+
+
+def test_exposure_no_double_count(live_materialized):
+    """ITC exposure must count each invoice's GST once, even when the invoice
+    carries multiple blocking outcomes (regression for the double-count bug)."""
+    from investigation.service import BLOCKING_OUTCOMES, _exposure_for
+    multi = db.run_query(
+        "MATCH (g:GSTIN)-[:ISSUED_INVOICE]->(i:Invoice)<-[:ABOUT]-(m:MatchEvent) "
+        "WHERE m.outcome IN $b WITH g, i, count(DISTINCT m.outcome) AS k WHERE k>=2 "
+        "RETURN g.gstin_id AS id LIMIT 1", {"b": BLOCKING_OUTCOMES})
+    if not multi:
+        pytest.skip("no invoice with >=2 blocking outcomes in this dataset")
+    gid = multi[0]["id"]
+    truth = db.run_query(
+        "MATCH (g:GSTIN {gstin_id:$id})-[:ISSUED_INVOICE]->(i:Invoice) "
+        "WHERE EXISTS { (i)<-[:ABOUT]-(m:MatchEvent) WHERE m.outcome IN $b } "
+        "RETURN sum(coalesce(i.total_gst,0)) AS total, count(i) AS n",
+        {"id": gid, "b": BLOCKING_OUTCOMES})[0]
+    exp = _exposure_for(gid)
+    assert abs(exp.total_inr - round(float(truth["total"] or 0), 2)) < 0.01
+    assert exp.invoice_count == int(truth["n"])
+
+
+def test_recurrence_survives_refresh(live_materialized):
+    """Re-materializing the same graph must INCREMENT ring sighting_count (the
+    H/R recurrence signals read prior history), not reset it — regression for the
+    wipe-before-detect bug."""
+    from risk.materialize import refresh_intelligence
+    before = db.run_query("MATCH (r:Ring) RETURN max(r.sighting_count) AS m, count(r) AS c")[0]
+    refresh_intelligence(persist=True)
+    after = db.run_query("MATCH (r:Ring) RETURN max(r.sighting_count) AS m, count(r) AS c")[0]
+    assert after["m"] > before["m"], "sighting_count did not increment across refreshes"
+    assert after["c"] == before["c"], "ring count drifted across identical refreshes"
+
+
 # ── 11. idempotent reload ──────────────────────────────────────────────
 def test_idempotent_reload(live):
     from datagen.loader import load_directory

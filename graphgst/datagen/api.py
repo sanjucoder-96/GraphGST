@@ -75,14 +75,24 @@ def generate(body: GenerateBody) -> dict:
 
 
 @router.post("/load", dependencies=[Depends(_require_admin)])
-def load(dir: str = Query(..., description="Path to a datagen output directory")) -> dict:
+def load(dir: str = Query(..., description="Path to a datagen output directory"),
+         refresh: bool = Query(True, description="materialize rings/events/risk after load")) -> dict:
     from security import resolve_within
     from .loader import load_directory
     safe = resolve_within(dir)                 # blocks path traversal
     if not safe.is_dir():
         raise HTTPException(404, "Directory not found")
     stats = load_directory(str(safe))
-    return {"ok": True, "loaded": stats}
+    out = {"ok": True, "loaded": stats}
+    # Materialize intelligence so risk/case reads are immediately current and
+    # never stale after an ingestion. Best-effort.
+    if refresh:
+        try:
+            from risk.materialize import refresh_intelligence
+            out["intelligence"] = refresh_intelligence(persist=True)
+        except Exception as e:  # noqa: BLE001
+            out["intelligence_error"] = repr(e)
+    return out
 
 
 @router.get("/truth")

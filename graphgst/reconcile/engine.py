@@ -117,11 +117,11 @@ def run_reconcile(
         events.extend(one_events)
 
     if cfg.persist:
-        try:
-            from .persist import upsert_events
-            upsert_events(events)
-        except Exception:
-            logger.exception("failed to persist %d match events", len(events))
+        # Re-raise on failure (mirrors rings/engine.py). Swallowing here would
+        # let a caller (e.g. risk materialization) report a phantom "persisted"
+        # count and compute risk from events that never reached the graph.
+        from .persist import upsert_events
+        upsert_events(events)
 
     return events
 
