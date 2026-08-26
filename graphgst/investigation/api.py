@@ -14,7 +14,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from schemas import Case, CaseList
+from schemas import Case, CaseList, CaseStatusResult, CaseStatusUpdate
 
 from . import service
 
@@ -46,3 +46,17 @@ def get_case(
     if case is None:
         raise HTTPException(404, f"no entity {gstin_id} in the current graph")
     return case
+
+
+@router.patch("/{gstin_id}", response_model=CaseStatusResult)
+def update_case_status(gstin_id: str, body: CaseStatusUpdate) -> CaseStatusResult:
+    """Persist an investigation's workflow status
+    (open|investigating|escalated|resolved|dismissed) onto the graph. The Case
+    API reads it back — the status is real Neo4j state, not React state."""
+    try:
+        res = service.set_investigation_status(gstin_id, body.status.value)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(503, f"status update failed: {e}")
+    if res is None:
+        raise HTTPException(404, f"no entity {gstin_id} in the current graph")
+    return res

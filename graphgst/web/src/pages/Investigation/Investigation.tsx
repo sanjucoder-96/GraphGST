@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Copy, X } from 'lucide-react';
-import { getAuditTrail, getGraphFull, getRing, getVendorRisk, postAgentQuery } from '../../lib/api';
+import { getCase, postAgentQuery } from '../../lib/api';
 import { GraphCanvas } from '../../components/GraphCanvas/GraphCanvas';
 import { EvidencePanel } from '../../components/EvidencePanel/EvidencePanel';
 import { TimelineScrubber } from '../../components/TimelineScrubber/TimelineScrubber';
 import { RelatedVendors } from '../../components/RelatedVendors/RelatedVendors';
 import { Button } from '../../components/ui/Button';
-import { MOCK_AUDIT_TRAILS, MOCK_RINGS } from '../../lib/mocks';
 import { useStore } from '../../lib/store';
 import { useShortcuts } from '../../lib/keyboard';
-import type { AuditTrail, GraphPayload, Ring } from '../../types/domain';
+import type {
+  AuditHop, AuditTrail, GraphPayload, Ring, Signals, Vendor
+} from '../../types/domain';
+import type {
+  InvestigationCase, MatchEventOut, RingSummary
+} from '../../types/case';
 import styles from './Investigation.module.css';
 
 type Tab = 'overview' | 'evidence' | 'counterfactual';
@@ -21,41 +25,188 @@ interface Props {
   mode: 'entity' | 'ring';
 }
 
+const BLOCKING = new Set([
+  'MISSING_GSTR1', 'MISSING_GSTR3B', 'MISSING_TAX_PAYMENT',
+  'CANCELLED_SUPPLIER', 'DUPLICATE',
+]);
+
+// ── Adapters: the canonical Case → the existing component prop shapes ─────
+// The Investigation page now has ONE data source (GET /api/cases/{id}); these
+// pure adapters reshape it into the Ring / Vendor / GraphPayload / AuditTrail[]
+// the (unchanged) components already consume, so the UI renders identically.
+const signals = (s: Record<string, number> | undefined): Signals => ({
+  C: s?.C ?? 0, V: s?.V ?? 0, T: s?.T ?? 0, R: s?.R ?? 0, N: s?.N ?? 0, H: s?.H ?? 0,
+});
+
+function bandToSeverity(b?: string | null): 'high' | 'med' | 'low' {
+  if (b === 'CRITICAL' || b === 'HIGH') return 'high';
+  if (b === 'MED') return 'med';
+  return 'low';
+}
+
+function toRing(rs: RingSummary | undefined, c: InvestigationCase): Ring | null {
+  if (!rs) return null;
+  const be = (rs.break_edge ?? null) as Record<string, unknown> | null;
+  return {
+    ring_id: rs.ring_id,
+    members: rs.members,
+    invoices: rs.invoices,
+    edges: (rs.edges ?? []).map(e => ({
+      src: e.src, dst: e.dst, invoice_id: e.invoice_id, date: e.date ?? '',
+      amount: e.amount, gst_amount: e.gst_amount,
+      vehicle_id: e.vehicle_id ?? null, hsn: e.hsn ?? null, pin_prefix: null,
+    })),
+    per_edge: [],   // counterfactual sweep isn't persisted; break_edge is the recommendation
+    hops: rs.hops,
+    date_span_days: rs.date_span_days,
+    total_gst: rs.total_gst,
+    score: rs.score,
+    signals: signals(rs.signals),
+    contribution: signals(rs.contribution),
+    share: signals(rs.share),
+    break_edge: be ? {
+      src: String(be.src ?? ''), dst: String(be.dst ?? ''),
+      invoice_id: String(be.invoice_id ?? ''),
+      score_after: Number(be.score_after ?? 0), score_drop: Number(be.score_drop ?? 0),
+    } : null,
+    // real UI metadata sourced from the case (previously mock-only)
+    scenario: c.entity.scenario ?? undefined,
+    exposure_inr: c.exposure.total_inr,
+    severity: bandToSeverity(rs.band ?? c.risk.band),
+    reason_chips: c.risk.reasons.slice(0, 4).map(r => r.detail || r.name).filter(Boolean),
+    xai_confidence: c.risk.score,
+  };
+}
+
+function toVendor(c: InvestigationCase): Vendor {
+  return {
+    gstin: c.entity.gstin_id,
+    name: c.entity.name ?? c.entity.gstin_id,
+    state: c.entity.state_code ?? '',
+    pan: c.entity.gstin_id.slice(2, 12),
+    incorp_date: '',
+    risk_score: c.risk.score,
+    anomaly_score: 0,
+    rings: c.rings.map(r => r.ring_id),
+    exposure_inr: c.exposure.total_inr,
+    first_seen: '',
+    last_seen: c.latest_activity ?? '',
+    reasons: c.risk.reasons.map(r => r.detail || r.name).filter(Boolean),
+    sparkline: [],
+    severity: bandToSeverity(c.risk.band),
+    scenario: c.entity.scenario ?? '',
+    entity_type: 'vendor',
+  };
+}
+
+function toGraph(c: InvestigationCase): GraphPayload | null {
+  if (!c.subgraph) return null;
+  return {
+    nodes: (c.subgraph.nodes ?? []) as GraphPayload['nodes'],
+    edges: (c.subgraph.edges ?? []) as GraphPayload['edges'],
+  };
+}
+
+function toAuditTrails(events: MatchEventOut[]): AuditTrail[] {
+  const byInvoice = new Map<string, MatchEventOut[]>();
+  for (const e of events) {
+    const k = e.invoice_id ?? e.event_id;
+    if (!byInvoice.has(k)) byInvoice.set(k, []);
+    byInvoice.get(k)!.push(e);
+  }
+  const trails: AuditTrail[] = [];
+  byInvoice.forEach((evs, invoice) => {
+    const outcomes = evs.map(e => e.outcome);
+    const blocked = outcomes.some(o => BLOCKING.has(o));
+    const hops: AuditHop[] = [];
+    let h = 1;
+    for (const e of evs) {
+      const status: AuditHop['status'] =
+        BLOCKING.has(e.outcome) ? 'fail' : e.outcome === 'MATCHED' ? 'ok' : 'warn';
+      const reasons = e.reasons ?? [];
+      if (reasons.length === 0) {
+        hops.push({
+          hop: h++, node_type: 'MatchEvent', node_id: e.event_id, label: e.outcome,
+          ok: status === 'ok', status, detail: e.outcome,
+          narrative: `${e.outcome} (${e.severity})${e.role ? ' · ' + e.role : ''}`,
+        });
+      } else {
+        for (const r of reasons) {
+          const ev = (r.evidence ?? {}) as Record<string, unknown>;
+          hops.push({
+            hop: h++, node_type: String(ev.node_type ?? 'MatchEvent'),
+            node_id: String(ev.node_id ?? e.event_id), label: e.outcome,
+            ok: status === 'ok', status, detail: r.detail || r.name,
+            narrative: r.detail || r.name,
+          });
+        }
+      }
+    }
+    trails.push({
+      invoice_id: invoice,
+      overall_status: blocked ? 'MISSING'
+        : outcomes.some(o => o.includes('MISMATCH')) ? 'MISMATCH'
+        : outcomes.some(o => o.includes('DUPLICATE')) ? 'DUPLICATE' : 'OK',
+      audit_summary: outcomes.join(', '),
+      itc_status: blocked ? 'BLOCKED' : 'ELIGIBLE',
+      failed_checkpoints: outcomes.filter(o => o !== 'MATCHED'),
+      hops,
+    });
+  });
+  return trails;
+}
+
 export function InvestigationPage({ mode }: Props) {
   const params = useParams<{ gstin?: string; ring_id?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const pushToast = useStore(s => s.pushToast);
 
-  const ringIdFromUrl = params.ring_id ?? null;
   const gstinFromUrl = params.gstin ?? null;
   const nodeFromUrl = searchParams.get('node');
+  const ringIdFromUrl = params.ring_id ?? searchParams.get('ring');
   const tabFromUrl = (searchParams.get('tab') as Tab | null) ?? 'overview';
   const dateFromUrl = searchParams.get('t');
   const cutFromUrl = searchParams.get('break');
 
-  // Resolve which ring to fetch. On entity route, pick the first ring that
-  // includes the GSTIN as a demo affordance.
-  const guessRingId = useMemo(() => {
-    if (mode === 'ring') return ringIdFromUrl;
-    if (mode === 'entity' && gstinFromUrl) {
-      const hit = MOCK_RINGS.find(r => r.members.includes(gstinFromUrl));
-      return hit?.ring_id ?? MOCK_RINGS[0]?.ring_id ?? null;
-    }
-    return null;
-  }, [mode, ringIdFromUrl, gstinFromUrl]);
-
-  const graphQ = useQuery({ queryKey: ['graph', 'full'] as const, queryFn: getGraphFull, staleTime: 30_000 });
-  const vendorsQ = useQuery({ queryKey: ['vendors', 'risk'] as const, queryFn: getVendorRisk, staleTime: 30_000 });
-  const ringQ = useQuery({
-    queryKey: ['rings', 'detail', guessRingId] as const,
-    queryFn: () => guessRingId ? getRing(guessRingId) : Promise.resolve(null),
-    enabled: !!guessRingId,
-    staleTime: 60_000
+  // ONE data source. The case entity is the gstin on the route, or the `node`
+  // param that ring-mode links carry — no client-side entity→ring guessing,
+  // no MOCK_RINGS.
+  const caseGstin = gstinFromUrl ?? nodeFromUrl;
+  const caseQ = useQuery({
+    queryKey: ['case', caseGstin] as const,
+    queryFn: () => (caseGstin ? getCase(caseGstin) : Promise.resolve(null)),
+    enabled: !!caseGstin,
+    staleTime: 30_000,
   });
+  const invCase: InvestigationCase | null =
+    caseQ.data ? (caseQ.data as { data: InvestigationCase }).data : null;
 
-  const ring: Ring | null = ringQ.data ? (ringQ.data as { data: Ring }).data : null;
-  const vendor = vendorsQ.data?.data.find(v => v.gstin === (gstinFromUrl ?? nodeFromUrl)) ?? null;
+  useEffect(() => {
+    if (caseQ.data && (caseQ.data as { fromMock: boolean }).fromMock) {
+      pushToast({ kind: 'warn', title: 'Backend unreachable', body: 'Serving demo fixtures' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caseQ.data && (caseQ.data as { fromMock: boolean }).fromMock]);
+
+  // Primary ring = the one named in the URL, else the entity's top-scoring ring.
+  const primaryRingSummary = useMemo<RingSummary | undefined>(() => {
+    if (!invCase) return undefined;
+    if (ringIdFromUrl) {
+      const hit = invCase.rings.find(r => r.ring_id === ringIdFromUrl);
+      if (hit) return hit;
+    }
+    return invCase.rings[0];
+  }, [invCase, ringIdFromUrl]);
+
+  const ring = useMemo<Ring | null>(
+    () => (invCase ? toRing(primaryRingSummary, invCase) : null),
+    [invCase, primaryRingSummary]);
+  const vendor = useMemo<Vendor | null>(
+    () => (invCase ? toVendor(invCase) : null), [invCase]);
+  const scopedGraph = useMemo<GraphPayload | null>(
+    () => (invCase ? toGraph(invCase) : null), [invCase]);
+  const auditTrailsResolved = useMemo<AuditTrail[]>(
+    () => (invCase ? toAuditTrails(invCase.reconciliation) : []), [invCase]);
 
   const focusedInvoiceId = useMemo<string | null>(() => {
     if (!ring) return null;
@@ -64,37 +215,9 @@ export function InvestigationPage({ mode }: Props) {
     return ring.edges[0]?.invoice_id ?? null;
   }, [ring, nodeFromUrl, cutFromUrl]);
 
-  // Fetch audit trails for the ring's invoices (using single query with Promise.all)
-  const auditTrailsQ = useQuery<AuditTrail[]>({
-    queryKey: ['audit', 'ring', ring?.ring_id ?? 'none'] as const,
-    queryFn: async () => {
-      if (!ring) return [];
-      const results = await Promise.all(ring.edges.map(e => getAuditTrail(e.invoice_id)));
-      return results.map(r => r.data);
-    },
-    enabled: !!ring,
-    staleTime: 60_000
-  });
-  const auditTrailsResolved: AuditTrail[] = auditTrailsQ.data ?? (ring ? MOCK_AUDIT_TRAILS.filter(a => ring.edges.some(e => e.invoice_id === a.invoice_id)) : []);
-
-  // Scoped graph — either everything, or filtered to the ring for a cleaner view
-  const scopedGraph: GraphPayload | null = useMemo(() => {
-    const g = graphQ.data?.data;
-    if (!g) return null;
-    if (!ring) return g;
-    const keep = new Set<string>([ring.ring_id, ...ring.members, ...ring.edges.map(e => e.invoice_id)]);
-    for (const e of ring.edges) if (e.vehicle_id) keep.add('VEH::' + e.vehicle_id);
-    const nodes = g.nodes.filter(n => keep.has(n.data.id));
-    const edges = g.edges.filter(e => keep.has(e.data.source) && keep.has(e.data.target));
-    return { nodes, edges };
-  }, [graphQ.data, ring]);
-
   const [cutInvoice, setCutInvoice] = useState<string | null>(cutFromUrl ?? null);
   const [timelineDate, setTimelineDate] = useState<string | null>(dateFromUrl);
 
-  // URL → state sync. Back/forward navigation, deep-links pasted while the
-  // page is already mounted, and other route-driven updates hydrate the
-  // graph and evidence panel from the current searchParams.
   useEffect(() => {
     setCutInvoice((prev) => (prev === cutFromUrl ? prev : (cutFromUrl ?? null)));
   }, [cutFromUrl]);
@@ -124,20 +247,24 @@ export function InvestigationPage({ mode }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timelineDate]);
 
+  const cycleRing = (dir: 1 | -1) => {
+    if (!invCase || invCase.rings.length === 0) return;
+    const rs = invCase.rings;
+    const idx = rs.findIndex(r => r.ring_id === primaryRingSummary?.ring_id);
+    const nxt = rs[((idx + dir) % rs.length + rs.length) % rs.length];
+    if (nxt) {
+      const next = new URLSearchParams(searchParams);
+      next.set('ring', nxt.ring_id);
+      setSearchParams(next, { replace: true });
+    }
+  };
+
   useShortcuts({
     '1': () => setTab('overview'),
     '2': () => setTab('evidence'),
     '3': () => setTab('counterfactual'),
-    ']': () => {
-      const idx = MOCK_RINGS.findIndex(r => r.ring_id === ring?.ring_id);
-      const nxt = MOCK_RINGS[(idx + 1) % MOCK_RINGS.length];
-      if (nxt) navigate(`/ring/${nxt.ring_id}`);
-    },
-    '[': () => {
-      const idx = MOCK_RINGS.findIndex(r => r.ring_id === ring?.ring_id);
-      const prv = MOCK_RINGS[(idx - 1 + MOCK_RINGS.length) % MOCK_RINGS.length];
-      if (prv) navigate(`/ring/${prv.ring_id}`);
-    }
+    ']': () => cycleRing(1),
+    '[': () => cycleRing(-1),
   });
 
   const [scnPreview, setScnPreview] = useState<string | null>(null);
@@ -165,7 +292,7 @@ export function InvestigationPage({ mode }: Props) {
       <div className={styles.header}>
         <div className={styles.headerId}>
           <span className={styles.kicker}>{mode === 'ring' ? 'Ring investigation' : 'Entity investigation'}</span>
-          <h1 className={styles.headerTitle} data-mono>{ring ? ring.ring_id : gstinFromUrl ?? 'Investigation'}</h1>
+          <h1 className={styles.headerTitle} data-mono>{ring ? ring.ring_id : (invCase?.entity.name ?? gstinFromUrl ?? 'Investigation')}</h1>
         </div>
 
         {ring && (
@@ -215,10 +342,10 @@ export function InvestigationPage({ mode }: Props) {
             />
           </div>
         )}
-        {(ring || gstinFromUrl) && (
+        {(ring || caseGstin) && (
           <div className={styles.relatedSlot}>
             <RelatedVendors
-              gstin={(ring?.members[0]) ?? gstinFromUrl ?? ''}
+              gstin={(ring?.members[0]) ?? caseGstin ?? ''}
               ringMembers={ring?.members}
               k={5}
               compact

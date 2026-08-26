@@ -41,11 +41,30 @@ audit-narrative helpers survive.
 
 ### Staleness — stale risk can never read as current
 
-A singleton `:RiskMeta` node stores the graph **fingerprint** (counts of
-gstins / invoices / rings / events) captured at materialization time. Every risk
-and case response carries a `materialization` block whose `stale` flag is
-`fingerprint != current_fingerprint`. So if the graph changes without a refresh,
-the API says so — it does not silently serve old scores as current.
+A singleton `:RiskMeta` node stores a **content-sensitive fingerprint** captured
+at materialization time. Every risk and case response carries a `materialization`
+block whose `stale` flag is `fingerprint != current_fingerprint` (or a
+`materializing` flag left set by a partial write). So if the graph changes
+without a refresh, the API says so — it never silently serves old scores as
+current.
+
+The fingerprint is a single-pass, deterministic aggregate over exactly the
+inputs composed risk depends on (`risk.materialize.current_fingerprint`):
+
+| Field | Sensitive to |
+|---|---|
+| `gstins`, `cancelled_gstins` | entity count; Active→CANCELLED status flips |
+| `invoices`, `invoice_gst_sum` | invoice count; **amount edits** (sum moves) |
+| `non_matched_invoices` | invoice `status` changes |
+| `max_invoice_date` | invoice **date edits** (temporal window) |
+| `rings`, `ring_score_sum` | ring detection + scoring |
+| `events` | reconciliation outcomes |
+
+Counts alone could not see an in-place edit that preserved node counts (an
+amount correction, a status flip); the content aggregates close that gap while
+staying cheap (one query, no per-node hashing). It is not collision-proof (two
+different graphs could in principle share every aggregate), but it catches every
+edit the composer's inputs actually depend on.
 
 ### When risk is (re)computed
 
@@ -72,7 +91,7 @@ Case
 ├─ related_vendors[] RelatedVendor (embedding lookalikes, enriched w/ name+band+shares_ring)
 ├─ timeline[]        TimelineEvent (date-ordered invoice activity)
 ├─ subgraph          Cytoscape-shaped 1-hop invoice neighbourhood
-├─ investigation_status  open | reviewing | closed
+├─ investigation_status  open | investigating | escalated | resolved | dismissed
 └─ materialization   MaterializationInfo (stale, fingerprint, scored_at)
 ```
 
@@ -98,6 +117,25 @@ risk — a real investigation queue in one indexed read.
 The final Investigator UI should consume `getCase(gstin)` and `getCaseList()`
 (`web/src/lib/api.ts`) and render — never re-fetch-and-join.
 
+### The Investigation page is migrated (V6.3)
+
+`web/src/pages/Investigation/Investigation.tsx` now fetches **only**
+`getCase(gstin)`. It no longer: assembles a case from `getGraphFull` +
+`getVendorRisk` + `getRing` + N× `getAuditTrail`; resolves entity→ring against
+`MOCK_RINGS` in the browser; or reconstructs risk/rings/evidence client-side.
+The obsolete fetchers were removed from `api.ts` after verifying nothing else
+used them. The page keeps its components unchanged — small pure adapters reshape
+the one `Case` into the `Ring` / `Vendor` / `GraphPayload` / `AuditTrail[]` those
+components already consume, so the UI renders the same information from a single
+source. (The separate `RingExplorer` page is a follow-up.)
+
+### Investigation status is persisted (V6.3)
+
+`PATCH /api/cases/{id}` with `{status}` ∈
+`open | investigating | escalated | resolved | dismissed` writes
+`g.investigation_status` in Neo4j; the Case API reads it back. It is real graph
+state, not React state — it survives reloads and is shared across viewers.
+
 ## Layering
 
 ```
@@ -117,7 +155,10 @@ Intelligence engines (rings / reconcile / composer / embeddings)
 
 ## What is intentionally deferred
 
-Ring-level workflow metadata (assignee, human status transitions), per-date ring
-score-evolution series, and enriched shared-asset evidence are modeled in the
-schema but not yet fully populated — they are follow-ups for the UI phase, noted
-so the contract is stable even before every field is rich.
+Case-level `investigation_status` is now persisted (V6.3). Still deferred:
+per-assignee ownership, a full status-transition audit log, per-date ring
+score-evolution series, and enriched shared-asset evidence — modeled in the
+schema but not yet fully populated, and follow-ups for the UI phase. The
+`RingExplorer` page is not yet migrated to the Case API. The fingerprint is
+content-sensitive but aggregate-based (not a per-node hash), so it is not
+collision-proof — an acceptable trade for staying cheap.

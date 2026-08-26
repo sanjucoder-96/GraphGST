@@ -35,8 +35,10 @@ class Band(str, Enum):
 
 class InvestigationStatus(str, Enum):
     OPEN = "open"
-    REVIEWING = "reviewing"
-    CLOSED = "closed"
+    INVESTIGATING = "investigating"
+    ESCALATED = "escalated"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
 
 
 # ── Evidence & Reason (the one canonical explanation contract) ───────────
@@ -86,6 +88,18 @@ class EntityRef(BaseModel):
 
 
 # ── Ring ─────────────────────────────────────────────────────────────────
+class RingEdge(BaseModel):
+    """One hop of a ring: the invoice from one member to the next."""
+    src: str
+    dst: str
+    invoice_id: str
+    date: Optional[str] = None
+    amount: float = 0.0
+    gst_amount: float = 0.0
+    vehicle_id: Optional[str] = None
+    hsn: Optional[str] = None
+
+
 class RingSummary(BaseModel):
     """One detected circular-trading ring. Supersedes DetectedRing/DetectedRingOut
     /persisted-dict/legacy-fraud-dict — and keeps `temporal` (which
@@ -106,6 +120,7 @@ class RingSummary(BaseModel):
     break_edge: Optional[Dict[str, Any]] = None
     temporal: Optional[Dict[str, Any]] = None
     velocity_inr_per_day: Optional[float] = None
+    edges: List[RingEdge] = Field(default_factory=list)  # per-hop invoice edges
 
 
 # ── Reconciliation ───────────────────────────────────────────────────────
@@ -159,8 +174,10 @@ class TimelineEvent(BaseModel):
 class MaterializationInfo(BaseModel):
     materialized_at: Optional[str] = None
     stale: bool = True
-    fingerprint: Dict[str, int] = Field(default_factory=dict)
-    current_fingerprint: Dict[str, int] = Field(default_factory=dict)
+    # content-sensitive fingerprint: mixed int/float/str aggregates (see
+    # risk.materialize.current_fingerprint)
+    fingerprint: Dict[str, Any] = Field(default_factory=dict)
+    current_fingerprint: Dict[str, Any] = Field(default_factory=dict)
     n_scored: int = 0
     composer_version: Optional[str] = None
 
@@ -208,6 +225,18 @@ class Case(BaseModel):
     materialization: MaterializationInfo
 
 
+# ── Case workflow status ─────────────────────────────────────────────────
+class CaseStatusUpdate(BaseModel):
+    """PATCH body — set an investigation's workflow status."""
+    status: InvestigationStatus
+
+
+class CaseStatusResult(BaseModel):
+    case_id: str
+    investigation_status: InvestigationStatus
+    updated_at: Optional[str] = None
+
+
 # ── Refresh result ───────────────────────────────────────────────────────
 class RefreshResult(BaseModel):
     ok: bool = True
@@ -215,5 +244,5 @@ class RefreshResult(BaseModel):
     events_persisted: int = 0
     gstins_scored: int = 0
     materialized_at: Optional[str] = None
-    fingerprint: Dict[str, int] = Field(default_factory=dict)
+    fingerprint: Dict[str, Any] = Field(default_factory=dict)
     elapsed_sec: float = 0.0

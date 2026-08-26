@@ -8,9 +8,7 @@
 
 import type {
   AgentResponse,
-  AuditTrail,
   DashboardSummary,
-  GraphPayload,
   LookalikeResp,
   ModelCard,
   Ring,
@@ -18,9 +16,7 @@ import type {
 } from '../types/domain';
 import type { CaseList, InvestigationCase } from '../types/case';
 import {
-  MOCK_AUDIT_TRAILS,
   MOCK_DASHBOARD,
-  MOCK_GRAPH,
   lookMockFor,
   MOCK_MODEL_CARD,
   MOCK_RINGS,
@@ -114,53 +110,9 @@ export function getRing(ringId: string): Promise<ApiResult<Ring>> {
   const local = MOCK_RINGS.find(r => r.ring_id === ringId) ?? MOCK_RINGS[0];
   return safeGet<Ring>(`/api/rings/${ringId}`, local);
 }
-/** Normalize the LIVE /api/vendors/risk payload into the Vendor[] shape the UI
- *  renders. The backend returns `{vendors:[…], summary}` where each vendor uses
- *  `gstin_id`, a 0-100 `risk_score`, `risk_level`, and `flags` — while the UI
- *  (and the mocks) use `gstin`, a 0-1 `risk_score`, `severity`, and `reasons`.
- *  Without this adapter the live Case Queue rendered zero rows. Fields the
- *  endpoint doesn't provide (exposure, rings, sparkline) default safely. */
-function normalizeLiveVendors(raw: unknown): Vendor[] {
-  const list: any[] = Array.isArray(raw) ? raw : ((raw as any)?.vendors ?? []);
-  const sev: Record<string, 'high' | 'med' | 'low'> =
-    { HIGH: 'high', CRITICAL: 'high', MEDIUM: 'med', MED: 'med', LOW: 'low' };
-  return list.map((v: any): Vendor => {
-    // Prefer the explicit canonical 0-1 field the endpoint now provides; only
-    // fall back to the 0-100 heuristic when it is absent (a score100 of exactly
-    // 1 would otherwise be mis-read as a full-risk 1.0).
-    const raw01 = typeof v.risk_score === 'number' ? v.risk_score : 0;
-    const score = typeof v.risk_norm === 'number' ? v.risk_norm
-                : (raw01 > 1 ? raw01 / 100 : raw01);
-    const gstin = v.gstin_id ?? v.gstin ?? '';
-    return {
-      gstin,
-      name: v.name ?? gstin ?? 'Unknown entity',
-      state: v.state ?? '',
-      pan: v.pan ?? (gstin ? String(gstin).slice(2, 12) : ''),
-      incorp_date: v.incorp_date ?? '',
-      risk_score: score,
-      anomaly_score: typeof v.anomaly_score === 'number' ? v.anomaly_score : 0,
-      rings: Array.isArray(v.rings) ? v.rings : [],
-      exposure_inr: typeof v.exposure_inr === 'number' ? v.exposure_inr : 0,
-      first_seen: v.first_seen ?? '',
-      last_seen: v.last_seen ?? '',
-      reasons: Array.isArray(v.reasons) ? v.reasons
-             : Array.isArray(v.flags) ? v.flags : [],
-      sparkline: Array.isArray(v.sparkline) ? v.sparkline : [],
-      severity: sev[String(v.risk_level ?? '').toUpperCase()]
-             ?? (score >= 0.75 ? 'high' : score >= 0.4 ? 'med' : 'low'),
-      scenario: v.scenario ?? '',
-      entity_type: (v.entity_type ?? 'vendor') as Vendor['entity_type'],
-      assignee: v.assignee,
-    };
-  });
-}
-
-export async function getVendorRisk(): Promise<ApiResult<Vendor[]>> {
-  const res = await safeGet<unknown>('/api/vendors/risk', MOCK_VENDORS);
-  if (res.fromMock) return res as ApiResult<Vendor[]>;
-  return { ...res, data: normalizeLiveVendors(res.data) };
-}
+// (V6.3) getVendorRisk / normalizeLiveVendors removed — the deprecated
+// /api/vendors/risk is no longer consumed by the frontend. The Case Queue uses
+// getCases() (composer) and the Investigation page uses getCase() (Case API).
 
 /** Normalize the modern composer's /api/risk/summary `top[]` into Vendor[].
  *  The composer returns the explainable shape (score 0-1, band, reasons with
@@ -245,13 +197,9 @@ export function getCase(gstin: string): Promise<ApiResult<InvestigationCase>> {
   };
   return safeGet<InvestigationCase>(`/api/cases/${encodeURIComponent(gstin)}`, fallback);
 }
-export function getGraphFull(): Promise<ApiResult<GraphPayload>> {
-  return safeGet<GraphPayload>('/api/graph/full', MOCK_GRAPH);
-}
-export function getAuditTrail(invoiceId: string): Promise<ApiResult<AuditTrail>> {
-  const local = MOCK_AUDIT_TRAILS.find(a => a.invoice_id === invoiceId) ?? MOCK_AUDIT_TRAILS[0];
-  return safeGet<AuditTrail>(`/api/reconcile/audit-trail/${invoiceId}`, local);
-}
+// (V6.3) getGraphFull / getAuditTrail removed — the Investigation page no longer
+// assembles a case from the full graph + per-invoice audit trails; getCase()
+// returns the ring-scoped subgraph and reconciliation events in one response.
 export async function getDashboardSummary(): Promise<ApiResult<DashboardSummary>> {
   const res = await safeGet<DashboardSummary>('/api/dashboard/summary', MOCK_DASHBOARD);
   lastNeo4jOk = res.fromMock ? false : Boolean(res.data.neo4j);
