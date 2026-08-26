@@ -13,10 +13,10 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from schemas import (Band, Case, CaseList, CaseListItem, EntityRef,
-                     ExposureBreakdown, InvestigationStatus, MatchEventOut,
-                     MaterializationInfo, Reason, RelatedVendor, RingSummary,
-                     RiskScore, TimelineEvent)
+from schemas import (Band, Case, CaseList, CaseListItem, CaseStatusResult,
+                     EntityRef, ExposureBreakdown, InvestigationStatus,
+                     MatchEventOut, MaterializationInfo, Reason, RelatedVendor,
+                     RingEdge, RingSummary, RiskScore, TimelineEvent)
 
 # ITC-blocking reconciliation outcomes → the value at risk for exposure.
 BLOCKING_OUTCOMES = [
@@ -52,7 +52,7 @@ def _entity(gstin_id: str) -> Optional[Dict[str, Any]]:
     return rows[0] if rows else None
 
 
-def _rings_for(gstin_id: str) -> List[RingSummary]:
+def _rings_for(gstin_id: str, include_edges: bool = False) -> List[RingSummary]:
     from db import run_query
     rows = run_query(
         "MATCH (r:Ring)-[:INCLUDES]->(:GSTIN {gstin_id:$id}) "
@@ -64,7 +64,32 @@ def _rings_for(gstin_id: str) -> List[RingSummary]:
         "ORDER BY r.score DESC",
         {"id": gstin_id},
     )
-    return [_ring_summary(r["ring"]) for r in rows]
+    out = [_ring_summary(r["ring"]) for r in rows]
+    if include_edges:
+        for ring in out:
+            ring.edges = _ring_edges(ring.ring_id)
+    return out
+
+
+def _ring_edges(ring_id: str) -> List[RingEdge]:
+    """The ring's per-hop invoice edges (src→dst, date, amount, gst, vehicle)."""
+    from db import run_query
+    rows = run_query(
+        "MATCH (r:Ring {ring_id:$rid})-[:CONTAINS]->(i:Invoice) "
+        "MATCH (s:GSTIN)-[:ISSUED_INVOICE]->(i)-[:BILLED_TO]->(b:GSTIN) "
+        "OPTIONAL MATCH (i)-[:TRANSPORTED_VIA]->(:EWayBill)-[:USED_VEHICLE]->(v:Vehicle) "
+        "WITH i, s, b, head(collect(v.vehicle_number)) AS vehicle "
+        "RETURN s.gstin_id AS src, b.gstin_id AS dst, i.invoice_id AS invoice_id, "
+        "       toString(i.date) AS date, coalesce(i.amount,i.taxable_value,0) AS amount, "
+        "       coalesce(i.total_gst,0) AS gst_amount, vehicle AS vehicle_id, i.hsn AS hsn "
+        "ORDER BY i.date",
+        {"rid": ring_id},
+    )
+    return [RingEdge(
+        src=r["src"], dst=r["dst"], invoice_id=r["invoice_id"], date=r.get("date"),
+        amount=float(r.get("amount") or 0.0), gst_amount=float(r.get("gst_amount") or 0.0),
+        vehicle_id=r.get("vehicle_id"), hsn=r.get("hsn"),
+    ) for r in rows]
 
 
 def _ring_summary(r: Dict[str, Any]) -> RingSummary:
@@ -80,6 +105,7 @@ def _ring_summary(r: Dict[str, Any]) -> RingSummary:
             "src": r.get("break_edge_from"), "dst": r.get("break_edge_to"),
             "invoice_id": r.get("break_edge_invoice"),
             "score_drop": r.get("break_edge_score_drop"),
+            "score_after": r.get("break_edge_score_after"),
         }
     velocity = round(total_gst / max(1, span), 2)
     return RingSummary(
@@ -332,7 +358,7 @@ def get_case(gstin_id: str, include_subgraph: bool = True) -> Optional[Case]:
     if ent is None:
         return None
     risk = _risk_for(gstin_id)
-    rings = _rings_for(gstin_id)
+    rings = _rings_for(gstin_id, include_edges=True)
     events = _events_for(gstin_id)
     exposure = _exposure_for(gstin_id)
     ring_members = {m for r in rings for m in r.members}
@@ -353,6 +379,29 @@ def get_case(gstin_id: str, include_subgraph: bool = True) -> Optional[Case]:
         latest_activity=latest,
         generated_at=datetime.now(timezone.utc).isoformat(),
         materialization=_materialization(),
+    )
+
+
+def set_investigation_status(gstin_id: str, status: str) -> Optional[CaseStatusResult]:
+    """Persist the investigation workflow status onto the GSTIN node. Returns
+    None if the entity does not exist. This is real Neo4j state — not React
+    state — so the status survives reloads and is read back by the Case API."""
+    from db import run_write
+    at = datetime.now(timezone.utc).isoformat()
+    recs = run_write(
+        "MATCH (g:GSTIN {gstin_id:$id}) "
+        "SET g.investigation_status = $s, g.investigation_updated_at = $at "
+        "RETURN g.gstin_id AS id, g.investigation_status AS status, "
+        "       g.investigation_updated_at AS at",
+        {"id": gstin_id, "s": status, "at": at},
+    )
+    rows = [dict(r) for r in recs]
+    if not rows:
+        return None
+    r = rows[0]
+    return CaseStatusResult(
+        case_id=r["id"], investigation_status=InvestigationStatus(r["status"]),
+        updated_at=r.get("at"),
     )
 
 

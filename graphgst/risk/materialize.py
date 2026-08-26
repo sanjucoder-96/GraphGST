@@ -60,10 +60,7 @@ _WRITE_META = """
 MERGE (m:RiskMeta {id: 'singleton'})
 SET m.materialized_at = $at,
     m.materializing = false,
-    m.fp_gstins  = $fp_gstins,
-    m.fp_invoices = $fp_invoices,
-    m.fp_rings   = $fp_rings,
-    m.fp_events  = $fp_events,
+    m.fingerprint_json = $fingerprint_json,
     m.n_scored   = $n_scored,
     m.composer_version = $version
 """
@@ -72,16 +69,31 @@ _READ_META = """
 MATCH (m:RiskMeta {id: 'singleton'})
 RETURN m.materialized_at AS materialized_at, m.n_scored AS n_scored,
        m.composer_version AS composer_version, m.materializing AS materializing,
-       m.fp_gstins AS fp_gstins, m.fp_invoices AS fp_invoices,
-       m.fp_rings AS fp_rings, m.fp_events AS fp_events
+       m.fingerprint_json AS fingerprint_json
 """
 
+# Content-sensitive fingerprint. Counts alone can't see an in-place edit that
+# preserves node counts (an amount correction, a status flip, a date change), so
+# the fingerprint also carries cheap CONTENT aggregates over exactly the inputs
+# composed risk depends on:
+#   gstins / cancelled_gstins         — RuleScorer + reconcile CANCELLED_SUPPLIER
+#   invoices / invoice_gst_sum        — amounts feed exposure + reconcile deltas
+#   non_matched_invoices              — invoice.status changes flip this
+#   max_invoice_date                  — date edits move the temporal window
+#   rings / ring_score_sum            — ring detection/scoring
+#   events                            — reconciliation outcomes
+# All are single-pass aggregates (one query), deterministic for a given graph.
 _FINGERPRINT = """
-CALL { MATCH (g:GSTIN) RETURN count(g) AS ng }
-CALL { MATCH (i:Invoice) RETURN count(i) AS ni }
-CALL { MATCH (r:Ring) RETURN count(r) AS nr }
+CALL { MATCH (g:GSTIN)
+       RETURN count(g) AS ng,
+              sum(CASE WHEN g.status = 'CANCELLED' THEN 1 ELSE 0 END) AS ncancel }
+CALL { MATCH (i:Invoice)
+       RETURN count(i) AS ni, sum(coalesce(i.total_gst, 0)) AS gst,
+              toString(max(i.date)) AS maxd,
+              sum(CASE WHEN i.status = 'MATCHED' THEN 0 ELSE 1 END) AS nmm }
+CALL { MATCH (r:Ring) RETURN count(r) AS nr, sum(coalesce(r.score, 0)) AS rscore }
 CALL { MATCH (m:MatchEvent) RETURN count(m) AS ne }
-RETURN ng AS gstins, ni AS invoices, nr AS rings, ne AS events
+RETURN ng, ncancel, ni, gst, maxd, nmm, nr, rscore, ne
 """
 
 _READ_ONE = """
@@ -100,16 +112,23 @@ def _ensure_schema() -> None:
             pass  # index/constraint may already exist or DB busy; non-fatal
 
 
-def current_fingerprint() -> Dict[str, int]:
-    """Cheap graph fingerprint: counts of the node types risk depends on."""
+def current_fingerprint() -> Dict[str, Any]:
+    """Content-sensitive graph fingerprint (counts + cheap content aggregates).
+    Deterministic for a given graph; changes when any risk-relevant content
+    changes, including in-place edits that preserve node counts."""
     from db import run_query
     rows = run_query(_FINGERPRINT)
     r = rows[0] if rows else {}
     return {
-        "gstins": int(r.get("gstins") or 0),
-        "invoices": int(r.get("invoices") or 0),
-        "rings": int(r.get("rings") or 0),
-        "events": int(r.get("events") or 0),
+        "gstins": int(r.get("ng") or 0),
+        "cancelled_gstins": int(r.get("ncancel") or 0),
+        "invoices": int(r.get("ni") or 0),
+        "invoice_gst_sum": round(float(r.get("gst") or 0.0), 2),
+        "non_matched_invoices": int(r.get("nmm") or 0),
+        "max_invoice_date": r.get("maxd") or "",
+        "rings": int(r.get("nr") or 0),
+        "ring_score_sum": round(float(r.get("rscore") or 0.0), 4),
+        "events": int(r.get("ne") or 0),
     }
 
 
@@ -135,15 +154,13 @@ def read_materialization_status() -> Dict[str, Any]:
             "current_fingerprint": cur,
         }
     m = rows[0]
-    stored = {
-        "gstins": int(m.get("fp_gstins") or 0),
-        "invoices": int(m.get("fp_invoices") or 0),
-        "rings": int(m.get("fp_rings") or 0),
-        "events": int(m.get("fp_events") or 0),
-    }
-    # Stale if the graph fingerprint moved OR a materialization is mid-flight /
-    # failed part-way (the materializing flag is cleared only on full success),
-    # so a partially-written risk set can never read as current.
+    try:
+        stored = json.loads(m.get("fingerprint_json") or "{}")
+    except (ValueError, TypeError):
+        stored = {}
+    # Stale if the content-sensitive fingerprint moved OR a materialization is
+    # mid-flight / failed part-way (the materializing flag is cleared only on
+    # full success), so a partially-written risk set can never read as current.
     stale = (stored != cur) or bool(m.get("materializing"))
     return {
         "materialized_at": m.get("materialized_at"),
@@ -217,8 +234,7 @@ def materialize_risk(ranked: Optional[List[Any]] = None) -> Dict[str, Any]:
     fp = current_fingerprint()
     run_write(_WRITE_META, {   # clears materializing + stamps the fingerprint
         "at": at,
-        "fp_gstins": fp["gstins"], "fp_invoices": fp["invoices"],
-        "fp_rings": fp["rings"], "fp_events": fp["events"],
+        "fingerprint_json": json.dumps(fp, sort_keys=True),
         "n_scored": len(rows), "version": COMPOSER_VERSION,
     })
     return read_materialization_status()

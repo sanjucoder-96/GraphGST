@@ -35,6 +35,17 @@ export interface EntityRef {
   scenario?: string | null;
 }
 
+export interface RingEdge {
+  src: string;
+  dst: string;
+  invoice_id: string;
+  date?: string | null;
+  amount: number;
+  gst_amount: number;
+  vehicle_id?: string | null;
+  hsn?: string | null;
+}
+
 export interface RingSummary {
   ring_id: string;
   score: number;
@@ -52,6 +63,7 @@ export interface RingSummary {
   break_edge?: Record<string, unknown> | null;
   temporal?: Record<string, unknown> | null;
   velocity_inr_per_day?: number | null;
+  edges: RingEdge[];
 }
 
 export interface MatchEventOut {

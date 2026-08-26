@@ -41,6 +41,11 @@ for the investigation contract see [`INVESTIGATION_MODEL.md`](./INVESTIGATION_MO
 └─────────────────────────────────────────────────────────────┘
 ```
 
+Both the Case Queue and the Investigation page consume the Case API (`getCaseList`
+/ `getCase`) — the Investigation page was migrated off its old 4-endpoint +
+`MOCK_RINGS` assembly (V6.3). Investigation workflow status is a write:
+`PATCH /api/cases/{id}` persists `g.investigation_status` in Neo4j.
+
 ## Read vs compute
 
 Two deliberately different paths:

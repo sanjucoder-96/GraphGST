@@ -313,6 +313,65 @@ def test_recurrence_survives_refresh(live_materialized):
     assert after["c"] == before["c"], "ring count drifted across identical refreshes"
 
 
+def test_patch_status_persists(live_materialized):
+    """PATCH /api/cases/{id} must persist the workflow status to Neo4j and the
+    Case API must read it back — real state, not React state."""
+    from fastapi.testclient import TestClient
+    import main
+    gid = db.run_query(
+        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL RETURN g.gstin_id AS id LIMIT 1")[0]["id"]
+    with TestClient(main.app) as c:
+        r = c.patch(f"/api/cases/{gid}", json={"status": "escalated"})
+        assert r.status_code == 200, r.text
+        assert r.json()["investigation_status"] == "escalated"
+        # persisted on the node
+        prop = db.run_query(
+            "MATCH (g:GSTIN {gstin_id:$id}) RETURN g.investigation_status AS s", {"id": gid})[0]["s"]
+        assert prop == "escalated"
+        # read back through the Case API
+        assert c.get(f"/api/cases/{gid}").json()["investigation_status"] == "escalated"
+        # invalid value rejected, unknown entity 404
+        assert c.patch(f"/api/cases/{gid}", json={"status": "bogus"}).status_code == 422
+        assert c.patch("/api/cases/NOSUCH", json={"status": "open"}).status_code == 404
+        c.patch(f"/api/cases/{gid}", json={"status": "open"})   # restore
+
+
+def test_content_fingerprint_detects_edits(live_materialized):
+    """The staleness fingerprint must be content-sensitive: an in-place edit
+    that preserves node counts (a status flip) must move it and mark risk stale."""
+    from risk.materialize import current_fingerprint, read_materialization_status
+    fp1 = current_fingerprint()
+    assert fp1 == current_fingerprint(), "fingerprint not deterministic"
+    gid = db.run_query(
+        "MATCH (g:GSTIN) WHERE g.status<>'CANCELLED' RETURN g.gstin_id AS id LIMIT 1")[0]["id"]
+    old = db.run_query("MATCH (g:GSTIN {gstin_id:$id}) RETURN g.status AS s", {"id": gid})[0]["s"]
+    db.run_write("MATCH (g:GSTIN {gstin_id:$id}) SET g.status='CANCELLED'", {"id": gid})
+    try:
+        assert current_fingerprint() != fp1, "count-preserving edit did not move fingerprint"
+        assert read_materialization_status()["stale"] is True
+    finally:
+        db.run_write("MATCH (g:GSTIN {gstin_id:$id}) SET g.status=$s", {"id": gid, "s": old})
+
+
+def test_case_ring_has_edges(live_materialized):
+    """A case that includes a ring must carry that ring's per-hop invoice edges
+    (needed for the migrated Investigation page's timeline/graph/SCN)."""
+    from fastapi.testclient import TestClient
+    import main
+    gid = db.run_query(
+        "MATCH (r:Ring)-[:INCLUDES]->(g:GSTIN) RETURN g.gstin_id AS id LIMIT 1")
+    if not gid:
+        pytest.skip("no ring members in this dataset")
+    with TestClient(main.app) as c:
+        case = c.get(f"/api/cases/{gid[0]['id']}").json()
+        assert case["rings"], "case has no rings"
+        ring = case["rings"][0]
+        assert isinstance(ring["edges"], list) and ring["edges"], "ring has no edges"
+        e = ring["edges"][0]
+        for k in ("src", "dst", "invoice_id", "date", "amount", "gst_amount"):
+            assert k in e
+
+
 # ── 11. idempotent reload ──────────────────────────────────────────────
 def test_idempotent_reload(live):
     from datagen.loader import load_directory

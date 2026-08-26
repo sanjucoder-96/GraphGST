@@ -107,10 +107,11 @@ reassembling a case from 6-10 endpoints. Typed via `schemas.py` (mirrored by
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/api/cases/` | none | Ranked `CaseList` from materialized risk. Query `band` (LOW/MED/HIGH/CRITICAL), `min_score: float=0`, `limit: int=100` (1..1000), `q` (free-text). Each row: `risk_score` (0-1), `band`, `exposure_inr`, `ring_ids`, `top_reasons`, `investigation_status`. Cheap indexed read (~1.5 s). |
-| GET | `/api/cases/{gstin_id}` | none | One `Case`: `entity`, `risk` (score/band/reasons/`materialized`), `exposure`, `rings[]`, `reconciliation[]`, `related_vendors[]`, `timeline[]`, `subgraph`, `materialization`. **404** if the entity is absent. One coherent request (~0.5-0.8 s warm). Query `subgraph: bool=true`. |
+| GET | `/api/cases/{gstin_id}` | none | One `Case`: `entity`, `risk` (score/band/reasons/`materialized`), `exposure`, `rings[]` (each with its per-hop `edges[]`), `reconciliation[]`, `related_vendors[]`, `timeline[]`, `subgraph`, `investigation_status`, `materialization`. **404** if the entity is absent. One coherent request (~0.5-0.8 s warm). Query `subgraph: bool=true`. |
+| PATCH | `/api/cases/{gstin_id}` | none | Persist the investigation workflow status onto the graph. Body `{status}` ∈ `open|investigating|escalated|resolved|dismissed` (`CaseStatusUpdate`). Returns `CaseStatusResult {case_id, investigation_status, updated_at}`. **422** on an invalid status; **404** if the entity is absent. The status is real Neo4j state (`g.investigation_status`) and is read back by GET. |
 
-Every response carries a `materialization` block with a `stale` flag so stale
-risk is never served as current.
+Every GET response carries a `materialization` block with a `stale` flag so
+stale risk is never served as current.
 
 ## Invoices (`main.py`)
 

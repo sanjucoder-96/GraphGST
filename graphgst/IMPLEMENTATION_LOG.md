@@ -17,6 +17,71 @@ New entries go at the top.
 
 ---
 
+## 2026-08-26 — V6.3.1: Investigation→Case migration, status persistence, content fingerprint
+
+**1. What did we change?** The final V6.3 contract cleanup before the UI phase:
+(a) the Investigation page now uses ONE data source, GET /api/cases/{id};
+(b) investigation status is persisted in Neo4j via PATCH; (c) the risk staleness
+fingerprint is now content-sensitive; (d) obsolete frontend fetchers removed. No
+UI redesign, no new ML.
+
+**2. Why?** These were the named remaining V6.3 weaknesses: the Investigation
+page assembled a case from 4+ endpoints + MOCK_RINGS; investigation_status was
+never persisted; the fingerprint was counts-only (blind to in-place edits).
+
+**3. How does it work?**
+- *Investigation → Case API.* `web/src/pages/Investigation/Investigation.tsx`
+  fetches only `getCase(gstin)` (entity from the route, or the `?node=` param
+  ring-mode links already carry). Pure adapters reshape the one `Case` into the
+  `Ring`/`Vendor`/`GraphPayload`/`AuditTrail[]` the unchanged components consume,
+  so the UI renders the same information. `getGraphFull`/`getVendorRisk`/
+  `getAuditTrail` (+`normalizeLiveVendors`) removed from `api.ts` — verified
+  nothing else used them. To keep the ring's timeline/graph/SCN faithful, the
+  Case's rings now carry their per-hop `edges[]` (RingEdge), populated only in
+  the detail view.
+- *Status persistence.* `PATCH /api/cases/{id}` (`CaseStatusUpdate`) writes
+  `g.investigation_status` ∈ open|investigating|escalated|resolved|dismissed;
+  the Case API reads it back. Real Neo4j state, not React state.
+- *Content-sensitive fingerprint.* `current_fingerprint()` now returns counts
+  PLUS cheap aggregates (invoice_gst_sum, non_matched_invoices, max_invoice_date,
+  cancelled_gstins, ring_score_sum), stored as a JSON blob on `:RiskMeta`. A
+  count-preserving edit (an amount fix, a status flip) now moves the fingerprint
+  and marks risk stale. One query, deterministic, no per-node hashing.
+
+**4. Beginner explanation.** The investigation screen used to phone six services
+and even read fake demo rings to piece a case together; now it asks one endpoint
+and draws what it gets. Marking a case "escalated" is saved in the database, not
+just in the browser. And the "is this risk out of date?" check now notices when
+someone edits a number in place, not only when rows are added or removed.
+
+**5. Small example.** `PATCH /api/cases/29ZQAHP7526P1ZX {"status":"escalated"}`
+→ `{investigation_status:"escalated", updated_at:...}`, and the next
+`GET /api/cases/29ZQAHP7526P1ZX` returns `investigation_status:"escalated"`.
+
+**6. Files touched.** schemas.py (InvestigationStatus values, CaseStatusUpdate/
+Result, RingEdge, RingSummary.edges, MaterializationInfo mixed-type fingerprint),
+risk/materialize.py (content fingerprint + JSON blob), investigation/service.py
+(set_investigation_status, _ring_edges, safe band), investigation/api.py (PATCH),
+web/src/pages/Investigation/Investigation.tsx (rewrite), web/src/lib/api.ts
+(removed obsolete fetchers), web/src/types/case.ts (RingEdge),
+docs/{API,INVESTIGATION_MODEL,ARCHITECTURE}.md.
+
+**7. Tests.** 217 unit + 22 live neo4j (1 skip) — added PATCH-status-persists,
+content-fingerprint-detects-edits, case-ring-has-edges. All against real Aura.
+
+**8. Results.** pytest 217 pass; pytest -m neo4j 22 pass (1 skip); full+fast
+benchmarks PASS (9/9 unchanged); demo probe NO DRIFT; demo verify PASS; frontend
+build clean.
+
+**9. Limitations.** RingExplorer page not yet migrated. Fingerprint is
+aggregate-based (not collision-proof). Per-assignee ownership + status-transition
+audit log still deferred.
+
+**10. Next step.** The final Investigator UI redesign — the API contract is now
+canonical, single-source, and live-backed.
+
+---
+
 ## 2026-08-26 — V6.3: Canonical Case API + materialized risk + clean schemas
 
 **1. What did we change?**
