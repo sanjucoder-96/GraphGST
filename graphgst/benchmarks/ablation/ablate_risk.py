@@ -46,12 +46,17 @@ from benchmarks.bench_risk_discrimination import (_generate, _load_graph_source,
 from benchmarks.evalsafe import strip_graph_source                     # noqa: E402
 
 
-# Scorer registry — name → (factory, default weight)
+# Scorer registry — name → (factory, weight). The four default-composer scorers
+# use the SHIPPED weights (risk.api.default_composer: reconcile 0.35, ring 0.30,
+# rules 0.20, temporal 0.15) so the ablation's headline reflects the config that
+# actually ships (an earlier version used ring-heavy weights and understated the
+# shipped 4-scorer recon-AUC). propagate/ml carry test weights — they are being
+# measured for marginal value, not shipped.
 SCORERS = {
-    "ring":     (lambda: RingScorer(weight=0.35),        0.35),
-    "reconcile":(lambda: ReconcileScorer(weight=0.20),   0.20),
-    "rules":    (lambda: RuleScorer(weight=0.15),        0.15),
-    "temporal": (lambda: TemporalScorer(weight=0.10),    0.10),
+    "reconcile":(lambda: ReconcileScorer(weight=0.35),   0.35),
+    "ring":     (lambda: RingScorer(weight=0.30),        0.30),
+    "rules":    (lambda: RuleScorer(weight=0.20),        0.20),
+    "temporal": (lambda: TemporalScorer(weight=0.15),    0.15),
     "propagate":(lambda: PropagationScorer(weight=0.15), 0.15),
     "ml":       (lambda: MLScorer(weight=0.10),          0.10),
 }

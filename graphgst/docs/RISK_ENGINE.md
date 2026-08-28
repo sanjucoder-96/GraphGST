@@ -47,10 +47,41 @@ nothing returns `(0.0, [])`. Scorers are pure functions of the shared
 4. Every Reason is tagged `contribution = reason.weight × scorer.weight`, so the
    UI ranks reasons by their true share of the final.
 5. Reasons are deduped by (scorer, name, evidence node) and the top-N returned.
-6. A band (LOW / MED / HIGH / CRITICAL) is looked up from the score.
+6. A **triage band** (LOW / MED / HIGH / CRITICAL) is looked up from the score
+   via `band_for` — see *Triage bands* below.
 
 A scorer that raises is logged and skipped — one bad scorer cannot take down the
 composite (`composer.py:73`).
+
+## Triage bands (recalibrated in V6.4) — `risk/reasons.py:band_for`
+
+The bands are **triage brackets, not absolute fraud probabilities** — the amber
+"look at this now" queue an officer works down, not a calibrated P(fraud). V6.4
+moved every threshold:
+
+| Band | pre-6.4 | V6.4 |
+|---|---|---|
+| LOW | `< 0.30` | `< 0.15` |
+| MED | `< 0.55` | `< 0.30` |
+| HIGH | `< 0.80` | `< 0.45` |
+| CRITICAL | `≥ 0.80` | `≥ 0.45` |
+
+**Why they moved.** The composer normalizes weights to sum 1.0, so a subscore of
+`1.0` on the *heaviest* scorer (reconcile, weight 0.35) contributes only `0.35`
+to the final — a single scorer can never push the composite near 1.0. Across a
+realistic graph the score maxes around **~0.6** and its median sits near `0`.
+Against that distribution the old thresholds were miscalibrated: CRITICAL
+(`≥ 0.80`) was **unreachable**, and ~**97%** of true positives were stranded in
+LOW. The engine had a genuinely good ranking (recon-AUC ~0.89) but threw the
+triage value away by labelling almost everything "low"; the new brackets put the
+worst multi-signal entities in HIGH/CRITICAL while keeping the benign mass in
+LOW.
+
+**The recalibration is rank-invariant.** It changes no subscore, no weight, and
+no gated benchmark metric: AP, AUC, and precision@k are all **threshold-free**
+and read the raw score, so they are identical before and after. The model's
+ordering of GSTINs is untouched — V6.4 only relabels the brackets drawn over
+that ordering.
 
 ## The default composer is the ablation's verdict (`risk/api.py`)
 
@@ -59,24 +90,51 @@ ReconcileScorer(0.35)  RingScorer(0.30)  RuleScorer(0.20)  TemporalScorer(0.15)
 ```
 
 The pre-6.1 default had **six** scorers including ML and Propagation. The
-ablation study (`benchmarks/ablation/ablate_risk.py`) measured each scorer's
-marginal contribution against the ring-independent reconciliation-anomaly label:
+ablation study (`benchmarks/ablation/ablate_risk.py`) measures each scorer's
+marginal contribution. As of V6.4 the harness runs the **shipped** composer
+weights (reconcile 0.35, ring 0.30, rules 0.20, temporal 0.15) rather than an
+older ring-heavy set, so its headline reflects the config that actually ships
+(the old weights understated the shipped 4-scorer recon-AUC). The leave-one-out
+marginals against the ring-independent reconciliation-anomaly label (`recon`)
+are:
 
-| Scorer | Leave-one-out marginal recon-AUC |
-|---|---:|
-| rules | **+0.070** |
-| reconcile | **+0.055** |
-| temporal | ≈ 0 |
-| propagate | **−0.005** |
-| ml | **−0.049** |
+| Scorer | Leave-one-out marginal (recon-AUC) | Note |
+|---|---:|---|
+| reconcile | **+0.078** | strongest non-ring signal (single recon-AUC 0.97) |
+| rules | **+0.056** | filing / supplier-status red flags |
+| temporal | **−0.002** | ≈ 0 — coverage prior, see below |
+| ring | **−0.040** | but **+0.351** on the `ring` label — it owns ring detection |
+| propagate | **−0.005** | excluded |
+| ml | **−0.046** | excluded (single recon-AUC 0.63) |
+
+`ring` subtracts a hair on the ring-*independent* label (it cannot see non-ring
+fraud) yet dominates the `ring` label it exists to catch (+0.351) — that split
+is why it earns 0.30 in the default while being scored on both labels.
 
 ML and Propagation *subtracted* discrimination. They were removed from the
 default. This is the single most important correctness decision in the risk
 engine: **we do not ship an "AI" scorer that makes the answer worse just because
 it is called ML.** Both remain importable and are still measured in every
-ablation run, so the decision is continuously re-checked, not baked in.
+ablation run, so the decision is continuously re-checked, not baked in. They are
+also **not** made conditional — there is no "turn ML on when X" heuristic:
+MLScorer alone reaches only recon-AUC **0.63** with a leave-one-out marginal of
+**−0.046**, and PropagationScorer is **−0.005**; no measured regime exists in
+which either improves the composite, so a conditional path would add surface
+area with no payoff.
 
-### Why they hurt — and the "fast mode" mystery, solved
+### TemporalScorer stays at 0.15 — a coverage prior, not a fitted weight
+Temporal's measured leave-one-out marginal is ≈ 0 (**−0.002** on recon), yet it
+is **kept** in the default at weight 0.15. This is a deliberate **coverage
+prior**, not a tuned weight: it guards burst-issuance fraud — many invoices
+fired in a tight window / off-hours — that the *synthetic generator
+under-plants*, so the eval set barely exercises the signal. Its weight is a
+prior on a threat we expect in production, explicitly **not** grid-searched
+against the eval set (grid-searching would zero it out and blind the engine to a
+real-world pattern the benchmark happens not to contain). Because the composer
+normalizes, carrying a near-zero-marginal prior costs the other scorers only a
+small, bounded share.
+
+### Why ML/Propagation hurt — and the "fast mode" mystery, solved
 The old headline risk-AUC used a ring-**membership** label. `RingScorer` recovers
 planted rings almost perfectly, so on that label ring alone scored AUC 1.000 and
 **any** added scorer only diluted a perfect detector — which is exactly why
@@ -90,8 +148,9 @@ Full story in `docs/BENCHMARKS.md` and `docs/V6_1_TECHNICAL_AUDIT.md`.
 
 The 0.35/0.30/0.20/0.15 weights are **principled priors**: reconciliation is the
 strongest single evidence of a concrete compliance failure, ring membership is
-confirmed circular structure, rules capture filing/status red flags, temporal
-captures burst behaviour. They are **not** grid-searched on the eval set —
+confirmed circular structure, rules capture filing/status red flags, and
+temporal is a coverage prior for burst behaviour (see *TemporalScorer stays at
+0.15* above). They are **not** grid-searched on the eval set —
 tuning weights on the benchmark would be the exact overfitting the audit warns
 against. Because the composer normalizes, only their ratios matter.
 

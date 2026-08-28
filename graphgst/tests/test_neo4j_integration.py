@@ -316,12 +316,16 @@ def test_recurrence_survives_refresh(live_materialized):
 def test_patch_status_persists(live_materialized):
     """PATCH /api/cases/{id} must persist the workflow status to Neo4j and the
     Case API must read it back — real state, not React state."""
+    import os
     from fastapi.testclient import TestClient
     import main
+    hdr = {"X-Admin-Token": os.environ.get("ADMIN_TOKEN", "")}
     gid = db.run_query(
         "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL RETURN g.gstin_id AS id LIMIT 1")[0]["id"]
     with TestClient(main.app) as c:
-        r = c.patch(f"/api/cases/{gid}", json={"status": "escalated"})
+        # admin-gated (V6.4): no token → 401
+        assert c.patch(f"/api/cases/{gid}", json={"status": "escalated"}).status_code == 401
+        r = c.patch(f"/api/cases/{gid}", json={"status": "escalated"}, headers=hdr)
         assert r.status_code == 200, r.text
         assert r.json()["investigation_status"] == "escalated"
         # persisted on the node
@@ -331,9 +335,9 @@ def test_patch_status_persists(live_materialized):
         # read back through the Case API
         assert c.get(f"/api/cases/{gid}").json()["investigation_status"] == "escalated"
         # invalid value rejected, unknown entity 404
-        assert c.patch(f"/api/cases/{gid}", json={"status": "bogus"}).status_code == 422
-        assert c.patch("/api/cases/NOSUCH", json={"status": "open"}).status_code == 404
-        c.patch(f"/api/cases/{gid}", json={"status": "open"})   # restore
+        assert c.patch(f"/api/cases/{gid}", json={"status": "bogus"}, headers=hdr).status_code == 422
+        assert c.patch("/api/cases/NOSUCH", json={"status": "open"}, headers=hdr).status_code == 404
+        c.patch(f"/api/cases/{gid}", json={"status": "open"}, headers=hdr)   # restore
 
 
 def test_content_fingerprint_detects_edits(live_materialized):
@@ -370,6 +374,61 @@ def test_case_ring_has_edges(live_materialized):
         e = ring["edges"][0]
         for k in ("src", "dst", "invoice_id", "date", "amount", "gst_amount"):
             assert k in e
+
+
+def test_no_orphan_child_nodes(live):
+    """The loader's post-load GC must leave no structurally-isolated TaxPayment
+    or PurchaseRegister nodes (V6.4 data-integrity fix)."""
+    for label in ("TaxPayment", "PurchaseRegister"):
+        n = db.run_query(f"MATCH (x:{label}) WHERE NOT (x)--() RETURN count(x) AS c")[0]["c"]
+        assert n == 0, f"{n} orphan {label} nodes remain"
+
+
+def test_risk_norm_index_exists(live_materialized):
+    """The hot case-list property risk_score_norm must be indexed (V6.4)."""
+    names = {i["name"] for i in db.run_query("SHOW INDEXES YIELD name RETURN name")}
+    # created by risk.materialize._ensure_schema during refresh
+    props = {tuple(i.get("properties") or []) for i in
+             db.run_query("SHOW INDEXES YIELD labelsOrTypes, properties "
+                          "WHERE 'GSTIN' IN labelsOrTypes RETURN labelsOrTypes, properties")}
+    flat = {p for t in props for p in t}
+    assert "risk_score_norm" in flat, f"no risk_score_norm index; have {flat}"
+
+
+def test_embeddings_live_after_refresh(live_materialized):
+    """refresh_intelligence must train + persist embeddings so Related Vendors is
+    LIVE (not a mock fallback): status trained + not stale, and lookalikes resolve."""
+    from embed.persist import load_index, load_meta
+    meta = load_meta()
+    assert meta is not None and meta.get("ids"), "no persisted embedding artifact"
+    assert meta.get("graph_fingerprint"), "artifact has no graph fingerprint"
+    idx = load_index()
+    assert idx is not None
+    # a ring member should have at least one lookalike neighbour
+    gid = db.run_query(
+        "MATCH (r:Ring)-[:INCLUDES]->(g:GSTIN) RETURN g.gstin_id AS id LIMIT 1")
+    if gid:
+        hits = idx.similar_to(gid[0]["id"], k=5)
+        assert isinstance(hits, list)
+
+
+def test_embed_status_stale_detection(live_materialized):
+    """GET /api/embed/status must report stale=False right after refresh, and
+    flip stale=True when the graph content changes."""
+    from fastapi.testclient import TestClient
+    import main
+    with TestClient(main.app) as c:
+        s0 = c.get("/api/embed/status").json()
+        assert s0.get("trained") is True and s0.get("stale") is False
+    # mutate a status (moves the content fingerprint) → embed model now stale
+    gid = db.run_query("MATCH (g:GSTIN) WHERE g.status<>'CANCELLED' RETURN g.gstin_id AS id LIMIT 1")[0]["id"]
+    old = db.run_query("MATCH (g:GSTIN {gstin_id:$id}) RETURN g.status AS s", {"id": gid})[0]["s"]
+    db.run_write("MATCH (g:GSTIN {gstin_id:$id}) SET g.status='CANCELLED'", {"id": gid})
+    try:
+        with TestClient(main.app) as c:
+            assert c.get("/api/embed/status").json().get("stale") is True
+    finally:
+        db.run_write("MATCH (g:GSTIN {gstin_id:$id}) SET g.status=$s", {"id": gid, "s": old})
 
 
 # ── 11. idempotent reload ──────────────────────────────────────────────

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-26T16:56:54.834850+00:00",
-  "git_commit": "de0514a23809f95cb0164487c97b501826d370ea",
-  "mode": "fast",
+  "generated_at": "2026-08-28T02:34:46.064917+00:00",
+  "git_commit": "df6f6cbe44c788b91113dc60f9bbe66b7026ab52",
+  "mode": "full",
   "config": {
     "n_gstins": 500,
     "months": 3,
@@ -39,7 +39,7 @@
     "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
     "notes": ""
   },
-  "dataset_prep_sec": 0.607,
+  "dataset_prep_sec": 0.467,
   "headlines": {
     "ring.average_precision": 0.9714,
     "ring.f1_at_thresh": 0.769,
@@ -58,7 +58,7 @@
   "benches": {
     "ring_recall": {
       "status": "ok",
-      "elapsed_sec": 4.207,
+      "elapsed_sec": 2.271,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -141,8 +141,8 @@
         ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.22,
-          "detect": 3.938
+          "load_csv": 0.126,
+          "detect": 2.112
         },
         "sample_recovered": [
           {
@@ -211,7 +211,7 @@
     },
     "reconcile_prf": {
       "status": "ok",
-      "elapsed_sec": 1.249,
+      "elapsed_sec": 1.191,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -251,8 +251,8 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.332,
-          "reconcile": 0.85
+          "load_csv": 0.316,
+          "reconcile": 0.81
         },
         "counts": {
           "events_emitted": 1440,
@@ -390,7 +390,7 @@
     },
     "risk_discrimination": {
       "status": "ok",
-      "elapsed_sec": 5.425,
+      "elapsed_sec": 2.278,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -436,10 +436,10 @@
         ],
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.175,
-          "reconcile": 0.859,
-          "rings": 3.901,
-          "compose": 0.403
+          "load_csv": 0.167,
+          "reconcile": 0.377,
+          "rings": 1.519,
+          "compose": 0.154
         },
         "counts": {
           "gstins": 500,
@@ -455,10 +455,10 @@
           "100": 0.58
         },
         "band_histogram": {
-          "LOW": 463,
-          "MED": 36,
-          "HIGH": 1,
-          "CRITICAL": 0
+          "LOW": 392,
+          "MED": 71,
+          "HIGH": 28,
+          "CRITICAL": 9
         },
         "score_summary": {
           "median": 0.0,
@@ -470,7 +470,7 @@
     },
     "embed_lookalike": {
       "status": "ok",
-      "elapsed_sec": 5.34,
+      "elapsed_sec": 1.871,
       "report": {
         "config": {
           "n_gstins": 500,
@@ -517,8 +517,8 @@
         },
         "timing_sec": {
           "generate": 0.0,
-          "load_csv": 0.055,
-          "train_embed": 5.209
+          "load_csv": 0.035,
+          "train_embed": 1.823
         },
         "counts": {
           "n_edges": 3749,

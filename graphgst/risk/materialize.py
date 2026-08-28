@@ -38,6 +38,9 @@ COMPOSER_VERSION = "composer/v1:reconcile0.35+ring0.30+rules0.20+temporal0.15"
 # ── Cypher ───────────────────────────────────────────────────────────────
 _ENSURE_SCHEMA = [
     "CREATE INDEX gstin_risk_band IF NOT EXISTS FOR (g:GSTIN) ON (g.risk_band)",
+    # The case list filters + sorts on risk_score_norm (the canonical 0-1 score);
+    # without this index that hot query is a full NodeByLabelScan.
+    "CREATE INDEX gstin_risk_norm IF NOT EXISTS FOR (g:GSTIN) ON (g.risk_score_norm)",
     "CREATE CONSTRAINT riskmeta_id IF NOT EXISTS FOR (m:RiskMeta) REQUIRE m.id IS UNIQUE",
 ]
 
@@ -276,13 +279,44 @@ def refresh_intelligence(persist: bool = True) -> Dict[str, Any]:
     # DB), not the in-memory lists — so a swallowed persist failure can't report
     # a phantom success.
     fp = status.get("fingerprint", {})
+
+    # Train + persist the lookalike embedding ONCE against this exact graph state,
+    # stamping the same fingerprint, so Related Vendors is LIVE after a refresh
+    # (not a per-request train, not a UI mock fallback). Best-effort: a graph
+    # without embeddings still refreshes.
+    embed_trained = 0
+    if persist:
+        try:
+            embed_trained = _train_embeddings(fp)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("embedding training skipped during refresh: %s", e)
+
     return {
         "ok": True,
         "rings_persisted": fp.get("rings", 0) if persist else 0,
         "events_persisted": fp.get("events", 0) if persist else 0,
         "gstins_scored": status.get("n_scored", 0),
+        "embeddings_indexed": embed_trained,
         "materialized_at": status.get("materialized_at"),
         "stale": status.get("stale"),
         "fingerprint": fp,
         "elapsed_sec": round(time.perf_counter() - t0, 3),
     }
+
+
+def _train_embeddings(fingerprint: Dict[str, Any]) -> int:
+    """Train the node2vec/PMI-SVD lookalike index against the current graph and
+    persist it with the given graph fingerprint. Deterministic (seed 42,
+    hash-seed-invariant); uses the benchmark-headline config so the demo matches
+    the documented structural_hit@10 / cohesion_recall@10 numbers. Returns the
+    number of indexed entities."""
+    from embed.api import _hydrate_edges_from_neo4j
+    from embed.persist import save_index
+    from embed.train import EmbedConfig, train
+    edges = _hydrate_edges_from_neo4j()
+    if not edges:
+        return 0
+    model = train(graph_source={"edges": edges},
+                  config=EmbedConfig(dim=64, walks_per_node=15, walk_len=25, seed=42))
+    save_index(model, graph_fingerprint=fingerprint)
+    return len(model.ids)

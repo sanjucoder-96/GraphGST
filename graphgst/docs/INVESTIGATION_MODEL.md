@@ -39,6 +39,11 @@ authority** — `/api/vendors/risk` now reads the materialized values (≈378 ms
 ~9 s before, 24× faster) and is marked deprecated; only its ITC-validation and
 audit-narrative helpers survive.
 
+The risk band thresholds were recalibrated — the `LOW`/`MED`/`HIGH`/`CRITICAL`
+triage brackets are now calibrated to the composer's score distribution rather
+than fixed cut-points. This moves only band boundaries; the underlying 0-1
+scores and their ranking are unchanged.
+
 ### Staleness — stale risk can never read as current
 
 A singleton `:RiskMeta` node stores a **content-sensitive fingerprint** captured
@@ -127,7 +132,9 @@ The obsolete fetchers were removed from `api.ts` after verifying nothing else
 used them. The page keeps its components unchanged — small pure adapters reshape
 the one `Case` into the `Ring` / `Vendor` / `GraphPayload` / `AuditTrail[]` those
 components already consume, so the UI renders the same information from a single
-source. (The separate `RingExplorer` page is a follow-up.)
+source. `RingExplorer` is now on the Case API too: it renders this same migrated
+Investigation component in *ring mode* via `getCase`; a bare `/ring/:id` link
+first resolves a ring member via `getRing`, then hands off to the case view.
 
 ### Investigation status is persisted (V6.3)
 
@@ -158,7 +165,7 @@ Intelligence engines (rings / reconcile / composer / embeddings)
 Case-level `investigation_status` is now persisted (V6.3). Still deferred:
 per-assignee ownership, a full status-transition audit log, per-date ring
 score-evolution series, and enriched shared-asset evidence — modeled in the
-schema but not yet fully populated, and follow-ups for the UI phase. The
-`RingExplorer` page is not yet migrated to the Case API. The fingerprint is
+schema but not yet fully populated, and follow-ups for the UI phase. (The
+`RingExplorer` page is now on the Case API — see above.) The fingerprint is
 content-sensitive but aggregate-based (not a per-node hash), so it is not
 collision-proof — an acceptable trade for staying cheap.

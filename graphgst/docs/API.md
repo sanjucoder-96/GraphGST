@@ -25,7 +25,8 @@ Full threat model, path-safety rules, and known limitations live in
 [`SECURITY.md`](./SECURITY.md) — this reference only states which endpoints are
 guarded. The endpoints requiring admin are:
 
-`DELETE /api/seed`, `POST /api/seed?force=true`, `POST /api/datagen/generate`,
+`DELETE /api/seed`, `POST /api/seed`, `POST /api/invoices`,
+`PATCH /api/cases/{id}`, `POST /api/datagen/generate`,
 `POST /api/datagen/load`, `POST /api/embed/train`, `POST /api/benchmarks/run`,
 `POST /api/demo/reset`, `POST /api/reconcile2/run` (only when `persist=true`),
 `POST /api/rings/detect` (only when `persist=true` or `propagate=true`), and
@@ -47,9 +48,9 @@ Every guard is the shared, constant-time `security.require_admin`.
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/` | none | Service banner `{message, status, docs}`. |
-| GET | `/api/health` | none | Neo4j connectivity + node/relationship counts. Always 200; `status` is `healthy` or `degraded`. |
+| GET | `/api/health` | none | Neo4j connectivity + node/relationship counts (no longer returns `neo4j_uri`). Always 200; `status` is `healthy` or `degraded`. |
 | GET | `/api/seed/status` | none | `{has_data, node_count}` — used by the UI to show/hide the seed button. |
-| POST | `/api/seed` | **conditional** | Seed the 9 hand-crafted scenarios. Query `force: bool = false`. Idempotent when `force=false`; **`force=true` wipes the graph first and requires `X-Admin-Token`**. Returns `{message, seeded, skipped, results[]}`. |
+| POST | `/api/seed` | **admin** | Seed the 9 hand-crafted scenarios; requires `X-Admin-Token`. Query `force: bool = false`. Idempotent when `force=false`; **`force=true` wipes the graph first**. Returns `{message, seeded, skipped, results[]}`. |
 | DELETE | `/api/seed` | **admin** | `MATCH (n) DETACH DELETE n` — wipe the entire graph. |
 | POST | `/api/agent/feedback` | none | Append an auditor-feedback record to `feedback.jsonl` with a server timestamp. Returns `{stored, at}`. |
 
@@ -108,7 +109,7 @@ reassembling a case from 6-10 endpoints. Typed via `schemas.py` (mirrored by
 |---|---|---|---|
 | GET | `/api/cases/` | none | Ranked `CaseList` from materialized risk. Query `band` (LOW/MED/HIGH/CRITICAL), `min_score: float=0`, `limit: int=100` (1..1000), `q` (free-text). Each row: `risk_score` (0-1), `band`, `exposure_inr`, `ring_ids`, `top_reasons`, `investigation_status`. Cheap indexed read (~1.5 s). |
 | GET | `/api/cases/{gstin_id}` | none | One `Case`: `entity`, `risk` (score/band/reasons/`materialized`), `exposure`, `rings[]` (each with its per-hop `edges[]`), `reconciliation[]`, `related_vendors[]`, `timeline[]`, `subgraph`, `investigation_status`, `materialization`. **404** if the entity is absent. One coherent request (~0.5-0.8 s warm). Query `subgraph: bool=true`. |
-| PATCH | `/api/cases/{gstin_id}` | none | Persist the investigation workflow status onto the graph. Body `{status}` ∈ `open|investigating|escalated|resolved|dismissed` (`CaseStatusUpdate`). Returns `CaseStatusResult {case_id, investigation_status, updated_at}`. **422** on an invalid status; **404** if the entity is absent. The status is real Neo4j state (`g.investigation_status`) and is read back by GET. |
+| PATCH | `/api/cases/{gstin_id}` | **admin** | Persist the investigation workflow status onto the graph; requires `X-Admin-Token`. Body `{status}` ∈ `open|investigating|escalated|resolved|dismissed` (`CaseStatusUpdate`). Returns `CaseStatusResult {case_id, investigation_status, updated_at}`. **422** on an invalid status; **404** if the entity is absent. The status is real Neo4j state (`g.investigation_status`) and is read back by GET. |
 
 Every GET response carries a `materialization` block with a `stale` flag so
 stale risk is never served as current.
@@ -118,7 +119,7 @@ stale risk is never served as current.
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/api/invoices` | none | Full invoice list joined to supplier/buyer, GSTR-1/3B, tax payment, EWB. |
-| POST | `/api/invoices` | none | Create an invoice + upsert its supply chain in Neo4j; derives GST split and a reconciliation `status`. |
+| POST | `/api/invoices` | **admin** | Create an invoice + upsert its supply chain in Neo4j; derives GST split and a reconciliation `status`. Requires `X-Admin-Token`. |
 
 **`POST /api/invoices` body** (`InvoiceCreate`): `supplier_gstin`,
 `supplier_name`, `buyer_gstin`, `buyer_name`, `invoice_id`, `amount: float`,
@@ -226,7 +227,7 @@ recomputes IsolationForest + centrality per request.
 |---|---|---|---|
 | POST | `/api/embed/train` | **admin** | Retrain node embeddings from the live graph, persist artifacts. CPU-heavy, synchronous. |
 | GET | `/api/embed/lookalike/{gstin_id}` | none | Top-K cosine-similar GSTINs. Query `k: int = 5` (1..100). **404** if no model is trained yet. |
-| GET | `/api/embed/status` | none | `{trained}` and, when trained, `n_indexed`, `config`, `stats`, `saved_at`, `shape`. |
+| GET | `/api/embed/status` | none | `{trained}` and, when trained, `n_indexed`, `config`, `stats`, `saved_at`, `shape`, plus a `stale` flag and `graph_fingerprint`. |
 
 **`POST /api/embed/train` body** (`TrainBody`): `dim: int = 64`,
 `walks_per_node: int = 10`, `walk_len: int = 20`, `window: int = 5`,

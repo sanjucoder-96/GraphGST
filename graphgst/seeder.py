@@ -25,7 +25,7 @@ def create_constraints():
         "CREATE CONSTRAINT tp_id      IF NOT EXISTS FOR (t:TaxPayment)    REQUIRE t.challan_no IS UNIQUE",
         # ── V6 additions (uniqueness for new node types; MERGE-safe) ──────────
         "CREATE CONSTRAINT ring_id    IF NOT EXISTS FOR (r:Ring)          REQUIRE r.ring_id    IS UNIQUE",
-        "CREATE CONSTRAINT alert_id   IF NOT EXISTS FOR (a:Alert)         REQUIRE a.alert_id   IS UNIQUE",
+        # (V6.4) :Alert constraint/indexes removed — no code path writes :Alert.
         "CREATE CONSTRAINT match_id   IF NOT EXISTS FOR (m:MatchEvent)    REQUIRE m.event_id   IS UNIQUE",
         "CREATE CONSTRAINT pr_id      IF NOT EXISTS FOR (p:PurchaseRegister) REQUIRE p.pr_line_id IS UNIQUE",
         "CREATE CONSTRAINT dir_id     IF NOT EXISTS FOR (d:Director)      REQUIRE d.director_id IS UNIQUE",
@@ -46,8 +46,8 @@ def create_constraints():
         "CREATE INDEX tp_status      IF NOT EXISTS FOR (t:TaxPayment)  ON (t.status)",
         "CREATE INDEX gstr1_period   IF NOT EXISTS FOR (r:GSTR1)       ON (r.period)",
         "CREATE INDEX gstr3b_period  IF NOT EXISTS FOR (r:GSTR3B)      ON (r.period)",
-        "CREATE INDEX ring_period    IF NOT EXISTS FOR (r:Ring)        ON (r.period)",
-        "CREATE INDEX alert_severity IF NOT EXISTS FOR (a:Alert)       ON (a.severity)",
+        # (V6.4) ring_period + alert_severity indexes removed — :Ring has no
+        # `period` property and :Alert is never created; both were dead.
     ]
     for q in statements:
         try:

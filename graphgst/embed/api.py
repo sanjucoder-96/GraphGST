@@ -42,9 +42,10 @@ def train_endpoint(body: TrainBody) -> Dict[str, Any]:
         p=body.p, q=body.q, seed=body.seed,
     )
     model = train(graph_source={"edges": edges}, config=cfg)
-    save = save_index(model)
+    fp = _graph_fingerprint()
+    save = save_index(model, graph_fingerprint=fp)
     return {"trained": True, "n_indexed": len(model.ids), "stats": model.stats,
-             "artifacts": save}
+             "graph_fingerprint": fp, "artifacts": save}
 
 
 @router.get("/lookalike/{gstin_id}")
@@ -62,20 +63,44 @@ def lookalike_endpoint(gstin_id: str, k: int = Query(5, ge=1, le=100)) -> Dict[s
 def status_endpoint() -> Dict[str, Any]:
     meta = load_meta()
     if meta is None:
-        return {"trained": False}
+        return {"trained": False, "stale": True}
+    stored = meta.get("graph_fingerprint") or {}
+    try:
+        current = _graph_fingerprint()
+    except Exception:
+        current = {}
+    # Stale if the graph changed since training (or the model predates fingerprint
+    # tracking, i.e. stored is empty). Mirrors risk materialization staleness.
+    stale = (not stored) or (bool(current) and stored != current)
     return {"trained": True, "n_indexed": len(meta.get("ids") or []),
              "config": meta.get("config"), "stats": meta.get("stats"),
-             "saved_at": meta.get("saved_at"), "shape": meta.get("shape")}
+             "saved_at": meta.get("saved_at"), "shape": meta.get("shape"),
+             "graph_fingerprint": stored, "current_fingerprint": current,
+             "stale": stale}
+
+
+def _graph_fingerprint() -> dict:
+    """Reuse the risk-materialization fingerprint as the graph version. It is a
+    conservative superset of the embed-relevant inputs (invoice edge topology),
+    so it may occasionally over-invalidate (a redundant retrain) but never marks
+    a genuinely changed graph as fresh."""
+    try:
+        from risk.materialize import current_fingerprint
+        return current_fingerprint()
+    except Exception:
+        return {}
 
 
 def _hydrate_edges_from_neo4j() -> List[dict]:
-    """Pull the invoice projection from Neo4j — same shape as the rings
-    engine expects."""
+    """Pull the invoice projection from Neo4j — same shape as the rings engine
+    expects. ORDER BY makes edge arrival order (and thus the float weight
+    accumulation in build_adjacency) deterministic → byte-reproducible artifact."""
     from db import run_query
     rows = run_query(
         "MATCH (a:GSTIN)-[:ISSUED_INVOICE]->(i:Invoice)-[:BILLED_TO]->(b:GSTIN) "
         "RETURN a.gstin_id AS src, b.gstin_id AS dst, "
-        "       coalesce(i.taxable_value, i.amount, 0) AS amount"
+        "       coalesce(i.taxable_value, i.amount, 0) AS amount, i.invoice_id AS inv "
+        "ORDER BY src, dst, inv"
     )
     return [{"src": r["src"], "dst": r["dst"],
               "amount": float(r["amount"] or 0)} for r in rows]

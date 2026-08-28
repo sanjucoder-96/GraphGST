@@ -32,6 +32,23 @@ GSTR-1, be summarized in their GSTR-3B, be settled by a TaxPayment, be
 transported under an EWayBill, and be booked in the buyer's PurchaseRegister.
 A break anywhere in that chain is a reconciliation anomaly.
 
+## V6.4 coverage matrix — MODELED / PARTIAL / NOT MODELED
+
+Not every GST concept is modeled to the same depth. This matrix is the honest
+map, grounded in the generator (`datagen/`) and detectors (`reconcile/`,
+`risk/`). Read it before assuming a concept is fully simulated.
+
+| Status | Concept | What it means in the code |
+|---|---|---|
+| **MODELED** | GSTIN + taxpayer, supplier & buyer, `Invoice`, `GSTR1`, `GSTR3B`, `TaxPayment`, `EWayBill`, `PurchaseRegister`, CGST/SGST/IGST split, monthly filing periods | The core filing spine. Each is a first-class node with real values, wired into the chain, and reconciled by detectors. Tax is split by same-state (CGST+SGST) vs cross-state (IGST) in `_split_tax`; periods are `YYYY-MM`. |
+| **PARTIAL** | HSN | Exactly **one HSN per invoice** (`InvoiceRec.hsn`). Used only for cross-filing *rate consistency* (does the PR's implied rate match the invoice's?), never to assert a correct classification. |
+| **PARTIAL** | IRN / e-Invoice | Always generated and always `portal_status="ACTIVE"` (`_one_invoice` comment: "treat as always present in demo"). Never validated against a real IRP — its presence is assumed, so it never fails. |
+| **PARTIAL** | GSTR-2B | A **bare stub node** carrying only `return_id`, `gstin`, `period` (`GSTR2BRec`). It has no invoice lines and is **reconciled by no detector** — it exists for graph completeness, not analysis. |
+| **PARTIAL** | ITC (input tax credit) | **Inferred from filing-chain breaks**, not stored for normal traffic: `GSTR3B.itc_claimed` defaults to `0.0` and `derive_returns` leaves it `0` for normal returns. A non-zero `itc_claimed` is written only for planted ring / circular-fraud scenarios (`datagen/rings.py`, `rings_hard.py`, `seeder.py`). ITC "at risk" is derived from chain gaps (missing GSTR-1/3B/challan, cancelled supplier). |
+| **PARTIAL** | Place of supply | Always set to the **buyer's state** (`place_of_supply=buy.state_code`). Because the tax split is derived from the same state comparison, normal invoices are internally consistent and never trip `POS_MISMATCH`. |
+| **PARTIAL** | Invoice line grain | **Single-line invoices** — one HSN and one taxable value per invoice. No multi-line / multi-rate invoices. |
+| **NOT MODELED** | Credit notes, debit notes, amendments | No node, no generator, no detector anywhere in the codebase. There is no way to reduce, correct, or revise a filed value. |
+
 ## Input Tax Credit (ITC) — why the chain matters
 
 The economic heart of GST fraud is ITC: a buyer can offset the tax it *paid* on
@@ -65,13 +82,43 @@ generator (`datagen/anomalies.py`) so benchmark scoring is a direct string
 comparison — the detector and the ground truth speak the same vocabulary, but
 the detector never *reads* the truth (see `docs/BENCHMARKS.md`).
 
+### Detector-supported but NOT yet generated (V6.4)
+
+The taxonomy has 16 codes, but the ground truth only covers 11 of them:
+`datagen/anomalies.py` plants 10 anomaly types — `MISSING_GSTR1`,
+`MISSING_GSTR3B`, `MISSING_TAX_PAYMENT`, `AMOUNT_MISMATCH`, `MISSING_EWB`,
+`CANCELLED_SUPPLIER`, `HSN_MISMATCH`, `DATE_MISMATCH`, `DUPLICATE`,
+`NEAR_DUPLICATE` — plus the `MATCHED` baseline for clean invoices.
+
+The matcher (`reconcile/matcher.py`) *can* emit five more, but **datagen never
+plants them**, so the benchmark has zero ground truth to score them against —
+**they are currently unmeasurable**:
+
+| Outcome | Matcher can emit it | Datagen plants it | Benchmark can score it |
+|---|---|---|---|
+| `INVALID_GSTIN_FORMAT` | yes (shape check) | **no** | **no** |
+| `TAX_MISMATCH` | yes | **no** | **no** |
+| `POS_MISMATCH` | yes | **no** (POS is always internally consistent) | **no** |
+| `MISSING_IN_PR` | yes | **no** | **no** |
+| `NEAR_MATCH` | yes | **no** | **no** — it surfaces only as false positives (see `IMPLEMENTATION_LOG.md`) |
+
+Practical effect: the headline F1 (0.961) is computed over the 11 planted
+outcomes only. These five detectors are real code with real logic, but their
+accuracy is unknown until datagen learns to plant them.
+
 ## The GSTIN identifier (`datagen/identifiers.py`)
 
 A GSTIN is a 15-character code: 2-digit state + 10-char PAN + entity digit +
-'Z' + checksum. The generator produces structurally-valid GSTINs (and
-deliberately invalid ones for the `INVALID_GSTIN_FORMAT` case). The **state
-code** and **PAN** are used as real signals: shared PAN across GSTINs indicates
-common ownership; PIN-prefix and state clustering feed the ring `network_signal`.
+'Z' + checksum. The generator produces **only structurally-valid GSTINs**
+(`synth_gstin` always assembles a well-formed 15-char string with a computed
+checksum). It does **not** deliberately produce malformed ones — earlier docs
+claimed it planted invalid GSTINs "for the `INVALID_GSTIN_FORMAT` case", but
+that is **not true**: `INVALID_GSTIN_FORMAT` is one of the five
+detector-supported-but-not-generated outcomes above. The matcher's shape check
+would catch a malformed GSTIN if one ever appeared, but on synthetic data none
+do. The **state code** and **PAN** are used as real signals: shared PAN across
+GSTINs indicates common ownership; PIN-prefix and state clustering feed the ring
+`network_signal`.
 
 ## The filing rules in the risk engine (`risk/scorers/rules.py`)
 
@@ -89,6 +136,27 @@ The subscore is the **mean** of fired reason weights, so it stays in [0,1]
 regardless of how many rules fire — more rules firing raises confidence via the
 composite, not by letting one entity's score exceed the bound.
 
+## V6.4 — runtime narrative language was softened
+
+The audit narratives the system shows an investigator (the 8-hop walkthrough in
+`risk_engine.py` and the insight / draft-notice text in `main.py`) were
+**rewritten from definitive legal assertions to conditional, investigator-facing
+language**, to match the disclaimer at the top of this document. Concretely:
+
+- Phrases like *"tax evaded"*, *"criminal prosecution applies"*, and specific
+  penalty computations were replaced with *"flagged for verification"*,
+  *"potential exposure to be assessed by the officer"*, and *"not a legal
+  determination"* (e.g. `risk_engine.py` hops 1/5/7; `main.py` insight line and
+  the draft SCN, which now closes with *"Officer must review and apply
+  independent mind"* / *"modeled indicators, not determinations"*).
+- Statute citations themselves (e.g. "Section 16(2)(c)", "Section 74") are
+  **kept** — but as the *rationale* for a flag, never as an adjudication, exactly
+  as the disclaimer allows. A residual `legal_provisions` list and one Hindi
+  summary line still read assertively; those are next on the cleanup list.
+
+The graph evidence and scores did not change — only the words wrapped around
+them, so the output no longer overclaims legal certainty.
+
 ## What is intentionally NOT modeled
 
 - Real GSTN API integration, e-invoice IRN validation, or live GSTR-2B pull.
@@ -99,3 +167,27 @@ composite, not by letting one entity's score exceed the bound.
 
 Keeping this list explicit is the point: the system is defensible precisely
 because it does not overclaim.
+
+## Highest-value planned domain work (V6.4 deferred)
+
+These are the pieces that would most improve **ITC-fraud detection**, listed
+here so the gap is on the record. They were *deliberately deferred this pass* to
+avoid disturbing the current benchmark baselines (the F1 = 0.961 number is
+computed over today's planted outcomes; adding new planted types or reworking
+reconciliation would move that number and break comparison with prior runs).
+
+1. **Credit notes and debit notes + a `REVERSAL_MISMATCH` outcome.** Real ITC
+   fraud often hides in reversals: a supplier issues a credit note (reducing
+   their declared liability) while the buyer never reverses the matching ITC, or
+   vice-versa. Modeling credit/debit notes as nodes and adding a
+   `REVERSAL_MISMATCH` detector (declared reversal on one side, none on the
+   other) would catch a fraud pattern the current chain-break detectors cannot
+   see at all. This is the single highest-value addition.
+2. **Actually planting `MISSING_IN_PR`.** The matcher already detects it (buyer
+   never booked an invoice — a classic fabricated-invoice signal), but datagen
+   never plants it, so its accuracy is unmeasured. Teaching `datagen/anomalies.py`
+   to drop the PR line for a fraction of invoices would turn an untested detector
+   into a benchmarked one.
+
+Both are genuine domain improvements, not cosmetic — they extend what the system
+can *detect*, not just what it can *display*.

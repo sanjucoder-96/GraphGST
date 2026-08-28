@@ -21,7 +21,7 @@ from datetime import date, datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db import close_driver, get_driver, run_query, run_write
 # NOTE (V6.3): compute_risk_scores() is RETIRED as the scoring authority — the
@@ -63,7 +63,7 @@ _cors = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "X-Admin-Token"],
     allow_credentials=True,
 )
@@ -181,12 +181,15 @@ def health():
         get_driver().verify_connectivity(); neo4j_status = "connected"
         node_count = (run_query("MATCH (n) RETURN count(n) AS c") or [{}])[0].get("c", 0)
         rel_count  = (run_query("MATCH ()-[r]->() RETURN count(r) AS c") or [{}])[0].get("c", 0)
-    except Exception as e: neo4j_status = f"error:{str(e)[:60]}"
+    except Exception as e:
+        logger.warning("health check: neo4j error: %s", e)
+        neo4j_status = "error"   # do not leak driver/exception text to clients
     return {
-        "status": "healthy" if "connected" in neo4j_status else "degraded",
+        # No neo4j_uri / raw exception text: this endpoint is unauthenticated and
+        # must not disclose the DB host or backend internals.
+        "status": "healthy" if neo4j_status == "connected" else "degraded",
         "neo4j": neo4j_status, "node_count": node_count, "relationship_count": rel_count,
         "has_data": node_count > 0,
-        "neo4j_uri": os.getenv("NEO4J_URI", "not-set")[:40] + "...",
     }
 
 # ── Seed endpoints ─────────────────────────────────────────────────────────────
@@ -201,20 +204,15 @@ def seed_status():
     except: pass
     return {"has_data": has_data, "node_count": count}
 
-@app.post("/api/seed")
-def seed(
-    force: bool = Query(False),
-    x_admin_token: str = Header(default=""),
-):
-    """Seed the 9 hand-crafted scenarios.
-
-    Idempotent when force=False; when force=True the graph is wiped first,
-    which requires the admin token.
-    """
-    if force:
-        # Wipe-first only allowed with admin token — force=True is destructive.
-        require_admin(x_admin_token=x_admin_token)
+@app.post("/api/seed", dependencies=[Depends(require_admin)])
+def seed(force: bool = Query(False)):
+    """Seed the 9 hand-crafted scenarios. Admin-only (seeding mutates the graph
+    regardless of `force`). When force=True the graph is WIPED first so the
+    seeder model cannot be overlaid on a loader-populated graph."""
     try:
+        if force:
+            from seeder import clear_graph
+            clear_graph()   # force=True is destructive — actually wipe first
         results = seed_all(force=force)
         seeded = [r for r in results if r["status"] == "success"]
         skipped = [r for r in results if r["status"] == "skipped"]
@@ -242,11 +240,13 @@ def clear():
 # ── Auditor feedback (real, not a toast) ───────────────────────────────────────
 
 class FeedbackRecord(BaseModel):
-    label: str  # accurate | false_positive | missed_fraud | notice_approved
-    query: str = ""
-    intent: str = ""
-    subgraph_node_ids: list[str] = []
-    comment: str = ""
+    # Bounded field lengths so an anonymous caller can't append arbitrarily large
+    # records to feedback.jsonl (unbounded-disk-write DoS). 422 on overflow.
+    label: str = Field(max_length=64)  # accurate | false_positive | missed_fraud | ...
+    query: str = Field(default="", max_length=2000)
+    intent: str = Field(default="", max_length=64)
+    subgraph_node_ids: list[str] = Field(default_factory=list, max_length=200)
+    comment: str = Field(default="", max_length=4000)
 
 
 @app.post("/api/agent/feedback")
@@ -357,7 +357,7 @@ def fraud_circular_gst():
         OPTIONAL MATCH (g)-[:ISSUED_INVOICE]->(i:Invoice)
         WITH g, collect(i) AS invoices
         RETURN g.gstin_id AS gstin_id, g.name AS name, g.risk_score AS risk_score,
-               g.directors AS directors, g.incorporation_date AS inc_date,
+               g.directors AS directors, coalesce(g.incorp_date, g.incorporation_date) AS inc_date,
                size(invoices) AS invoice_count,
                reduce(t=0, inv IN invoices | t + coalesce(inv.itc_fraud_amount,0)) AS fraud_itc
         ORDER BY fraud_itc DESC
@@ -478,7 +478,7 @@ def vendors():
 def invoices():
     return run_query("MATCH (s:GSTIN)-[:ISSUED_INVOICE]->(i:Invoice)-[:BILLED_TO]->(b:GSTIN) OPTIONAL MATCH (i)-[:DECLARED_IN]->(g1:GSTR1) OPTIONAL MATCH (s)-[:FILED]->(g3b:GSTR3B) OPTIONAL MATCH (g3b)-[:SETTLED_BY]->(tp:TaxPayment) OPTIONAL MATCH (i)-[:TRANSPORTED_VIA]->(ewb:EWayBill) RETURN i.invoice_id AS invoice_id,s.gstin_id AS supplier_gstin,s.name AS supplier_name,b.gstin_id AS buyer_gstin,b.name AS buyer_name,i.amount AS amount,i.total_gst AS total_gst,i.date AS date,i.status AS status,i.description AS description,i.scenario AS scenario,g1.return_id AS gstr1_filed,g3b.return_id AS gstr3b_filed,tp.challan_no AS tax_payment,tp.status AS payment_status,ewb.ewb_id AS ewb_id ORDER BY i.date DESC")
 
-@app.post("/api/invoices")
+@app.post("/api/invoices", dependencies=[Depends(require_admin)])
 def add_invoice(inv: InvoiceCreate):
     gst = round(inv.amount * inv.tax_rate, 2); cgst = round(gst/2, 2) if inv.tax_rate <= 0.18 else 0; igst = gst if inv.tax_rate > 0.18 else 0
     status = ("MISSING_GSTR1" if not inv.supplier_filed_gstr1
@@ -562,8 +562,8 @@ def get_fraud_templates() -> dict:
             ],
             "legal_provisions": [
                 "Section 16(2)(c) CGST Act — ITC ineligible without actual receipt of goods",
-                "Section 122(1)(ii) — Penalty for false ITC claim up to 100% of tax evaded",
-                "Section 132(1)(b) — Criminal prosecution for fraudulent ITC exceeding ₹5 crore",
+                "Section 122(1)(ii) — provision on penalty for a false ITC claim (subject to officer assessment)",
+                "Section 132(1)(b) — provision on prosecution for fraudulent ITC above the statutory threshold (subject to assessment)",
             ],
             "next_action": (
                 f"Issue notice u/s 73/74 CGST Act. Freeze ITC for all {ring_size} GSTINs: "
@@ -694,7 +694,7 @@ def agent_query(body: AgentQuery):
             f"🔴 SC9 Circular GST Fraud detected: 5-entity ring, total ITC fraud ₹{total_fraud:,.0f}",
             f"🚛 Common vehicle KA01MM0001 used across all 5 phantom EWBs",
             f"📅 All entities incorporated within 30 days — shell company pattern",
-            f"⚖️ Applicable: Section 132(1)(b) CGST — criminal prosecution threshold exceeded",
+            f"⚖️ Potential exposure to be assessed by the officer (e.g. Section 132(1)(b) CGST thresholds) — flag only, not a legal determination",
             f"🔍 {len(rings)} additional circular trading ring(s) detected in graph",
         ]
 
@@ -721,10 +721,11 @@ def agent_query(body: AgentQuery):
     # ── 3. Build response ─────────────────────────────────────────────────────
     hindi_summary = None
     if body.language == "hi" or "hindi" in q or any(c > '\u0900' and c < '\u097f' for c in q):
-        hindi_summary = ("⚠️ ग्राफ विश्लेषण: 5-इकाई GST धोखाधड़ी चक्र का पता चला। "
-                         "कुल फर्जी ITC: ₹24.27 लाख। एक ही वाहन KA01MM0001 सभी "
-                         "5 ई-वे बिल में उपयोग। धारा 132(1)(b) CGST अधिनियम के तहत "
-                         "आपराधिक अभियोजन लागू होता है।")
+        hindi_summary = ("⚠️ ग्राफ विश्लेषण (मॉडल-आधारित संकेत, विधिक निर्धारण नहीं): "
+                         "5-इकाई संभावित GST धोखाधड़ी चक्र चिह्नित। संभावित ITC जोखिम: "
+                         "₹24.27 लाख। एक ही वाहन KA01MM0001 सभी 5 ई-वे बिल में उपयोग। "
+                         "धारा 132(1)(b) CGST जैसे प्रावधानों का संभावित जोखिम — "
+                         "अधिकारी द्वारा स्वतंत्र सत्यापन आवश्यक।")
 
     # ── Draft SCN — sourced from the LIVE ring in the graph ────────────────────
     # V5 had this string hard-coded with ₹24,27,255 (the SC9 fraud sum). In V6
@@ -761,13 +762,14 @@ def agent_query(body: AgentQuery):
             f"1. A {ring_size}-entity circular trading ring was detected via graph traversal.\n"
             f"2. All e-Way Bills in the chain reused vehicle {common_veh}, indicating "
             f"no genuine movement of goods.\n"
-            f"3. Detected total ITC fraud in the ring: ₹{total_fraud:,.0f}.\n"
+            f"3. GST value circulating in the ring (potential ITC at risk): ₹{total_fraud:,.0f}.\n"
             f"4. See attached evidence subgraph for the invoice-by-invoice trail.\n\n"
-            f"Total tax evaded (ITC fraud): ₹{total_fraud:,.0f}\n"
-            f"Applicable penalty u/s 122: up to ₹{total_fraud:,.0f} (equal to tax evaded)\n\n"
-            f"You are hereby directed to appear before this office within 30 days and "
-            f"furnish reply to this notice along with all relevant documents.\n\n"
-            f"Failure to respond shall be treated as admission of the allegations.\n\n"
+            f"Indicative GST value at risk in the ring: ₹{total_fraud:,.0f}\n"
+            f"Any penalty/recovery (e.g. u/s 122) is subject to the officer's independent "
+            f"assessment and statutory verification — the above are modeled indicators, "
+            f"not determinations.\n\n"
+            f"You are requested to review the flagged transactions and furnish a reply "
+            f"with relevant documents.\n\n"
             f"[AI-Assisted Draft — Officer must review and apply independent mind before "
             f"issuing this notice. The draft is derived from graph evidence and is not a "
             f"substitute for statutory verification.]\n"

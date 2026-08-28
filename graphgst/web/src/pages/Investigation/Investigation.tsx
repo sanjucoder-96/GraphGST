@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Copy, X } from 'lucide-react';
-import { getCase, postAgentQuery } from '../../lib/api';
+import { getCase, getRing, postAgentQuery } from '../../lib/api';
 import { GraphCanvas } from '../../components/GraphCanvas/GraphCanvas';
 import { EvidencePanel } from '../../components/EvidencePanel/EvidencePanel';
 import { TimelineScrubber } from '../../components/TimelineScrubber/TimelineScrubber';
@@ -170,8 +170,20 @@ export function InvestigationPage({ mode }: Props) {
 
   // ONE data source. The case entity is the gstin on the route, or the `node`
   // param that ring-mode links carry — no client-side entity→ring guessing,
-  // no MOCK_RINGS.
-  const caseGstin = gstinFromUrl ?? nodeFromUrl;
+  // no MOCK_RINGS. For a bare /ring/:id deep-link with no ?node= entity, resolve
+  // a ring member from the persisted ring (getRing → members[0]); the case is
+  // still assembled by getCase, this only supplies the entity id.
+  const directGstin = gstinFromUrl ?? nodeFromUrl;
+  const ringResolveQ = useQuery({
+    queryKey: ['ring-resolve', ringIdFromUrl] as const,
+    queryFn: () => (ringIdFromUrl ? getRing(ringIdFromUrl) : Promise.resolve(null)),
+    enabled: mode === 'ring' && !directGstin && !!ringIdFromUrl,
+    staleTime: 60_000,
+  });
+  const resolvedGstin =
+    (ringResolveQ.data as { data?: { members?: string[] } } | null | undefined)
+      ?.data?.members?.[0] ?? null;
+  const caseGstin = directGstin ?? resolvedGstin;
   const caseQ = useQuery({
     queryKey: ['case', caseGstin] as const,
     queryFn: () => (caseGstin ? getCase(caseGstin) : Promise.resolve(null)),

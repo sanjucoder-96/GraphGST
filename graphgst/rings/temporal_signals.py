@@ -66,17 +66,51 @@ def inter_hop_regularity(edges: Sequence[Dict[str, Any]]) -> Optional[float]:
     return round(max(0.0, min(1.0, 1.0 - cv)), 4)
 
 
+def cyclic_temporal_incoherence(edges: Sequence[Dict[str, Any]]) -> Optional[float]:
+    """Causality-violation motif ∈ [0, 1] — the fraction of hop→hop date
+    orderings around the cycle that are IMPOSSIBLE for a single physical
+    consignment.
+
+    A carousel is a closed loop A→B→C→…→A. If real goods move, each member
+    sells (its outgoing hop) no earlier than it was supplied (its incoming hop),
+    so the hop dates around the loop are monotone non-decreasing with exactly ONE
+    wrap-around descent (the closing edge). We count cyclic strict descents
+    ``D = #{ i : date(edge_{(i+1) mod k}) < date(edge_i) }`` on the edges in
+    cycle-traversal order, and report ``max(0, D-1) / max(1, k-1)``:
+
+      * D ≤ 1  → 0.0  → a forward-in-time flow exists (real goods, or a
+                        carefully-built fake) — nothing to see here.
+      * D ≥ 2  → > 0  → at least one hop RESELLS before it was SUPPLIED
+                        ("B sold to C on 2 Jun but only bought from A on 18 Jun"),
+                        which is impossible for one consignment → paper carousel.
+
+    Ties (same-day hops) are not descents, so a same-day loop scores 0 (already
+    described by velocity/compactness). Rotation-invariant and O(k). Returns None
+    if fewer than two hops or any hop lacks a parseable date.
+    """
+    dates = [_parse(e.get("date")) for e in edges]
+    if len(dates) < 2 or any(d is None for d in dates):
+        return None
+    k = len(dates)
+    descents = sum(1 for i in range(k) if dates[(i + 1) % k] < dates[i])
+    return round(max(0, descents - 1) / max(1, k - 1), 4)
+
+
 def temporal_descriptors(total_gst: float, date_span_days: int,
                           edges: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     """Bundle the temporal descriptors for a detected ring."""
     reg = inter_hop_regularity(edges)
+    incoh = cyclic_temporal_incoherence(edges)
     return {
         "velocity_inr_per_day": velocity_inr_per_day(total_gst, date_span_days),
         "inter_hop_regularity": reg,
+        "cyclic_temporal_incoherence": incoh,
         # human-readable investigative note
         "note": (
             f"₹{velocity_inr_per_day(total_gst, date_span_days):,.0f}/day over "
             f"{max(1, int(date_span_days))}d"
             + (f", cadence regularity {reg:.2f}" if reg is not None else "")
+            + (f", IMPOSSIBLE loop timing {incoh:.2f} (resale precedes supply)"
+               if incoh else "")
         ),
     }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T16:50:04.333138+00:00",
+  "generated_at": "2026-08-28T02:52:30.450251+00:00",
   "cfg": {
     "n_gstins": 500,
     "months": 3,
@@ -245,6 +245,38 @@
     }
   ],
   "artifact_dir": "D:\\GraphGST\\graphgst\\demo\\artifacts",
-  "neo4j_loaded": false,
-  "neo4j_error": "skipped by caller"
+  "neo4j_loaded": true,
+  "neo4j_summary": {
+    "gstins.csv": 500,
+    "invoices.csv": 3718,
+    "ewb.csv": 2029,
+    "irn.csv": 3718,
+    "pr.csv": 3718,
+    "gstr1.csv": 1051,
+    "gstr3b.csv": 1094,
+    "gstr2b.csv": 1196,
+    "taxpayments.csv": 1105,
+    "orphans_removed": 26
+  },
+  "intelligence": {
+    "ok": true,
+    "rings_persisted": 182,
+    "events_persisted": 1436,
+    "gstins_scored": 500,
+    "embeddings_indexed": 497,
+    "materialized_at": "2026-08-28T02:54:20.263369+00:00",
+    "stale": false,
+    "fingerprint": {
+      "cancelled_gstins": 19,
+      "events": 1436,
+      "gstins": 500,
+      "invoice_gst_sum": 62929217.82,
+      "invoices": 3718,
+      "max_invoice_date": "2024-06-30",
+      "non_matched_invoices": 278,
+      "ring_score_sum": 55.3143,
+      "rings": 182
+    },
+    "elapsed_sec": 84.537
+  }
 }

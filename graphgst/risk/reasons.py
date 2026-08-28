@@ -35,13 +35,26 @@ class ReasonBand(str, Enum):
 
 
 def band_for(score: float) -> ReasonBand:
-    """Score → band. Thresholds match the UI's severity pills:
-    LOW <0.30 · MED <0.55 · HIGH <0.80 · CRITICAL ≥0.80"""
-    if score >= 0.80:
+    """Score → triage band, CALIBRATED to the composer's empirical distribution.
+
+    The bands are TRIAGE brackets, not absolute fraud probabilities. The
+    normalized-weight composite rarely approaches 1.0 (a subscore of 1 on the
+    heaviest scorer contributes only its 0.35 weight), so across a realistic
+    graph the score maxes around ~0.6 and its median is ~0; the earlier
+    0.30/0.55/0.80 thresholds left CRITICAL unreachable and ~97% of true
+    positives stranded in LOW, discarding a genuinely good ranking (recon-AUC
+    ~0.89). These thresholds put the worst multi-signal entities in
+    HIGH/CRITICAL while keeping the benign mass in LOW. Recalibration is
+    rank-invariant — it changes no score, weight, or gated benchmark metric
+    (AP/AUC/precision are threshold-free); only the band label moves.
+
+        LOW <0.15 · MED <0.30 · HIGH <0.45 · CRITICAL ≥0.45
+    """
+    if score >= 0.45:
         return ReasonBand.CRITICAL
-    if score >= 0.55:
-        return ReasonBand.HIGH
     if score >= 0.30:
+        return ReasonBand.HIGH
+    if score >= 0.15:
         return ReasonBand.MED
     return ReasonBand.LOW
 

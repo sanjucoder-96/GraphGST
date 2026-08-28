@@ -132,19 +132,41 @@ numbers** differ — the benchmark overrides walks/length. Both are shown honest
 | `k` (lookalike neighbours) | — | 10 (the gated K) |
 
 The HTTP `POST /train` body (`embed/api.py:25-33`) defaults to the **library**
-values (walks 10 / len 20), *not* the benchmark's 15 / 25.
+values (walks 10 / len 20), *not* the benchmark's 15 / 25. The **live demo**
+path, though, pins the benchmark config: `_train_embeddings`
+(`risk/materialize.py:319-320`) hard-codes `dim 64 / walks 15 / len 25 / seed 42`,
+so a demo reset reproduces the headline structural/cohesion numbers rather than
+the lighter library defaults.
 
 ## Determinism
 
-Every source of order is pinned, so the same graph reproduces the same vectors:
+Every source of order is pinned, so the same graph reproduces the same vectors —
+and, since V6.4, the same **bytes** on disk:
 
 - Seeded RNG for walks — `random.Random(42)` (`walks.py:100`); the SVD path is
-  exact and therefore deterministic (the fallback uses `np.random.default_rng(seed)`).
+  exact (`numpy.linalg.svd`, `train.py:117`) and therefore deterministic (the
+  fallback uses `np.random.default_rng(seed)`).
 - Node ordering is **sorted** (`walks.py:101`, `train.py:84`) and adjacency lists
-  are sorted (`walks.py:48-49`), so matrix row order is stable.
-- The benchmark runner sets `PYTHONHASHSEED=0` (`docs/BENCHMARKS.md`), because
-  Python's hash salt otherwise changes set-iteration order and perturbs walk
-  order across processes.
+  are sorted (`walks.py:48-49`), so matrix row order is stable. The SPPMI matrix
+  is filled by **assignment** to a unique `(row, col)` per co-occurring pair
+  (`train.py:93-101`), so co-occurrence iteration order can't perturb it either.
+- **Fixed edge-accumulation order (V6.4).** `build_adjacency` sums float weights
+  in edge-arrival order (`walks.py:41`), and float addition isn't associative, so
+  the arrival order must be pinned for the `.npy` to be byte-identical run to run.
+  The training edge query now ends `ORDER BY src, dst, inv` (invoice id)
+  (`embed/api.py:99-104`, `_hydrate_edges_from_neo4j`), fixing that order → a
+  byte-reproducible artifact.
+- **Hash-seed-invariant (V6.4).** Given a fixed edge list the whole embedding
+  pipeline is independent of Python's hash salt — node keys and adjacency lists
+  are sorted, the start-order shuffle is seeded, and the only sets (`prev_nbs`,
+  `walks.py:125`) are used purely for membership tests. V6.4's `ORDER BY` makes
+  the edge list itself hash-seed-invariant in the live path, so
+  `_train_embeddings` is deterministic with **no** special `PYTHONHASHSEED`
+  (its docstring, `materialize.py:307-312`). The benchmark runner still exports
+  `PYTHONHASHSEED=0` (`docs/BENCHMARKS.md`) for the rest of its *in-memory*
+  pipeline — the ring engine's NetworkX SCC iteration order, and edge ordering
+  into `build_adjacency` before a query has sorted it — not for the embedding
+  walks themselves.
 
 *(Inference, not a code comment: because the vectors come from a closed-form
 matrix factorization rather than SGD-trained SGNS, there is no learning rate,
@@ -155,12 +177,48 @@ motivation is stated in `embed/README.md:25-27`.)*
 ## Persistence & API
 
 - **Persist** (`embed/persist.py`): `embeddings.npy` (the matrix) + a JSON
-  sidecar with `ids`, `config`, `stats`, `saved_at`, `shape`.
+  sidecar (`embeddings.meta.json`) with `ids`, `config`, `stats`, `saved_at`,
+  `shape`, and — since V6.4 — a **`graph_fingerprint`**: the *same*
+  `risk.materialize.current_fingerprint()` (counts + cheap content aggregates of
+  the graph) captured at training time, so a reader can tell whether the graph has
+  moved since (`persist.py:29-38`).
 - **`POST /api/embed/train`** — admin-only (`Depends(require_admin)`), hydrates
-  edges from Neo4j and persists artifacts (`api.py:36-47`, `:71-82`).
+  edges from Neo4j and persists artifacts, now also stamping the graph
+  fingerprint (`api.py:36-48`). Its request body still defaults to the **library**
+  config (walks 10 / len 20), not the benchmark's 15 / 25.
 - **`GET /api/embed/lookalike/{gstin_id}?k=`** — top-K neighbours as
-  `{gstin_id, similarity}` (`api.py:50-58`).
-- **`GET /api/embed/status`** — trained-at, node count, config.
+  `{gstin_id, similarity}` (`api.py:51-59`).
+- **`GET /api/embed/status`** — `trained`, `n_indexed`, `config`, `stats`,
+  `saved_at`, `shape`, plus (V6.4) the stored `graph_fingerprint`, the live
+  `current_fingerprint`, and a **`stale`** verdict (`api.py:62-79`): `True` when
+  nothing is trained, when the artifact predates fingerprint tracking (empty
+  stored fingerprint), or when stored ≠ current. A changed graph is therefore
+  flagged, not silently served as fresh neighbours — mirroring risk-materialization
+  staleness.
+
+### Live training — Related Vendors is LIVE in the demo (V6.4)
+
+Before V6.4 the only ways to populate the index were the admin `POST /train` or the
+benchmark, so a freshly-reset demo had no persisted artifact, the lookalike
+endpoint 404'd, and Related Vendors had nothing to show (it fell back to an
+empty/mock state). V6.4 folds training into the canonical refresh:
+`refresh_intelligence(persist=True)` (`risk/materialize.py:307-322`,
+`_train_embeddings`) trains **and** persists the index **once per refresh** —
+against the exact graph state it just materialized risk over — stamping that same
+fingerprint. Because both the demo reset (`demo/reset.py:118`) and the datagen
+load endpoint (`datagen/api.py:92`) call `refresh_intelligence`, the strip is
+backed by a live, per-reset index — not a per-request train, and not a UI mock.
+
+It trains with the **benchmark-headline config** — `EmbedConfig(dim=64,
+walks_per_node=15, walk_len=25, seed=42)` (`materialize.py:319-320`), *not* the
+`POST /train` library defaults — so the demo reproduces the documented
+`structural_hit@10 = 0.667` and `cohesion_recall@10 = 0.761`. Training is
+best-effort: an empty edge set returns `0` indexed and the refresh still
+completes (`materialize.py:288-292`, `_train_embeddings:314-318`), and the count
+the refresh reports (`embeddings_indexed`) is `len(model.ids)`.
+`tests/test_neo4j_integration.py:398-431` asserts the artifact exists with a
+fingerprint after a refresh and that `/status` flips `stale` when graph content
+changes.
 
 ## Evaluation — the honest version
 
@@ -219,7 +277,9 @@ risk signal.
 The UI strip (`web/src/components/RelatedVendors/RelatedVendors.tsx`) calls
 `GET /api/embed/lookalike/{seed}?k=5` and lists the top-K cosine-similar GSTINs,
 each with its similarity (to 3 dp) and a bar, each row clicking through to that
-entity's investigation (`/entity/{gstin_id}`). When a `ringMembers` set is
+entity's investigation (`/entity/{gstin_id}`). Since V6.4 that endpoint is backed
+by the per-reset index (see *Live training* above), so in the demo the strip
+resolves live instead of 404-ing to an empty state. When a `ringMembers` set is
 supplied, neighbours that are also ring members are highlighted and a
 `hits/total ring co-members` badge is shown.
 
