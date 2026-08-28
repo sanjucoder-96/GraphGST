@@ -203,9 +203,28 @@ def list_rings() -> List[Dict[str, Any]]:
 def get_ring(ring_id: str) -> Optional[Dict[str, Any]]:
     from db import run_query
     rows = run_query(GET_RING_CQL, {"ring_id": ring_id})
-    if not rows:
+    if not rows or not rows[0].get("ring"):
         return None
-    return dict(rows[0]["ring"]) if rows[0].get("ring") else None
+    return _shape_persisted_ring(dict(rows[0]["ring"]))
+
+
+def _shape_persisted_ring(r: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalise a persisted :Ring node (flat C/V/T/… + break_edge_* props) into
+    the SAME shape as an in-memory DetectedRing.to_dict(): a nested `signals`
+    object and a `break_edge` object. The flat props are left in place for
+    backward compatibility. This makes GET /api/rings/{id} shape-consistent with
+    POST /api/rings/detect and with what the frontend Ring type expects."""
+    r["signals"] = {k: r.get(k) for k in ("C", "V", "T", "R", "N", "H")}
+    if r.get("break_edge_invoice") or r.get("break_edge_from"):
+        r["break_edge"] = {
+            "src": r.get("break_edge_from"), "dst": r.get("break_edge_to"),
+            "invoice_id": r.get("break_edge_invoice"),
+            "score_drop": r.get("break_edge_score_drop"),
+            "score_after": r.get("break_edge_score_after"),
+        }
+    else:
+        r["break_edge"] = None
+    return r
 
 
 def fetch_seen_members() -> List[str]:

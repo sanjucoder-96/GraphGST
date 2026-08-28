@@ -4,7 +4,8 @@ The operational companion to [`GRAPH_MODEL.md`](./GRAPH_MODEL.md). That document
 explains *what the nodes and relationships mean*; this one covers *how the graph
 is bootstrapped, constrained, indexed, loaded, read, and reset* — everything you
 need to run Graph GST against a real Neo4j database. Every constraint/index
-below was dumped from the live instance, not guessed.
+below is created at bootstrap by `seeder.create_constraints()` plus
+`risk/materialize.py`, and was verified against the live instance.
 
 > Research prototype on **synthetic** data. Nothing here is real taxpayer data.
 
@@ -52,10 +53,10 @@ IRN, PurchaseRegister, Director`) come from the synthetic generator via the
 loader. **ANALYTIC** nodes (`Ring, MatchEvent`) are written back by the ring and
 reconciliation engines. Full property tables live in `GRAPH_MODEL.md`.
 
-## Constraints (14, all uniqueness)
+## Constraints (13 uniqueness, from the seeder)
 
-Every node type is keyed by a unique business identifier. Created by
-`seeder.create_constraints()`, which `loader.load_directory` calls first.
+Every source/analytic node type is keyed by a unique business identifier. Created
+by `seeder.create_constraints()`, which `loader.load_directory` calls first.
 
 | Label | Key | | Label | Key |
 |---|---|---|---|---|
@@ -65,43 +66,89 @@ Every node type is keyed by a unique business identifier. Created by
 | `GSTR2B` | `return_id` | | `IRN` | `irn` |
 | `GSTR3B` | `return_id` | | `Director` | `director_id` |
 | `PurchaseRegister` | `pr_line_id` | | `Ring` | `ring_id` |
-| `MatchEvent` | `event_id` | | `Alert`\* | `alert_id` |
+| `MatchEvent` | `event_id` | | | |
+
+A **14th** uniqueness constraint, `RiskMeta.id`, is created separately by
+`risk/materialize.py` (it keys the singleton risk-materialization stamp), not by
+the seeder — so a fully bootstrapped DB carries 14 uniqueness constraints.
 
 Uniqueness is what makes ingestion **idempotent**: every loader uses
 `MERGE (n {key: …})`, so re-loading the same dataset updates in place instead of
 duplicating (proven in `tests/test_neo4j_integration.py::test_idempotent_reload`).
 
-\* `Alert` is a **reserved** label — its constraint/indexes exist but no code
-writes `:Alert` nodes yet. Documented, not dead-removed, so a future alerting
-feature has the key ready.
+> **V6.4 removed the dead `:Alert` schema.** Earlier seeders created an `Alert`
+> uniqueness constraint (plus `alert_id`/`alert_severity` indexes) for a label no
+> code path ever writes. It is gone, not reserved — reinstate it with the feature
+> that needs it.
 
 ## Indexes (30 range + 2 token-lookup)
 
-Range indexes back the property lookups the engines actually run:
+A bootstrapped DB carries **30 range indexes** (14 backing the uniqueness
+constraints, 16 explicit property indexes) plus Neo4j's **2 built-in
+token-lookup** indexes. The seeder creates the source-data property indexes;
+`risk/materialize.py` creates the two materialized-risk indexes the case list
+rides on.
 
 | Label | Indexed properties | Serves |
 |---|---|---|
 | `GSTIN` | `status, risk_score, scenario, state` (+ id) | risk/rule filters, dashboards |
+| `GSTIN` | `risk_band, risk_score_norm` (materialize.py) | case-list band filter + score sort |
 | `Invoice` | `date, hsn, scenario, status` (+ id) | reconciliation, temporal windows |
 | `GSTR1/GSTR3B` | `period` (+ id) | filing-period joins |
 | `TaxPayment` | `status, payment_date` (+ id) | settlement checks |
 | `EWayBill` | `vehicle_number, scenario` (+ id) | shared-vehicle ring signal |
-| `Ring` | `period` (+ id) | ring queries |
+
+**Case-list hot path (V6.4):** `investigation/service.list_cases` filters and
+sorts on `g.risk_score_norm` (the canonical 0–1 score). The new **`gstin_risk_norm`**
+index on `GSTIN.risk_score_norm` turns that from a full `NodeByLabelScan` into an
+index scan. The band filter is now a **seekable** equality —
+`g.risk_band = $band`, added to the query only when a band is actually requested
+— so the `gstin_risk_band` index is usable; the previous
+`($band IS NULL OR g.risk_band = $band)` disjunction would have defeated it.
+
+**Removed in V6.4:** the `ring_period` index (`:Ring` has no `period` property, so
+it indexed nothing) and the `:Alert` indexes (`alert_id`, `alert_severity`),
+alongside the `:Alert` constraint above.
 
 **Known redundancy (acceptable):** id properties that already have a uniqueness
-*constraint* also carry an explicit range *index* (e.g. `Invoice.invoice_id`).
-The constraint already provides a backing index, so the extra one is redundant
-but harmless — kept as-is rather than churning the seeder for a marginal write
-saving. The *non-id* property indexes above are the ones that matter, and they
-match the query patterns in `rings/`, `reconcile/`, and `risk/`.
+*constraint* also carry a backing range *index* — the constraint provides it
+automatically, so it is counted above but not created by a separate statement.
+The *non-id* property indexes are the ones that matter, and they match the query
+patterns in `rings/`, `reconcile/`, `risk/`, and `investigation/`.
+
+## Two write paths: loader (canonical) vs seeder (legacy demo)
+
+The live database has **one** canonical writer: the datagen **loader**
+(`datagen/loader.py`, driven by `POST /api/datagen/load`). Everything the risk,
+ring, reconciliation, and Case surfaces read is the loader's model — the graph
+drawn above.
+
+`seeder.py` is a **separate, small demo path**: nine hand-crafted scenarios
+(`POST /api/seed`) built on an older, divergent model — `SUPPLIES_TO` and
+`CLAIMS_ITC_FOR` relationships, GSTIN properties like `is_defaulter`,
+`incorporation_date`, and a plain `directors` string, plus a state-only address
+(no `state_code`). The loader writes none of these: it models supply as
+`ISSUED_INVOICE`/`BILLED_TO`, attaches directors as `:Director` nodes via
+`DIRECTED_BY`, and stores `incorp_date` + `state_code`.
+
+Because the two models diverge, the legacy `main.py` endpoints that read the
+seeder model return empty or null on loader data and are **legacy/deprecated**:
+
+| Endpoint | Reads (seeder-only) | On loader data |
+|---|---|---|
+| `GET /api/analytics/multi-hop/{gstin}` | `SUPPLIES_TO*` paths, `is_defaulter` | empty `upstream_risks` |
+| `GET /api/fraud/circular-gst` | `scenario = 'CIRCULAR_GST_FRAUD'`, `itc_fraud_amount`, `directors` | empty (the loader's ring scenario is `CIRCULAR_TRADING`) |
+
+To keep the two models from mixing, `POST /api/seed?force=true` wipes the graph
+(`clear_graph()`) before seeding (V6.4).
 
 ## Bootstrap, load, read, reset
 
 ```
-seeder.create_constraints()          # 14 constraints + 30 indexes (idempotent, IF NOT EXISTS)
+seeder.create_constraints()          # 13 constraints + 14 range indexes (idempotent, IF NOT EXISTS)
         │
-loader.load_directory(dir)           # CSVs → MERGE nodes+rels, in dependency order, batched
-        │
+loader.load_directory(dir)           # CSVs → MERGE nodes+rels (dependency order, batched)
+        │                            #   └─ _gc_orphans(): DETACH DELETE isolated TaxPayment/PurchaseRegister
 rings.engine.load_graph_from_neo4j() # read invoice edges (i.date/i.amount/i.total_gst)
 reconcile.engine._hydrate_from_neo4j()# read invoices + filing keys + PR
         │
@@ -113,6 +160,19 @@ run_reconcile(persist=True)          # write :MatchEvent + :ABOUT/:BY/:TO back
 `MATCH (n) DETACH DELETE n` then reloads, giving a byte-stable graph. The
 loader's dependency order (`GSTIN → Invoice → EWB/IRN/PR → returns → payments`)
 guarantees endpoints exist before relationships are merged onto them.
+`POST /api/seed?force=true` is likewise destructive — as of V6.4 it calls
+`clear_graph()` (a full `DETACH DELETE`) **before** seeding, so the legacy seeder
+model can never be overlaid on a loader-populated graph.
+
+### Post-load orphan GC (V6.4)
+
+`load_directory` ends with `_gc_orphans()`, which `DETACH DELETE`s any
+`TaxPayment` or `PurchaseRegister` node left structurally isolated
+(`WHERE NOT (x)--()`). These dangle from load ordering — a `TaxPayment` whose
+`GSTR3B` parent row was absent, a `PurchaseRegister` whose `Invoice` was absent —
+and would otherwise be counted but never reachable. On the current dataset this
+removes about 10 `TaxPayment` and 7 `PurchaseRegister` nodes; `load_directory`
+returns the tally as `orphans_removed`.
 
 ### The property-name contract (V6.1 fix, V6.2-verified)
 

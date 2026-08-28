@@ -146,3 +146,27 @@ def test_pipeline_is_deterministic(generated):
     _, _, ranked2 = _pipeline(gs)
     assert [(r.gstin_id, r.score) for r in ranked1] == \
            [(r.gstin_id, r.score) for r in ranked2]
+
+
+def test_same_input_same_graph_same_risk(tmp_path_factory):
+    """Reproducibility spine: same seed → byte-identical CSVs (same graph) →
+    identical composed-risk ranking (same risk). Proves the whole
+    generate→normalize→reconcile→rings→risk chain is deterministic."""
+    a = str(tmp_path_factory.mktemp("det_a"))
+    b = str(tmp_path_factory.mktemp("det_b"))
+    cfg_a = GenerationConfig(n_gstins=120, months=2, n_rings=3,
+                             ring_size_min=3, ring_size_max=5, seed=42, out_dir=a)
+    cfg_b = GenerationConfig(n_gstins=120, months=2, n_rings=3,
+                             ring_size_min=3, ring_size_max=5, seed=42, out_dir=b)
+    _generate(cfg_a)
+    _generate(cfg_b)
+    # same input → same graph (byte-identical source CSVs)
+    for name in ("gstins.csv", "invoices.csv", "gstr1.csv", "taxpayments.csv"):
+        with open(os.path.join(a, name), encoding="utf-8") as fa, \
+             open(os.path.join(b, name), encoding="utf-8") as fb:
+            assert fa.read() == fb.read(), f"{name} differs between identical-seed runs"
+    # same graph → same risk (identical composed ranking)
+    _, _, ranked_a = _pipeline(_load_graph_source(a))
+    _, _, ranked_b = _pipeline(_load_graph_source(b))
+    assert [(r.gstin_id, round(r.score, 9)) for r in ranked_a] == \
+           [(r.gstin_id, round(r.score, 9)) for r in ranked_b]

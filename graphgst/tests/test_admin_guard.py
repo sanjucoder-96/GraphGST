@@ -57,6 +57,42 @@ def test_datagen_load_requires_admin(client):
     assert r.status_code == 401
 
 
+def test_add_invoice_requires_admin(client):
+    """Regression (V6.4): POST /api/invoices writes GSTIN/Invoice/return nodes —
+    must be admin-gated (was unauthenticated)."""
+    r = client.post("/api/invoices", json={
+        "supplier_gstin": "27AAAAA0000A1Z5", "supplier_name": "S",
+        "buyer_gstin": "27BBBBB0000B1Z5", "buyer_name": "B",
+        "invoice_id": "INV-X", "amount": 1000.0, "invoice_date": "2024-06-01"})
+    assert r.status_code == 401
+
+
+def test_patch_case_status_requires_admin(client):
+    """Regression (V6.4): PATCH /api/cases/{id} persists investigation status —
+    must be admin-gated so cases can't be silently dismissed."""
+    r = client.patch("/api/cases/27AAAAA0000A1Z5", json={"status": "dismissed"})
+    assert r.status_code == 401
+
+
+def test_seed_requires_admin_even_without_force(client):
+    """Regression (V6.4): POST /api/seed mutates the graph regardless of force."""
+    assert client.post("/api/seed").status_code == 401
+
+
+def test_feedback_rejects_oversized(client):
+    """Regression (V6.4): feedback fields are length-capped (unbounded-write DoS)."""
+    r = client.post("/api/agent/feedback",
+                    json={"label": "accurate", "comment": "x" * 50_000})
+    assert r.status_code == 422
+
+
+def test_health_does_not_leak_neo4j_uri(client):
+    """Regression (V6.4): unauthenticated /api/health must not disclose the DB host."""
+    body = client.get("/api/health").json()
+    assert "neo4j_uri" not in body
+    assert "bolt://" not in str(body) and "neo4j+s://" not in str(body)
+
+
 def test_agent_feedback_writes_entry(client, tmp_path, monkeypatch):
     fp = tmp_path / "feedback.jsonl"
     import main as m

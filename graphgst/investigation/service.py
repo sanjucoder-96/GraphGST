@@ -410,18 +410,25 @@ def list_cases(band: Optional[str] = None, min_score: float = 0.0,
     """Ranked case list from MATERIALIZED risk (cheap indexed read). Enriches
     each with ring ids + ITC exposure via two batch queries."""
     from db import run_query
-    rows = run_query(
-        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL "
-        "  AND g.risk_score_norm >= $min "
-        "  AND ($band IS NULL OR g.risk_band = $band) "
+    # A seekable band predicate (g.risk_band = $band) lets the gstin_risk_band
+    # index be used; the ($band IS NULL OR ...) disjunction would defeat it, so
+    # we only add the band clause when a band is actually requested.
+    _RET = (
         "RETURN g.gstin_id AS id, coalesce(g.name,g.legal_name,g.trade_name) AS name, "
         "       g.state_code AS state, g.status AS status, g.scenario AS scenario, "
         "       g.risk_score_norm AS score, g.risk_band AS band, "
         "       g.risk_reasons_json AS reasons_json, "
         "       g.investigation_status AS inv_status "
-        "ORDER BY g.risk_score_norm DESC LIMIT $limit",
-        {"min": float(min_score), "band": band, "limit": int(limit)},
-    )
+        "ORDER BY g.risk_score_norm DESC LIMIT $limit")
+    params = {"min": float(min_score), "limit": int(limit)}
+    if band:
+        params["band"] = band
+        cql = ("MATCH (g:GSTIN) WHERE g.risk_band = $band "
+               "AND g.risk_score_norm IS NOT NULL AND g.risk_score_norm >= $min " + _RET)
+    else:
+        cql = ("MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL "
+               "AND g.risk_score_norm >= $min " + _RET)
+    rows = run_query(cql, params)
     ids = [r["id"] for r in rows]
     ring_map: Dict[str, List[str]] = {}
     exp_map: Dict[str, float] = {}

@@ -12,9 +12,10 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schemas import Case, CaseList, CaseStatusResult, CaseStatusUpdate
+from security import require_admin
 
 from . import service
 
@@ -48,9 +49,11 @@ def get_case(
     return case
 
 
-@router.patch("/{gstin_id}", response_model=CaseStatusResult)
+@router.patch("/{gstin_id}", response_model=CaseStatusResult,
+              dependencies=[Depends(require_admin)])
 def update_case_status(gstin_id: str, body: CaseStatusUpdate) -> CaseStatusResult:
-    """Persist an investigation's workflow status
+    """Persist an investigation's workflow status (admin-only — it mutates
+    graph state read back by the queue and conceals/surfaces cases).
     (open|investigating|escalated|resolved|dismissed) onto the graph. The Case
     API reads it back — the status is real Neo4j state, not React state."""
     try:

@@ -17,6 +17,94 @@ New entries go at the top.
 
 ---
 
+## 2026-08-26 — V6.4: Multi-workstream hardening (security, schema, eval, embeddings, temporal, domain, demo, docs)
+
+**1. What did we change?** A 10-workstream pass driven by a parallel audit
+(8 agents) then coherent fixes, prioritized correctness → security → data-
+integrity → eval-validity → architecture → domain → demo → docs. No UI redesign,
+no new ML, no scalability work.
+
+**2. Highlights per workstream.**
+
+- **WS7 Security (priority 2).** Closed four unauthenticated write paths and a
+  DoS: `POST /api/invoices`, `PATCH /api/cases/{id}`, and `POST /api/seed` now
+  require admin (and `force=true` actually wipes via `clear_graph()`);
+  `/api/agent/feedback` fields are length-capped (422 on overflow); `/api/health`
+  no longer leaks the DB URI or exception text; CORS now allows PATCH. 5 new
+  regression tests. Remaining gaps (read-surface auth, rate limiting, residual
+  exception echo, public /docs, pickle load, weak default password) documented in
+  SECURITY.md as out-of-scope-this-pass.
+
+- **WS1 Schema (priority 3).** Added the missing `gstin_risk_norm` index (the hot
+  case-list was a full label scan) + made the case-list band filter seekable;
+  loader now GCs isolated `:TaxPayment`/`:PurchaseRegister` orphans; removed the
+  dead `:Alert` constraint/indexes and the `ring_period` index; documented the
+  seeder-vs-loader model fork (loader is canonical). 2 new live tests.
+
+- **WS4 Risk eval (priority 4).** RECALIBRATED risk bands to the composer's
+  empirical distribution (was: max score ~0.6 so CRITICAL unreachable, 97% of
+  positives stuck in LOW; now LOW<0.15/MED<0.30/HIGH<0.45/CRITICAL≥0.45) — RANK-
+  INVARIANT, no gated metric changed. Aligned the ablation harness to the SHIPPED
+  weights (was ring-heavy). Confirmed the 4-scorer default; ML/PPR stay excluded
+  (ml marginal −0.046); temporal kept at 0.15 as a documented coverage prior.
+
+- **WS3 Embeddings / Related Vendors (priority 5/demo).** Folded deterministic
+  embedding training (seed 42, config 15/25, ORDER BY for byte-reproducibility)
+  into `refresh_intelligence`, so Related Vendors is LIVE after a reset (not a
+  mock). Artifact now stores a graph fingerprint; `GET /api/embed/status` reports
+  `stale`. 2 new live tests. HTTP demo now shows real lookalikes.
+
+- **WS2 Case API / RingExplorer (priority 5).** RingExplorer was already the
+  migrated Investigation component in ring mode (getCase); added a `getRing`
+  ring→member resolver so bare `/ring/:id` links work without MOCK_RINGS.
+  Normalized `GET /api/rings/{id}` to the DetectedRing shape (nested `signals` +
+  `break_edge` object) — this fixed the HTTP demo verify.
+
+- **WS5 Temporal (priority 6).** Implemented the highest-value new signal —
+  `cyclic_temporal_incoherence` (a loop whose invoice dates are impossible for a
+  single consignment: a resale dated before its supply). Ring descriptor only
+  (not folded into the scored vector until held-out ablation, per the codebase
+  discipline), with 7 tests + a synthetic scenario. Rejected the redundant
+  candidates (velocity/repeated-cycles/etc are already covered).
+
+- **WS6 GST domain (priority 6).** SOFTENED the definitive legal narratives
+  (risk_engine.py + main.py + the Hindi summary) from assertions ("tax evaded",
+  "criminal prosecution applies") to conditional, investigator-facing language
+  ("flagged for verification — not a legal determination"). GST_DOMAIN.md now
+  carries a MODELED/PARTIAL/NOT-MODELED matrix and corrects the false "generates
+  invalid GSTINs" claim. Credit/debit notes + MISSING_IN_PR planting documented
+  as planned (deferred to avoid moving benchmark baselines).
+
+- **WS8 Testing.** Added a cross-generation determinism test (same seed →
+  byte-identical CSVs → identical composed-risk ranking) proving the
+  generate→normalize→reconcile→rings→risk chain is reproducible.
+
+- **WS10 Demo integrity.** `demo.reset` now materializes risk + trains
+  embeddings; `demo.verify --http` PASSES all 8 steps against a live backend
+  (including live Related Vendors) after the ring-shape fix.
+
+- **WS9 Docs.** Updated GST_DOMAIN, SECURITY, RISK_ENGINE, NEO4J_SCHEMA, GRAPH_ML,
+  API, INVESTIGATION_MODEL, BENCHMARKS to match the implementation; corrected
+  stale claims.
+
+**3. Tests.** 229 unit pass; the live-neo4j suite adds orphan/index/embeddings-
+live/embed-stale/PATCH-admin tests; 5 security regression tests; 7 temporal tests.
+
+**4. Benchmark impact.** Full + fast benchmarks PASS, 9/9 gated metrics UNCHANGED
+(band recalibration is threshold-free; the composer is untouched — only its
+persistence/plumbing and the ablation weights changed). Ablation regenerated with
+shipped weights.
+
+**5. Limitations.** Read-surface auth + rate limiting deferred (SECURITY.md).
+Datagen ground-truth gaps (MISSING_IN_PR, credit/debit notes) deferred to avoid
+re-baselining. Temporal incoherence is a descriptor pending ablation. RingExplorer
+shares the Investigation component rather than a bespoke ring view.
+
+**6. Next step.** Plant the missing reconciliation outcomes + credit/debit notes
+(with a re-baseline), and — when ready — the final Investigator UI redesign.
+
+---
+
 ## 2026-08-26 — V6.3.1: Investigation→Case migration, status persistence, content fingerprint
 
 **1. What did we change?** The final V6.3 contract cleanup before the UI phase:

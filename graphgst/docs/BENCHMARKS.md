@@ -38,6 +38,11 @@ circular, re-measures ring detection), `embed.hit_at_10` (1.0 — adjacency,
 near-tautological), `ring.recoverability_recall` (1.0 — Johnson finds every
 cycle; an upper bound, not detection).
 
+> **Risk band recalibration.** The `LOW`/`MED`/`HIGH`/`CRITICAL` band thresholds
+> were recalibrated to the composer's score distribution. The change is
+> **rank-invariant** — it moves only band boundaries, not the underlying scores
+> or their order — so all 9 gated metrics above are unchanged.
+
 ## The three corrections (V6.1)
 
 The audit (`V6_1_TECHNICAL_AUDIT.md`) found three ways the pre-6.1 headlines
@@ -71,7 +76,10 @@ transaction partners (≥2 hops in the cycle): structural Hit@10 = 0.667.
 ## Ablation study — `benchmarks/ablation/`
 
 `python -m benchmarks.ablation.ablate_risk` measures each risk scorer's
-marginal contribution against both labels. Key results (recon label,
+marginal contribution against both labels. It now runs the **shipped composer
+weights** (Reconcile 0.35, Ring 0.30, Rules 0.20, Temporal 0.15), so the
+marginal-value numbers reflect the configuration that actually ships, not a
+uniform-weight probe. Key results (recon label,
 leave-one-out marginal AUC): reconcile **+0.055**, rules **+0.070** (both
 valuable); ml **−0.049**, propagate **−0.005** (**both hurt**); temporal ≈ 0.
 

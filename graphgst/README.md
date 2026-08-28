@@ -115,14 +115,27 @@ curl -X POST -H "X-Admin-Token: <your-token>" \
 
 ## What Graph GST claims and what number backs it
 
+These are the **V6.1-corrected, honest** headline metrics — measured on the
+*hardened* benchmark (dropped ring tells, broken near-rings, legit-cycle
+negatives). The V6.1 audit replaced three earlier numbers that were circular or
+tautological; see [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) for the full
+old→new correction and why.
+
 | Claim | Number | Where measured |
 |---|---:|---|
-| Ring member-multiset recall | **1.000** | `benchmarks/bench_ring_recall.py` |
+| Ring detection — Average Precision (threshold-free, hard data) | **0.971** | `benchmarks/bench_ring_recall.py` |
 | Reconciliation micro-F1 | **0.961** | `benchmarks/bench_reconcile_prf.py` |
-| Composed risk ROC-AUC | **0.937** | `benchmarks/bench_risk_discrimination.py` |
-| Embedding hit@10 (ring cohesion) | **0.912** | `benchmarks/bench_embed_lookalike.py` |
+| Composed risk ROC-AUC (ring-**independent** label) | **0.887** | `benchmarks/bench_risk_discrimination.py` |
+| Lookalike structural Hit@10 (non-adjacent same-ring member) | **0.667** | `benchmarks/bench_embed_lookalike.py` |
 
-All four numbers are baseline-gated. `python -m benchmarks.run_all` exits 1 if any regresses by more than 0.02. The [Model Card page](http://localhost:5173/model-card) renders them live in the Investigator Console.
+> Corrected in V6.1 (do not reinstate the old numbers): ring **recall 1.000** was
+> *recoverability* (Johnson finds every cycle), not detection; risk **AUC 0.937**
+> used a *circular* ring-membership label; embedding **Hit@10 1.000** was
+> *tautological* (ring members are 1-hop neighbours).
+
+Nine metrics are baseline-gated. `python -m benchmarks.run_all` exits 1 if any
+regresses by more than 0.02. The Model Card page renders them live in the
+Investigator Console.
 
 ## Historical notes
 

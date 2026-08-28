@@ -5,13 +5,15 @@ from risk.reasons import Reason, ReasonBand, band_for, dedupe_reasons
 
 
 def test_band_thresholds():
+    # Recalibrated (V6.4) to the composer's empirical distribution:
+    # LOW <0.15 · MED <0.30 · HIGH <0.45 · CRITICAL >=0.45. Rank-invariant.
     assert band_for(0.0) == ReasonBand.LOW
-    assert band_for(0.29) == ReasonBand.LOW
-    assert band_for(0.30) == ReasonBand.MED
-    assert band_for(0.54) == ReasonBand.MED
-    assert band_for(0.55) == ReasonBand.HIGH
-    assert band_for(0.79) == ReasonBand.HIGH
-    assert band_for(0.80) == ReasonBand.CRITICAL
+    assert band_for(0.149) == ReasonBand.LOW
+    assert band_for(0.15) == ReasonBand.MED
+    assert band_for(0.29) == ReasonBand.MED
+    assert band_for(0.30) == ReasonBand.HIGH
+    assert band_for(0.44) == ReasonBand.HIGH
+    assert band_for(0.45) == ReasonBand.CRITICAL
     assert band_for(1.0) == ReasonBand.CRITICAL
 
 

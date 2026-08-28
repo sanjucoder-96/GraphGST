@@ -22,7 +22,8 @@ def _paths(artifact_dir: str) -> tuple[str, str]:
              os.path.join(artifact_dir, "embeddings.meta.json"))
 
 
-def save_index(model: EmbedModel, artifact_dir: str = DEFAULT_ARTIFACT_DIR) -> dict:
+def save_index(model: EmbedModel, artifact_dir: str = DEFAULT_ARTIFACT_DIR,
+               graph_fingerprint: Optional[dict] = None) -> dict:
     npy_path, meta_path = _paths(artifact_dir)
     np.save(npy_path, model.matrix)
     meta = {
@@ -31,6 +32,9 @@ def save_index(model: EmbedModel, artifact_dir: str = DEFAULT_ARTIFACT_DIR) -> d
         "stats": model.stats,
         "saved_at": datetime.now(timezone.utc).isoformat(),
         "shape": list(model.matrix.shape),
+        # graph version this model was trained against — lets /status report
+        # staleness the same way risk materialization does.
+        "graph_fingerprint": graph_fingerprint or {},
     }
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)

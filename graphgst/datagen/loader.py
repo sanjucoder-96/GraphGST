@@ -295,4 +295,24 @@ def load_directory(dir_path: str) -> dict:
         rows = _read_csv(path)
         stats[name] = fn(rows)
         logger.info(f"loaded {stats[name]} rows from {name}")
+    stats["orphans_removed"] = _gc_orphans()
     return stats
+
+
+def _gc_orphans() -> int:
+    """Delete structurally-isolated child nodes left when a parent row was
+    absent (a TaxPayment whose GSTR3B is missing, a PurchaseRegister whose
+    Invoice is missing). These would otherwise be counted but never reachable.
+    Returns the number deleted."""
+    n = 0
+    for label in ("TaxPayment", "PurchaseRegister"):
+        rows = run_write(
+            f"MATCH (x:{label}) WHERE NOT (x)--() "
+            "WITH x LIMIT 100000 DETACH DELETE x RETURN count(x) AS c")
+        try:
+            n += int(rows[0]["c"]) if rows else 0
+        except (KeyError, TypeError, IndexError):
+            pass
+    if n:
+        logger.info("GC removed %d orphan child nodes", n)
+    return n
