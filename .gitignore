@@ -1,4 +1,4 @@
-# Repo-root ignores. Project-specific rules live in graphgst/.gitignore.
+# Repo-root ignores. Project-specific rules follow below.
 
 # Loose archives (e.g. the old gst_v5_upgraded.zip snapshot)
 *.zip
