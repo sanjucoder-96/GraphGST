@@ -1,0 +1,149 @@
+.bar {
+  display: flex;
+  align-items: center;
+  height: var(--h-topbar);
+  padding: 0 var(--sp-6);
+  gap: var(--sp-4);
+}
+
+/* Search — pill-ish rounded input trigger, generous target */
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 32px;
+  padding: 0 var(--sp-5);
+  width: 420px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  color: var(--text-3);
+  cursor: text;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.search:hover  { border-color: var(--line-2); background: var(--bg-3); }
+.search:focus-visible { border-color: var(--brand); }
+.searchLabel {
+  font-size: var(--fs-base);
+  color: var(--text-3);
+  letter-spacing: -0.01em;
+}
+.search .hint { margin-left: auto; display: inline-flex; gap: 3px; }
+
+.spacer { flex: 1; }
+
+.iconBtn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 0;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.iconBtn:hover { color: var(--text-0); background: var(--bg-2); }
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: var(--r-full);
+  background: var(--bad);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--bg-1);
+}
+
+/* Dataset provenance badge — SYNTHETIC DEMO vs PUBLIC DATASET */
+.dataset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: default;
+}
+.dsDemo {
+  color: var(--text-2);
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+}
+/* Public/real data is visually distinct (teal) so it can never be mistaken
+   for the synthetic demo. */
+.dsPublic {
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid color-mix(in srgb, var(--cyan) 30%, transparent);
+}
+.dsName {
+  text-transform: none;
+  letter-spacing: 0;
+  color: color-mix(in srgb, var(--cyan) 75%, var(--text-0));
+  padding-left: 6px;
+  margin-left: 2px;
+  border-left: 1px solid color-mix(in srgb, var(--cyan) 25%, transparent);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--line-2);
+  margin: 0 var(--sp-2);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.latency {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.01em;
+}
+.env {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 26px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.envLive {
+  color: var(--ok);
+  border-color: rgba(41,199,154,0.4);
+  background: var(--ok-dim);
+}
+.envDemo {
+  color: var(--brand-2);
+  border-color: var(--brand-line);
+  background: var(--brand-dim);
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}

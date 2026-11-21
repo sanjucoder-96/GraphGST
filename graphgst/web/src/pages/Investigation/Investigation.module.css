@@ -1,0 +1,194 @@
+/* Investigation — the intelligence workstation.
+   Graph is the dominant left column; evidence panel is the right column;
+   timeline + related network sit beneath the graph. */
+
+.page {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: var(--sp-5);
+  padding: var(--sp-6) var(--sp-7);
+  height: 100%;
+  min-height: 0;
+}
+
+/* Header — id + summary stat strip */
+.header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-7);
+  min-width: 0;
+}
+.headerId {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.kicker {
+  font-size: var(--fs-2xs);
+  font-weight: 550;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.titleRow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.headerTitle {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--text-0);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  max-width: 320px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cancelledTag {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--risk-crit);
+  background: var(--risk-crit-dim);
+  border: 1px solid color-mix(in srgb, var(--risk-crit) 22%, transparent);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+.idRow { display: flex; align-items: center; gap: 8px; }
+.gstinChip {
+  font-size: var(--fs-xs);
+  color: var(--text-1);
+  background: var(--bg-3);
+  border: 1px solid var(--line-1);
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  letter-spacing: 0;
+}
+.ringChip {
+  font-size: var(--fs-xs);
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid color-mix(in srgb, var(--cyan) 22%, transparent);
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+}
+.ringNav { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: var(--fs-xs); }
+.ringNav button {
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-3); border: 1px solid var(--line-2); border-radius: var(--r-xs);
+  color: var(--text-2); cursor: pointer; font-size: 13px; line-height: 1;
+}
+.ringNav button:hover { color: var(--brand-2); border-color: var(--brand-line); }
+
+/* Summary stat strip — the "immediately visible" intelligence */
+.summaryStrip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  padding: var(--sp-5) var(--sp-7);
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.statLabel {
+  font-size: var(--fs-2xs);
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.statValue {
+  font-size: var(--fs-num-lg);
+  font-weight: 500;
+  color: var(--text-0);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.statFoot { font-size: var(--fs-2xs); color: var(--text-3); }
+.statSep {
+  align-self: stretch;
+  width: 1px;
+  background: var(--line-1);
+  margin: 2px 0;
+}
+.headerSpacer { flex: 1; }
+.headerActions { display: flex; align-items: center; gap: var(--sp-4); flex-shrink: 0; }
+
+/* Workspace */
+.left  { min-width: 0; height: 100%; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-5); overflow: hidden; }
+.right {
+  min-width: 0; height: 100%; min-height: 0; overflow: hidden;
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+}
+/* The graph is the workspace centrepiece — it claims the majority of the
+   vertical space. GraphCanvas provides its own framed surface. */
+.canvasSlot { flex: 1; min-height: 0; position: relative; }
+.timelineSlot { flex: 0 0 auto; }
+.relatedSlot  { flex: 0 0 auto; }
+
+/* SCN preview drawer */
+.scnPreview {
+  position: absolute;
+  top: 76px;
+  right: var(--sp-7);
+  bottom: var(--sp-6);
+  width: 480px;
+  max-width: 92vw;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  overflow: hidden;
+}
+.scnHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 42px;
+  padding: 0 var(--sp-6);
+  border-bottom: 1px solid var(--line-1);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.scnActions { margin-left: auto; display: flex; gap: var(--sp-3); }
+.scnActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 var(--sp-4);
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.scnActions button:hover { color: var(--brand-2); border-color: var(--brand-line); }
+.scnBody {
+  flex: 1;
+  overflow: auto;
+  padding: var(--sp-6);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

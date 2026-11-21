@@ -1,0 +1,187 @@
+{
+  "dataset": {
+    "name": "ibm_aml",
+    "source_url": "https://github.com/IBM/AML-Data",
+    "license": "CDLA-Sharing-1.0 (commercial OK, share-alike)",
+    "description": "IBM AMLworld HI-Small: a published, labelled directed payment graph (Altman et al., NeurIPS 2023). Directed From\u2192To account transfers with timestamps, amounts, and a per-transaction Is-Laundering label whose typologies include a 'simple cycle' (ground-truth circular trading).",
+    "notes": "Deterministic sample of AMLworld HI-Small: scanned 5,078,345 source rows; kept ALL 5,177 laundering txns + every 40th normal txn (126,818 kept) = 131,995 transactions, 144,107 accounts. Realistic SYNTHETIC AML benchmark, NOT real taxpayer data; 'laundering' is a documented analog of GST circular trading.",
+    "is_real_taxpayer_data": false,
+    "anonymized": false,
+    "field_availability": {
+      "dates": true,
+      "invoice_ids": false,
+      "tax_amounts": false,
+      "filing_returns": false,
+      "labels": true,
+      "supplier_buyer_edges": true,
+      "amounts": true
+    }
+  },
+  "quality": {
+    "records": 131995,
+    "unique_taxpayers": 144107,
+    "unique_suppliers": 79280,
+    "unique_buyers": 99098,
+    "unique_invoices": 131995,
+    "duplicate_invoice_ids": 0,
+    "exact_duplicate_rows": 0,
+    "missing_supplier": 0,
+    "missing_buyer": 0,
+    "self_loops": 14742,
+    "missing_invoice_id": 0,
+    "missing_dates": 0,
+    "invalid_dates": 0,
+    "negative_or_invalid_tax": 0,
+    "valid_gstin_ids": 0,
+    "non_gstin_ids": 144107,
+    "orphan_invoice_endpoints": 0,
+    "pure_suppliers": 45009,
+    "pure_buyers": 64827,
+    "field_coverage_pct": {
+      "supplier": 100.0,
+      "buyer": 100.0,
+      "invoice_id": 100.0,
+      "date": 100.0,
+      "taxable_value": 100.0,
+      "tax_amount": 0.0,
+      "label": 100.0
+    },
+    "date_range": [
+      "2022-09-01",
+      "2022-09-18"
+    ],
+    "months_covered": 1,
+    "issues": [
+      "14742 self-transactions (supplier==buyer) \u2014 not a supplier\u2192buyer edge (dropped at load, counted).",
+      "no tax amounts \u2192 reconciliation / ITC-mismatch cannot run.",
+      "no source id is a valid 15-char GSTIN \u2192 entity ids are non-GSTIN (public/anonymised data)."
+    ]
+  },
+  "validation": {
+    "entities_in": 144107,
+    "txns_in": 131995,
+    "entities_out": 134952,
+    "txns_out": 117253,
+    "txns_rejected": 14742,
+    "reject_reasons": {
+      "self_loop": 14742
+    },
+    "entities_inferred": 0,
+    "missing_field_pct": {
+      "date": 0.0,
+      "taxable_value": 0.0,
+      "tax_amount": 100.0,
+      "label": 0.0,
+      "status": 100.0
+    },
+    "notes": [
+      "9155 entities dropped as edge-less after removing invalid transactions."
+    ]
+  },
+  "canonical_csv_rows": {
+    "gstins.csv": 134952,
+    "invoices.csv": 117253
+  },
+  "feature_availability": [
+    {
+      "feature": "Reconciliation (GSTR-1\u21942B\u21943B, ITC)",
+      "required_fields": "GSTR filings + tax amounts",
+      "available": false,
+      "can_run": "NO",
+      "reason": "requires GSTR-1/2B/3B filing rows the source does not provide"
+    },
+    {
+      "feature": "ITC-mismatch detection",
+      "required_fields": "invoice tax vs claimed ITC",
+      "available": false,
+      "can_run": "NO",
+      "reason": "needs statutory tax amounts and filed returns"
+    },
+    {
+      "feature": "Ring / circular-trade detection",
+      "required_fields": "directed supplier\u2192buyer edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "the core graph capability; runs on the edge list"
+    },
+    {
+      "feature": "GSTIN / entity relationships",
+      "required_fields": "entities + edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "neighbourhood + community structure"
+    },
+    {
+      "feature": "Temporal analysis",
+      "required_fields": "per-transaction dates",
+      "available": true,
+      "can_run": "YES",
+      "reason": "runs on transaction timestamps"
+    },
+    {
+      "feature": "Risk scoring (composed)",
+      "required_fields": "ring + temporal (+ reconcile/rules if filings)",
+      "available": true,
+      "can_run": "PARTIAL",
+      "reason": "ring + temporal scorers fire; reconcile/rules contribute ~0 without filing/status data"
+    },
+    {
+      "feature": "Graph embeddings (structural)",
+      "required_fields": "graph structure",
+      "available": true,
+      "can_run": "YES",
+      "reason": "node2vec/PMI-SVD over the real graph"
+    },
+    {
+      "feature": "Ground-truth evaluation (precision/recall)",
+      "required_fields": "fraud/ring labels",
+      "available": true,
+      "can_run": "YES",
+      "reason": "labels present \u2192 supervised eval"
+    }
+  ],
+  "field_mapping": [
+    {
+      "source_field": "From Bank + Account",
+      "canonical_field": "supplier_id",
+      "graph": "(:GSTIN {gstin_id})",
+      "engine": "rings, risk, embeddings",
+      "note": "concat \u2192 IBMAML:<bank>-<acct>; bank account, not a GSTIN"
+    },
+    {
+      "source_field": "To Bank + Account",
+      "canonical_field": "buyer_id",
+      "graph": "(:Invoice)-[:BILLED_TO]->(:GSTIN)",
+      "engine": "rings, reconcile",
+      "note": ""
+    },
+    {
+      "source_field": "Timestamp",
+      "canonical_field": "date",
+      "graph": "Invoice.date",
+      "engine": "temporal, rings",
+      "note": "minute-resolution \u2192 ISO date"
+    },
+    {
+      "source_field": "Amount Paid",
+      "canonical_field": "taxable_value",
+      "graph": "Invoice.taxable_value",
+      "engine": "rings (value), risk",
+      "note": "payment value, not GST"
+    },
+    {
+      "source_field": "(row index)",
+      "canonical_field": "txn_id",
+      "graph": "(:GSTIN)-[:ISSUED_INVOICE]->(:Invoice)",
+      "engine": "rings, reconcile",
+      "note": "synthesised \u2014 source has no invoice id"
+    },
+    {
+      "source_field": "Is Laundering",
+      "canonical_field": "label",
+      "graph": "(ground-truth, not a graph field)",
+      "engine": "supervised evaluation",
+      "note": "0/1 laundering flag; cycle typology = circular-trading analog"
+    }
+  ]
+}

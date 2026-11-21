@@ -1,0 +1,32 @@
+# Graph GST V6 — backend dependencies
+# Pinned to major versions to keep hackathon demo reproducible.
+
+# Web framework
+fastapi>=0.116,<0.117
+# Pin starlette to what this fastapi supports: a stray `pip install starlette`
+# (e.g. 1.x for another tool) silently breaks `import main` otherwise.
+starlette>=0.46.2,<0.48
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+
+# Graph database driver
+neo4j>=5.20,<6.0
+
+# Environment configuration (.env → os.environ, loaded in db.py)
+python-dotenv>=1.0,<2.0
+
+# Graph analytics fallback (used when GDS is unavailable; otherwise Cypher/GDS runs in-DB)
+networkx>=3.3,<4.0
+
+# Classical ML
+scikit-learn>=1.5,<2.0
+numpy>=1.26,<3.0
+joblib>=1.4,<2.0
+
+# Testing
+pytest>=8.0,<9.0
+pytest-asyncio>=0.23,<1.0
+httpx>=0.27,<1.0  # for FastAPI TestClient
+
+# Optional: node2vec-style embeddings (only imported if you enable the vendor-lookalike route)
+# gensim>=4.3,<5.0  # uncomment when Phase 5 lands
