@@ -1,12 +1,47 @@
-# Graph GST — Knowledge Graph Intelligence for Indian GST Reconciliation
+<div align="center">
+
+# 🕸️ Graph GST
+
+**Knowledge-graph intelligence for Indian GST reconciliation, ITC-risk scoring, and circular-trading ring detection.**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Neo4j](https://img.shields.io/badge/Neo4j-5.x_APOC_+_GDS-008CC1?logo=neo4j&logoColor=white)](https://neo4j.com/)
+[![React](https://img.shields.io/badge/React_18-Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/tests-160+-brightgreen)](tests/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
 Graph GST is a graph-native platform for reconciling GST filings, quantifying ITC risk, and discovering circular-trading rings across the Indian GST supply chain.
+
+</div>
 
 Unlike table-based reconciliation, it models GSTIN, Invoice, GSTR-1/2B/3B, TaxPayment, e-Way Bill, and IRN as connected nodes in Neo4j. Reconciliation, cycle detection, and risk scoring all run as native graph queries, and every alert is explainable by pointing at the exact hops in the graph that produced it.
 
 **Status:** V6 in active development. See `IMPLEMENTATION_LOG.md` for the running change log and `ARCHITECTURE.md` for the design.
 
 ---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Gen["Synthetic generator<br/>datagen/ · truth.json"] --> Neo
+    Seed["Seeded scenarios<br/>SC1–SC9"] --> Neo
+    Neo[("Neo4j graph<br/>GSTIN · Invoice · GSTR-1/2B/3B<br/>TaxPayment · e-Way Bill · IRN")]
+    Neo --> Recon["reconcile/<br/>MatchEvent + fuzzy matchers"]
+    Neo --> Rings["rings/<br/>SCC → bounded Johnson → six-signal engine"]
+    Neo --> Risk["risk/<br/>composable scorers + Reason[] attribution"]
+    Neo --> Embed["embed/<br/>random walks + PMI-SVD lookalike"]
+    Recon --> API["FastAPI (main.py)"]
+    Rings --> API
+    Risk --> API
+    Embed --> API
+    API --> UI["React Investigator Console<br/>+ live Model Card"]
+    API --> Bench["benchmarks/<br/>baseline-gated metrics"]
+```
+
+Every alert is explainable by pointing at the exact hops in the graph that produced it.
 
 ## Quick start — one command
 
