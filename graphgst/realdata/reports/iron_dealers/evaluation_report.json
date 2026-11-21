@@ -1,0 +1,681 @@
+{
+  "dataset": {
+    "name": "iron_dealers",
+    "source_url": "https://github.com/Sindhuja-5/circular-trade-detection",
+    "license": "No license file (treat as all-rights-reserved; research/testing use only)",
+    "description": "Real (non-synthetic) Indian commercial-tax dealer transaction graph used in circular-trading research: 130,535 directed seller\u2192buyer transactions between 799 anonymised dealers. Anonymised dealer integers (NOT GSTINs).",
+    "is_real_taxpayer_data": false,
+    "anonymized": false,
+    "notes": "Genuine (non-synthetic) transactions, but anonymised: dealer ids are integers, not GSTINs; no dates, tax split, filings or fraud labels. Suitable for UNSUPERVISED ring/graph analysis only."
+  },
+  "feature_availability": [
+    {
+      "feature": "Reconciliation (GSTR-1\u21942B\u21943B, ITC)",
+      "required_fields": "GSTR filings + tax amounts",
+      "available": false,
+      "can_run": "NO",
+      "reason": "requires GSTR-1/2B/3B filing rows the source does not provide"
+    },
+    {
+      "feature": "ITC-mismatch detection",
+      "required_fields": "invoice tax vs claimed ITC",
+      "available": false,
+      "can_run": "NO",
+      "reason": "needs statutory tax amounts and filed returns"
+    },
+    {
+      "feature": "Ring / circular-trade detection",
+      "required_fields": "directed supplier\u2192buyer edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "the core graph capability; runs on the edge list"
+    },
+    {
+      "feature": "GSTIN / entity relationships",
+      "required_fields": "entities + edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "neighbourhood + community structure"
+    },
+    {
+      "feature": "Temporal analysis",
+      "required_fields": "per-transaction dates",
+      "available": false,
+      "can_run": "NO",
+      "reason": "source has no per-transaction dates \u2192 temporal engine skipped"
+    },
+    {
+      "feature": "Risk scoring (composed)",
+      "required_fields": "ring + temporal (+ reconcile/rules if filings)",
+      "available": true,
+      "can_run": "PARTIAL",
+      "reason": "ring + temporal scorers fire; reconcile/rules contribute ~0 without filing/status data"
+    },
+    {
+      "feature": "Graph embeddings (structural)",
+      "required_fields": "graph structure",
+      "available": true,
+      "can_run": "YES",
+      "reason": "node2vec/PMI-SVD over the real graph"
+    },
+    {
+      "feature": "Ground-truth evaluation (precision/recall)",
+      "required_fields": "fraud/ring labels",
+      "available": false,
+      "can_run": "NO",
+      "reason": "no labels \u2192 UNSUPERVISED analysis only (no P/R/AUC)"
+    }
+  ],
+  "graph_statistics": {
+    "entities": 799,
+    "transactions": 130535,
+    "distinct_directed_edges": 5358,
+    "total_value": 90473348410.06,
+    "weakly_connected_components": 3,
+    "largest_wcc_size": 794,
+    "cyclic_sccs": 9,
+    "entities_in_cycles": 237,
+    "largest_scc_size": 219,
+    "mutual_edge_pairs": 318,
+    "avg_out_degree": 6.71
+  },
+  "ring_detection": {
+    "hop_max": 4,
+    "rings_detected": 19006,
+    "elapsed_s": 17.57,
+    "band_counts": {
+      "HIGH": 810,
+      "MED": 18196
+    },
+    "top_rings": [
+      {
+        "ring_id": "R-bfc003dfbabbc4df",
+        "members": [
+          "IRONDLR:1001",
+          "IRONDLR:1136"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 468964.0
+      },
+      {
+        "ring_id": "R-fb2c1038eb384c54",
+        "members": [
+          "IRONDLR:1010",
+          "IRONDLR:1147"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 1507756.0
+      },
+      {
+        "ring_id": "R-b23e6951e25c1f7f",
+        "members": [
+          "IRONDLR:1077",
+          "IRONDLR:1431"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 66278.0
+      },
+      {
+        "ring_id": "R-0a277ddcccc7d9b5",
+        "members": [
+          "IRONDLR:1133",
+          "IRONDLR:1640"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 90307.88
+      },
+      {
+        "ring_id": "R-3426dab749246b23",
+        "members": [
+          "IRONDLR:1016",
+          "IRONDLR:1246"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 116621.0
+      },
+      {
+        "ring_id": "R-947e8d1aa869cc70",
+        "members": [
+          "IRONDLR:1201",
+          "IRONDLR:1309"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 1809363.64
+      },
+      {
+        "ring_id": "R-6a1d7e26f53ffce0",
+        "members": [
+          "IRONDLR:1112",
+          "IRONDLR:1282"
+        ],
+        "hops": 2,
+        "score": 0.3333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 2725788.0
+      },
+      {
+        "ring_id": "R-b8dbed18459dfe64",
+        "members": [
+          "IRONDLR:1079",
+          "IRONDLR:1449"
+        ],
+        "hops": 2,
+        "score": 0.3331,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.999,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 1030339.12
+      },
+      {
+        "ring_id": "R-ac07757f4a5ec075",
+        "members": [
+          "IRONDLR:1138",
+          "IRONDLR:1324"
+        ],
+        "hops": 2,
+        "score": 0.333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.998,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 491075.0
+      },
+      {
+        "ring_id": "R-2b7fbd665f1b8639",
+        "members": [
+          "IRONDLR:1003",
+          "IRONDLR:1034"
+        ],
+        "hops": 2,
+        "score": 0.333,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.998,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 1971007.0
+      },
+      {
+        "ring_id": "R-cb81bf47ecc31ddc",
+        "members": [
+          "IRONDLR:1007",
+          "IRONDLR:1651"
+        ],
+        "hops": 2,
+        "score": 0.3329,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.998,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 2872617.96
+      },
+      {
+        "ring_id": "R-137ce25397153d96",
+        "members": [
+          "IRONDLR:1050",
+          "IRONDLR:1651"
+        ],
+        "hops": 2,
+        "score": 0.3322,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.993,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 2816352.02
+      },
+      {
+        "ring_id": "R-3c2cef5ea13957a0",
+        "members": [
+          "IRONDLR:1042",
+          "IRONDLR:1205",
+          "IRONDLR:1626",
+          "IRONDLR:1258"
+        ],
+        "hops": 4,
+        "score": 0.3322,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.993,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 4,
+        "ring_value": 8609747.5
+      },
+      {
+        "ring_id": "R-15ed514a5715ccf1",
+        "members": [
+          "IRONDLR:1105",
+          "IRONDLR:1138"
+        ],
+        "hops": 2,
+        "score": 0.3322,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.993,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 1320130.0
+      },
+      {
+        "ring_id": "R-9282dd7442bd8323",
+        "members": [
+          "IRONDLR:1098",
+          "IRONDLR:1356"
+        ],
+        "hops": 2,
+        "score": 0.3322,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.993,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 3042899.0
+      }
+    ],
+    "evidence_chains": [
+      {
+        "ring_id": "R-bfc003dfbabbc4df",
+        "score": 0.3333,
+        "band": "HIGH",
+        "members": [
+          "IRONDLR:1001",
+          "IRONDLR:1136"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IRONDLR:1001",
+            "to": "IRONDLR:1136",
+            "invoice_id": "IRONDLR-TXN-079997",
+            "date": null,
+            "amount": 234482.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IRONDLR:1136",
+            "to": "IRONDLR:1001",
+            "invoice_id": "IRONDLR-TXN-027645",
+            "date": null,
+            "amount": 234482.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-fb2c1038eb384c54",
+        "score": 0.3333,
+        "band": "HIGH",
+        "members": [
+          "IRONDLR:1010",
+          "IRONDLR:1147"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IRONDLR:1010",
+            "to": "IRONDLR:1147",
+            "invoice_id": "IRONDLR-TXN-062922",
+            "date": null,
+            "amount": 753878.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IRONDLR:1147",
+            "to": "IRONDLR:1010",
+            "invoice_id": "IRONDLR-TXN-031327",
+            "date": null,
+            "amount": 753878.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-b23e6951e25c1f7f",
+        "score": 0.3333,
+        "band": "HIGH",
+        "members": [
+          "IRONDLR:1077",
+          "IRONDLR:1431"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IRONDLR:1077",
+            "to": "IRONDLR:1431",
+            "invoice_id": "IRONDLR-TXN-084301",
+            "date": null,
+            "amount": 33139.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IRONDLR:1431",
+            "to": "IRONDLR:1077",
+            "invoice_id": "IRONDLR-TXN-002317",
+            "date": null,
+            "amount": 33139.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-0a277ddcccc7d9b5",
+        "score": 0.3333,
+        "band": "HIGH",
+        "members": [
+          "IRONDLR:1133",
+          "IRONDLR:1640"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IRONDLR:1133",
+            "to": "IRONDLR:1640",
+            "invoice_id": "IRONDLR-TXN-111504",
+            "date": null,
+            "amount": 45154.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IRONDLR:1640",
+            "to": "IRONDLR:1133",
+            "invoice_id": "IRONDLR-TXN-060153",
+            "date": null,
+            "amount": 45153.88,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-3426dab749246b23",
+        "score": 0.3333,
+        "band": "HIGH",
+        "members": [
+          "IRONDLR:1016",
+          "IRONDLR:1246"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IRONDLR:1016",
+            "to": "IRONDLR:1246",
+            "invoice_id": "IRONDLR-TXN-080365",
+            "date": null,
+            "amount": 58304.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IRONDLR:1246",
+            "to": "IRONDLR:1016",
+            "invoice_id": "IRONDLR-TXN-012139",
+            "date": null,
+            "amount": 58317.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      }
+    ],
+    "members_in_rings": 229
+  },
+  "risk_scoring_partial": {
+    "note": "PARTIAL composite: only the ring + temporal scorers have inputs; reconcile/rules need GSTR filings + status this dataset lacks.",
+    "scored_entities": 799,
+    "band_counts": {
+      "LOW": 799
+    },
+    "top_entities": [
+      {
+        "gstin_id": "IRONDLR:1364",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:2036",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1320",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1276",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1344",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1327",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1037",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1962",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1183",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      },
+      {
+        "gstin_id": "IRONDLR:1553",
+        "score": 0.0,
+        "band": "LOW",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.0,
+          "temporal": 0.0
+        }
+      }
+    ]
+  },
+  "temporal": {
+    "status": "skipped",
+    "reason": "no per-transaction dates"
+  },
+  "evaluation_mode": "UNSUPERVISED (no labels \u2014 real-world analysis only)",
+  "supervised_evaluation": {
+    "status": "not applicable",
+    "reason": "dataset has no fraud/ring labels; reporting graph structure and detected suspicious cycles instead of precision/recall."
+  }
+}
