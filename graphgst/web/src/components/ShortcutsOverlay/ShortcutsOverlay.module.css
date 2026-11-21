@@ -1,0 +1,89 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 11, 0.7);
+  z-index: 45;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+  backdrop-filter: blur(4px);
+}
+.panel {
+  width: 700px;
+  max-width: 92vw;
+  max-height: 76vh;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 48px;
+  padding: 0 var(--sp-6);
+  border-bottom: 1px solid var(--line-1);
+  color: var(--text-1);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.header button {
+  margin-left: auto;
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.header button:hover { color: var(--brand-2); border-color: var(--brand-line); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-6) var(--sp-9);
+  padding: var(--sp-7) var(--sp-8);
+  overflow: auto;
+}
+.group h3 {
+  color: var(--text-2);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-4);
+  font-weight: 500;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--line-1);
+}
+.group ul { display: flex; flex-direction: column; gap: var(--sp-3); }
+.group li {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--sp-4);
+  align-items: center;
+}
+.keys { display: inline-flex; align-items: center; gap: 4px; }
+.label { color: var(--text-1); font-size: var(--fs-base); }
+
+.footer {
+  height: 34px;
+  padding: 0 var(--sp-6);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  border-top: 1px solid var(--line-1);
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.02em;
+}

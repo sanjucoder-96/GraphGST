@@ -1,0 +1,501 @@
+gstin_id,name,state_code,state,pincode,sector,status,cancellation_date,incorp_date,directors,scenario
+01TIEFX2003X1ZM,Star Electronics & Co,01,Jammu & Kashmir,505689,Electronics,Active,,2024-04-01,DIR-000000-Sanjay-Mehta;DIR-000001-Ravi-Patel,NORMAL
+29MSHPN0270A1Z2,Bharat Beverages Pvt Ltd,29,Karnataka,599888,Beverages,Active,,2024-04-01,DIR-000003-Vikram-Sharma;DIR-000004-Priya-Nair,NORMAL
+09GBFFB2328T1Z5,Crest Foods Enterprises,09,Uttar Pradesh,274284,Food,Active,,2024-04-01,DIR-000006-Ajay-Gupta;DIR-000007-Meera-Gupta,NORMAL
+07TXNFE4136L1ZK,Horizon Textiles Ltd,07,Delhi,154397,Textiles,Active,,2024-04-01,DIR-000009-Priya-Gupta,NORMAL
+10QNYAQ8392L1ZT,Falcon Electronics Enterprises,10,Bihar,294724,Electronics,Active,,2024-04-01,DIR-000012-Sanjay-Reddy;DIR-000013-Sanjay-Patel,NORMAL
+19OEBAQ4608W1ZS,Crest Papers Enterprises,19,West Bengal,772196,Stationery,Active,,2024-04-01,DIR-000015-Rahul-Iyer,NORMAL
+24IJFHT2975D1ZV,Everest Steels Enterprises,24,Gujarat,354361,Metals,Active,,2024-04-01,DIR-000018-Priya-Mehta;DIR-000019-Ravi-Khan;DIR-000020-Priya-Khan,NORMAL
+29FLHFZ7319O1ZB,Bharat Electronics Corp,29,Karnataka,522752,Electronics,Active,,2024-04-01,DIR-000021-Priya-Sharma;DIR-000022-Vikram-Kumar,NORMAL
+19CSMHR6832W1ZA,Vedic Beverages Pvt Ltd,19,West Bengal,785498,Beverages,Active,,2024-04-01,DIR-000024-Kavya-Khan;DIR-000025-Neha-Khan,NORMAL
+29NOKCE4626D1Z7,Ocean Steels LLP,29,Karnataka,558052,Metals,Active,,2024-04-01,DIR-000027-Ravi-Kumar;DIR-000028-Vikram-Mehta,NORMAL
+24JUXPK2324Z1ZO,Everest Foods Pvt Ltd,24,Gujarat,318962,Food,Active,,2024-04-01,DIR-000030-Ajay-Mehta;DIR-000031-Rahul-Reddy;DIR-000032-Kavya-Kumar,NORMAL
+33IXFCZ6094J1ZH,Ocean Industries Ltd,33,Tamil Nadu,622328,Machinery,Active,,2024-04-01,DIR-000033-Meera-Gupta;DIR-000034-Sanjay-Verma,NORMAL
+24NOGFJ3231J1ZJ,Moonlight Beauty & Co,24,Gujarat,356017,Personal care,Active,,2024-04-01,DIR-000036-Sanjay-Kumar;DIR-000037-Priya-Nair,NORMAL
+27MLTCO3028F1ZI,Ocean Foods Pvt Ltd,27,Maharashtra,467294,Food,Active,,2024-04-01,DIR-000039-Meera-Mehta;DIR-000040-Sanjay-Rao;DIR-000041-Priya-Rao,NORMAL
+09HUKPA9065M1Z9,Horizon Chemicals & Co,09,Uttar Pradesh,297030,Chemicals,Active,,2024-04-01,DIR-000042-Ajay-Khan;DIR-000043-Kavya-Sharma;DIR-000044-Vikram-Sharma,NORMAL
+08EVXAD4410H1ZF,Northern Steels Enterprises,08,Rajasthan,122467,Metals,Active,,2024-04-01,DIR-000045-Seema-Sharma;DIR-000046-Meera-Nair,NORMAL
+27AVDPY3419Y1Z5,Ocean Steels Enterprises,27,Maharashtra,433004,Metals,Active,,2024-04-01,DIR-000048-Rahul-Khan;DIR-000049-Kavya-Reddy,NORMAL
+09QMOCE5463W1ZL,Ocean Chemicals Pvt Ltd,09,Uttar Pradesh,286645,Chemicals,Active,,2024-04-01,DIR-000051-Rahul-Khan;DIR-000052-Priya-Iyer,NORMAL
+09JONFU6700X1Z3,Ocean Beverages Ltd,09,Uttar Pradesh,220930,Beverages,Active,,2024-04-01,DIR-000054-Priya-Khan;DIR-000055-Seema-Reddy,NORMAL
+09BGZPM1479H1ZC,Vertex Electronics Pvt Ltd,09,Uttar Pradesh,297277,Electronics,Active,,2024-04-01,DIR-000057-Ajay-Rao,NORMAL
+20EVZTK3608Q1ZQ,Sunrise Beauty LLP,20,Jharkhand,766913,Personal care,Active,,2024-04-01,DIR-000060-Divya-Verma;DIR-000061-Ajay-Patel,NORMAL
+22BQUPG0359O1ZQ,Ocean Textiles Enterprises,22,Chhattisgarh,479761,Textiles,Active,,2024-04-01,DIR-000063-Divya-Kumar;DIR-000064-Rahul-Mehta,NORMAL
+33GRXTP3947V1Z2,Aryan Steels Ltd,33,Tamil Nadu,628127,Metals,Active,,2024-04-01,DIR-000066-Vikram-Verma;DIR-000067-Anil-Patel;DIR-000068-Rahul-Mehta,NORMAL
+33BPNFK1291Y1Z6,Star Beauty & Co,33,Tamil Nadu,683111,Personal care,Active,,2024-04-01,DIR-000069-Meera-Patel;DIR-000070-Divya-Singh,NORMAL
+24QUYPC9696P1ZB,Emerald Industries Corp,24,Gujarat,393738,Machinery,Active,,2024-04-01,DIR-000072-Divya-Kumar,NORMAL
+03BNHTS0184W1ZX,Vedic Motors Ltd,03,Punjab,818281,Automotive,Active,,2024-04-01,DIR-000075-Divya-Rao;DIR-000076-Anil-Sharma,NORMAL
+27IOKFK8173Q1ZX,Crest Beauty & Co,27,Maharashtra,439003,Personal care,Active,,2024-04-01,DIR-000078-Seema-Patel;DIR-000079-Priya-Kumar;DIR-000080-Vikram-Kumar,NORMAL
+19CBFAZ0504Q1ZE,Moonlight Textiles Ltd,19,West Bengal,705561,Textiles,Active,,2024-04-01,DIR-000081-Meera-Nair;DIR-000082-Rahul-Khan,NORMAL
+10TOLAD3590S1Z1,Aryan Foods LLP,10,Bihar,232111,Food,Active,,2024-04-01,DIR-000084-Ajay-Kumar,NORMAL
+36AWJCV0799S1Z4,Moonlight Steels Corp,36,Telangana,506612,Metals,Active,,2024-04-01,DIR-000087-Divya-Iyer,NORMAL
+22JCXPX6670T1ZH,Aryan Industries Corp,22,Chhattisgarh,509281,Machinery,Active,,2024-04-01,DIR-000090-Neha-Iyer;DIR-000091-Vikram-Verma,NORMAL
+32SGJCM3796H1ZJ,Moonlight Motors Pvt Ltd,32,Kerala,686077,Automotive,Active,,2024-04-01,DIR-000093-Priya-Reddy,NORMAL
+21NZOPN2924W1ZH,Bharat Textiles LLP,21,Odisha,794657,Textiles,Active,,2024-04-01,DIR-000096-Seema-Sharma;DIR-000097-Divya-Mehta;DIR-000098-Ravi-Reddy,NORMAL
+33GZDPD2689M1Z0,Sunrise Furnishings Corp,33,Tamil Nadu,679407,Furniture,Active,,2024-04-01,DIR-000099-Ajay-Singh,NORMAL
+19PASPU0690A1Z5,Bharat Furnishings Enterprises,19,West Bengal,729684,Furniture,Active,,2024-04-01,DIR-000102-Neha-Singh;DIR-000103-Priya-Singh;DIR-000104-Rahul-Kumar,NORMAL
+36BODCZ7619K1ZQ,Sapphire Beverages Enterprises,36,Telangana,569124,Beverages,Active,,2024-04-01,DIR-000105-Kavya-Nair,NORMAL
+33XPHCG3706Q1ZH,Everest Beauty LLP,33,Tamil Nadu,642096,Personal care,Active,,2024-04-01,DIR-000108-Neha-Mehta,NORMAL
+24OSTAJ5863P1Z0,Everest Industries Ltd,24,Gujarat,317443,Machinery,Active,,2024-04-01,DIR-000111-Seema-Singh;DIR-000112-Divya-Iyer,NORMAL
+09JVUCQ6600N1Z5,Tirupati Industries Corp,09,Uttar Pradesh,251826,Machinery,Active,,2024-04-01,DIR-000114-Ravi-Mehta;DIR-000115-Neha-Reddy;DIR-000116-Priya-Singh,NORMAL
+27EPKPR6072Q1ZN,Northern Electronics & Co,27,Maharashtra,480470,Electronics,Active,,2024-04-01,DIR-000117-Ajay-Reddy,NORMAL
+21NKQFC0321M1ZJ,Vedic Textiles & Co,21,Odisha,408179,Textiles,Active,,2024-04-01,DIR-000120-Meera-Verma,NORMAL
+09YCSFA5231Z1ZK,Everest Motors Corp,09,Uttar Pradesh,225691,Automotive,Active,,2024-04-01,DIR-000123-Rahul-Reddy,NORMAL
+08HSWPH3895X1ZM,Tirupati Foods Pvt Ltd,08,Rajasthan,167467,Food,Active,,2024-04-01,DIR-000126-Divya-Patel;DIR-000127-Anil-Khan,NORMAL
+37THAPD7754V1ZQ,Everest Chemicals LLP,37,Andhra Pradesh,572425,Chemicals,Active,,2024-04-01,DIR-000129-Kavya-Nair,NORMAL
+23ASEAB2932M1ZF,Falcon Furnishings Enterprises,23,Madhya Pradesh,897403,Furniture,Active,,2024-04-01,DIR-000132-Sanjay-Khan;DIR-000133-Divya-Kumar,NORMAL
+32DIKAK9977S1ZV,Falcon Beverages Corp,32,Kerala,612205,Beverages,Active,,2024-04-01,DIR-000135-Neha-Rao;DIR-000136-Vikram-Mehta;DIR-000137-Ravi-Sharma,NORMAL
+36WRCPR7242P1ZZ,Crest Beauty Pvt Ltd,36,Telangana,565608,Personal care,Active,,2024-04-01,DIR-000138-Meera-Reddy;DIR-000139-Rahul-Iyer,NORMAL
+33NHNTD7356Z1ZB,Vedic Motors LLP,33,Tamil Nadu,646372,Automotive,Active,,2024-04-01,DIR-000141-Ajay-Nair;DIR-000142-Kavya-Verma;DIR-000143-Meera-Iyer,NORMAL
+22PAJTW4413Y1ZY,Sapphire Chemicals Corp,22,Chhattisgarh,164174,Chemicals,Active,,2024-04-01,DIR-000144-Kavya-Khan;DIR-000145-Ajay-Kumar;DIR-000146-Ajay-Singh,NORMAL
+36BFICK8847Y1Z0,Sapphire Beauty LLP,36,Telangana,581287,Personal care,Active,,2024-04-01,DIR-000147-Rahul-Reddy;DIR-000148-Neha-Khan;DIR-000149-Seema-Iyer,NORMAL
+29EQHPG8661U1ZZ,Star Electronics Corp,29,Karnataka,552927,Electronics,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+02GHGFO4449P1Z9,Ocean Steels Ltd,02,Himachal Pradesh,799518,Metals,Active,,2024-04-01,DIR-000153-Seema-Mehta;DIR-000154-Priya-Sharma,NORMAL
+37MHNTL8073K1ZG,Sunrise Beauty LLP,37,Andhra Pradesh,590987,Personal care,Active,,2024-04-01,DIR-000156-Ravi-Singh,NORMAL
+10RXBPU0969K1ZR,Ocean Textiles LLP,10,Bihar,237402,Textiles,Active,,2024-04-01,DIR-000159-Anil-Patel;DIR-000160-Seema-Verma,NORMAL
+36RHPPC5027W1ZE,Northern Steels Enterprises,36,Telangana,518689,Metals,Active,,2024-04-01,DIR-000162-Divya-Sharma;DIR-000163-Priya-Verma,NORMAL
+36IPNAY4528J1Z0,Bharat Textiles Enterprises,36,Telangana,577074,Textiles,Active,,2024-04-01,DIR-000165-Vikram-Kumar;DIR-000166-Kavya-Kumar;DIR-000167-Divya-Iyer,NORMAL
+07FNLPE5606L1Z9,Bharat Chemicals & Co,07,Delhi,194680,Chemicals,Active,,2024-04-01,DIR-000168-Rahul-Mehta;DIR-000169-Meera-Kumar,NORMAL
+07KGAAC6486A1ZH,Crest Beverages Enterprises,07,Delhi,121032,Beverages,Active,,2024-04-01,DIR-000171-Kavya-Sharma;DIR-000172-Kavya-Verma;DIR-000173-Kavya-Khan,NORMAL
+08WYTAS5470Y1Z0,Sapphire Beauty Enterprises,08,Rajasthan,487496,Personal care,Active,,2024-04-01,DIR-000174-Seema-Rao;DIR-000175-Vikram-Khan;DIR-000176-Divya-Gupta,NORMAL
+27AXTPK7535K1ZC,Zenith Foods Pvt Ltd,27,Maharashtra,437843,Food,Active,,2024-04-01,DIR-000177-Kavya-Sharma,NORMAL
+33CLIAV5237J1Z6,Zenith Chemicals Ltd,33,Tamil Nadu,691699,Chemicals,Active,,2024-04-01,DIR-000180-Kavya-Gupta,NORMAL
+24BRJPJ4817V1ZP,Northern Furnishings LLP,24,Gujarat,351001,Furniture,Active,,2024-04-01,DIR-000183-Vikram-Rao;DIR-000184-Sanjay-Khan,NORMAL
+24BDSHC4483B1Z1,Everest Textiles & Co,24,Gujarat,389315,Textiles,CANCELLED,2024-06-23,2024-04-01,DIR-000186-Rahul-Rao;DIR-000187-Divya-Reddy;DIR-000188-Kavya-Mehta,NORMAL
+10DZHAM1921F1ZP,Northern Textiles Corp,10,Bihar,231411,Textiles,Active,,2024-04-01,DIR-000189-Priya-Gupta;DIR-000190-Meera-Sharma;DIR-000191-Kavya-Kumar,NORMAL
+20ISNAC0746F1ZK,Tirupati Beauty Pvt Ltd,20,Jharkhand,209185,Personal care,Active,,2024-04-01,DIR-000192-Vikram-Rao,NORMAL
+27DIZFU9259W1ZH,Crest Foods & Co,27,Maharashtra,450473,Food,Active,,2024-04-01,DIR-000195-Kavya-Rao;DIR-000196-Sanjay-Singh;DIR-000197-Sanjay-Verma,NORMAL
+01INVAJ7223Z1ZO,Sunrise Beauty LLP,01,Jammu & Kashmir,445993,Personal care,Active,,2024-04-01,DIR-000198-Meera-Gupta;DIR-000199-Neha-Singh,NORMAL
+24RCECV5820L1ZT,Emerald Textiles & Co,24,Gujarat,313199,Textiles,Active,,2024-04-01,DIR-000201-Neha-Iyer,NORMAL
+09XMRHG6155A1ZG,Sapphire Steels & Co,09,Uttar Pradesh,292449,Metals,Active,,2024-04-01,DIR-000204-Ajay-Khan,NORMAL
+19OXOAM4579C1Z3,Sunrise Textiles Enterprises,19,West Bengal,757290,Textiles,Active,,2024-04-01,DIR-000207-Divya-Gupta,NORMAL
+06CLKPY3924E1ZK,Zenith Foods Corp,06,Haryana,125530,Food,Active,,2024-04-01,DIR-000210-Rahul-Verma,NORMAL
+19YXXPU6317F1ZF,Emerald Papers Ltd,19,West Bengal,760855,Stationery,Active,,2024-04-01,DIR-000213-Kavya-Nair;DIR-000214-Ravi-Mehta,NORMAL
+24OOICI7135G1ZA,Vertex Electronics & Co,24,Gujarat,372067,Electronics,Active,,2024-04-01,DIR-000216-Ajay-Khan;DIR-000217-Kavya-Reddy,NORMAL
+27JZPFT2289H1ZS,Zenith Furnishings LLP,27,Maharashtra,464220,Furniture,Active,,2024-04-01,DIR-000219-Kavya-Iyer;DIR-000220-Divya-Sharma,NORMAL
+27TSDCK5034A1ZC,Moonlight Electronics & Co,27,Maharashtra,467064,Electronics,Active,,2024-04-01,DIR-000222-Kavya-Verma;DIR-000223-Vikram-Verma,NORMAL
+29JKNAV2379P1Z1,Ocean Beverages Corp,29,Karnataka,579878,Beverages,Active,,2024-04-01,DIR-000225-Neha-Nair;DIR-000226-Sanjay-Gupta;DIR-000227-Priya-Verma,NORMAL
+06JGTPU2199J1ZV,Vedic Foods Pvt Ltd,06,Haryana,140370,Food,Active,,2024-04-01,DIR-000228-Sanjay-Rao,NORMAL
+37SGMFL2428G1ZI,Aryan Electronics & Co,37,Andhra Pradesh,563389,Electronics,Active,,2024-04-01,DIR-000231-Anil-Rao;DIR-000232-Rahul-Rao;DIR-000233-Seema-Iyer,NORMAL
+24OXPAQ6287S1ZN,Horizon Foods LLP,24,Gujarat,333186,Food,Active,,2024-04-01,DIR-000234-Neha-Khan;DIR-000235-Ajay-Patel;DIR-000236-Kavya-Mehta,NORMAL
+29DRPPR1400V1ZE,Sapphire Textiles LLP,29,Karnataka,591705,Textiles,Active,,2024-04-01,DIR-000237-Ravi-Singh;DIR-000238-Ajay-Reddy,NORMAL
+19DULPI3160G1ZG,Moonlight Furnishings LLP,19,West Bengal,752830,Furniture,Active,,2024-04-01,DIR-000240-Rahul-Khan;DIR-000241-Vikram-Sharma;DIR-000242-Kavya-Nair,NORMAL
+29JPAPH7712B1ZM,Falcon Chemicals Pvt Ltd,29,Karnataka,588241,Chemicals,Active,,2024-04-01,DIR-000243-Neha-Nair;DIR-000244-Priya-Singh;DIR-000245-Priya-Mehta,NORMAL
+09BXCAL5429R1ZE,Star Steels Pvt Ltd,09,Uttar Pradesh,215203,Metals,Active,,2024-04-01,DIR-000246-Ajay-Nair,NORMAL
+37VLAPV2280H1ZF,Tirupati Chemicals & Co,37,Andhra Pradesh,533857,Chemicals,Active,,2024-04-01,DIR-000249-Divya-Mehta;DIR-000250-Kavya-Mehta;DIR-000251-Neha-Mehta,NORMAL
+24FKUPM8964P1ZX,Vedic Foods LLP,24,Gujarat,393232,Food,Active,,2024-04-01,DIR-000252-Meera-Sharma;DIR-000253-Kavya-Kumar,NORMAL
+24YSZAI8925A1ZG,Southern Textiles Enterprises,24,Gujarat,374515,Textiles,Active,,2024-04-01,DIR-000255-Vikram-Patel;DIR-000256-Priya-Iyer,NORMAL
+23XUOFT2990Z1ZW,Vertex Foods LLP,23,Madhya Pradesh,432878,Food,Active,,2024-04-01,DIR-000258-Vikram-Sharma,NORMAL
+29VOEPE0477L1ZK,Southern Industries Corp,29,Karnataka,589718,Machinery,CANCELLED,2024-04-24,2024-04-01,DIR-000261-Seema-Sharma,NORMAL
+33PYSCY6706K1Z3,Horizon Beauty Ltd,33,Tamil Nadu,620123,Personal care,Active,,2024-04-01,DIR-000264-Kavya-Khan,NORMAL
+29ORLFU8834H1ZR,Southern Electronics Corp,29,Karnataka,577873,Electronics,Active,,2024-04-01,DIR-000267-Anil-Mehta;DIR-000268-Sanjay-Rao,NORMAL
+09IGUFE4585U1ZN,Ocean Chemicals Ltd,09,Uttar Pradesh,236983,Chemicals,Active,,2024-04-01,DIR-000270-Seema-Iyer,NORMAL
+27YAECF3249W1ZU,Sunrise Papers Corp,27,Maharashtra,471605,Stationery,Active,,2024-04-01,DIR-500005-Ravi-Reddy,CIRCULAR_TRADING
+27XAUTC0732P1Z3,Southern Foods LLP,27,Maharashtra,419505,Food,Active,,2024-04-01,DIR-500003-Priya-Iyer,CIRCULAR_TRADING
+07ZMECY1649V1ZC,Bharat Furnishings Enterprises,07,Delhi,179037,Furniture,CANCELLED,2024-06-20,2024-04-01,DIR-000279-Ravi-Khan;DIR-000280-Ajay-Kumar,NORMAL
+24COUCP4461B1Z4,Horizon Papers Pvt Ltd,24,Gujarat,343570,Stationery,Active,,2024-04-01,DIR-000282-Neha-Iyer;DIR-000283-Anil-Gupta;DIR-000284-Vikram-Iyer,NORMAL
+24CBMCD2609D1Z8,Emerald Furnishings Pvt Ltd,24,Gujarat,354862,Furniture,Active,,2024-04-01,DIR-000285-Kavya-Patel;DIR-000286-Priya-Verma;DIR-000287-Meera-Verma,NORMAL
+29DFIHA7802D1ZB,Southern Foods Ltd,29,Karnataka,575543,Food,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+09GUHAY8605P1ZC,Crest Industries LLP,09,Uttar Pradesh,272444,Machinery,Active,,2024-04-01,DIR-000291-Vikram-Sharma;DIR-000292-Divya-Singh,NORMAL
+03OASAF8942T1ZT,Vertex Tobacco Co & Co,03,Punjab,844233,Tobacco,Active,,2024-04-01,DIR-000294-Kavya-Gupta,NORMAL
+29MCIPO4911E1ZV,Vertex Beauty Pvt Ltd,29,Karnataka,580400,Personal care,Active,,2024-04-01,DIR-000297-Vikram-Reddy;DIR-000298-Ajay-Khan,NORMAL
+07TTBPK3802N1ZM,Vedic Steels Pvt Ltd,07,Delhi,191732,Metals,Active,,2024-04-01,DIR-000300-Anil-Rao,NORMAL
+27ZTBFP2901P1Z5,Sunrise Electronics & Co,27,Maharashtra,411175,Electronics,Active,,2024-04-01,DIR-000303-Priya-Gupta;DIR-000304-Meera-Verma,NORMAL
+29JVTFH5827X1ZQ,Falcon Motors Pvt Ltd,29,Karnataka,531519,Automotive,Active,,2024-04-01,DIR-000306-Rahul-Gupta;DIR-000307-Kavya-Verma,NORMAL
+06OILFR1010I1Z9,Sunrise Textiles Enterprises,06,Haryana,168384,Textiles,Active,,2024-04-01,DIR-000309-Ravi-Verma;DIR-000310-Ravi-Kumar,NORMAL
+29JSTFR9967Z1ZW,Tirupati Steels Ltd,29,Karnataka,524883,Metals,Active,,2024-04-01,DIR-000312-Sanjay-Rao,NORMAL
+29NFJTZ2170Q1Z0,Southern Steels Ltd,29,Karnataka,518205,Metals,Active,,2024-04-01,DIR-000315-Ravi-Khan;DIR-000316-Vikram-Singh;DIR-000317-Seema-Reddy,NORMAL
+20KLDCJ9577W1Z0,Tirupati Beverages Enterprises,20,Jharkhand,182258,Beverages,Active,,2024-04-01,DIR-000318-Rahul-Kumar;DIR-000319-Seema-Nair;DIR-000320-Neha-Kumar,NORMAL
+03PLCFJ9695A1ZC,Falcon Beverages Ltd,03,Punjab,229098,Beverages,Active,,2024-04-01,DIR-000321-Rahul-Khan;DIR-000322-Vikram-Gupta,NORMAL
+21FCKHJ8460B1Z2,Ocean Electronics Enterprises,21,Odisha,139336,Electronics,Active,,2024-04-01,DIR-000324-Vikram-Nair;DIR-000325-Ravi-Nair;DIR-000326-Vikram-Gupta,NORMAL
+36CZDFC6973G1ZQ,Vertex Textiles & Co,36,Telangana,585892,Textiles,Active,,2024-04-01,DIR-000327-Rahul-Sharma,NORMAL
+33LQEPT4368F1ZE,Star Electronics Enterprises,33,Tamil Nadu,682550,Electronics,Active,,2024-04-01,DIR-000330-Sanjay-Mehta,NORMAL
+08KEKCY9884M1Z3,Star Foods LLP,08,Rajasthan,572191,Food,Active,,2024-04-01,DIR-000333-Neha-Nair;DIR-000334-Neha-Nair,NORMAL
+27LDZAG3088V1ZD,Zenith Industries Corp,27,Maharashtra,414486,Machinery,Active,,2024-04-01,DIR-000336-Anil-Iyer,NORMAL
+27JAZCW4796N1ZH,Bharat Textiles Enterprises,27,Maharashtra,468610,Textiles,CANCELLED,2024-06-15,2024-04-01,DIR-000339-Meera-Khan;DIR-000340-Sanjay-Iyer,NORMAL
+32KGBFU9919K1ZM,Zenith Textiles Enterprises,32,Kerala,616175,Textiles,Active,,2024-04-01,DIR-000342-Kavya-Kumar,NORMAL
+03OUOFJ1402Q1ZR,Everest Beauty Pvt Ltd,03,Punjab,598240,Personal care,Active,,2024-04-01,DIR-000345-Neha-Rao,NORMAL
+36GLEAO5931E1ZL,Crest Industries Pvt Ltd,36,Telangana,533567,Machinery,Active,,2024-04-01,DIR-000348-Neha-Kumar,NORMAL
+33NZDPS7002G1ZP,Ocean Steels Pvt Ltd,33,Tamil Nadu,608420,Metals,Active,,2024-04-01,DIR-000351-Ravi-Gupta;DIR-000352-Vikram-Rao;DIR-000353-Sanjay-Mehta,NORMAL
+20MDXAP8206L1ZG,Aryan Papers Ltd,20,Jharkhand,409901,Stationery,Active,,2024-04-01,DIR-000354-Divya-Khan,NORMAL
+03ZXWFX4707U1Z7,Bharat Papers Corp,03,Punjab,445442,Stationery,Active,,2024-04-01,DIR-000357-Vikram-Rao;DIR-000358-Kavya-Singh;DIR-000359-Priya-Singh,NORMAL
+27GZIAY7111W1ZD,Crest Industries LLP,27,Maharashtra,430709,Machinery,Active,,2024-04-01,DIR-500003-Priya-Iyer,CIRCULAR_TRADING
+29ZQAHP7526P1ZX,Tirupati Foods & Co,29,Karnataka,528440,Food,Active,,2024-04-01,DIR-000363-Sanjay-Singh,NORMAL
+33OXIPT0204B1ZG,Vertex Foods Corp,33,Tamil Nadu,618259,Food,Active,,2024-04-01,DIR-000366-Ajay-Singh;DIR-000367-Ravi-Iyer,NORMAL
+27PRHPM1257P1Z9,Emerald Furnishings Pvt Ltd,27,Maharashtra,435061,Furniture,Active,,2024-04-01,DIR-000369-Anil-Sharma,NORMAL
+03OCDAB2607U1ZZ,Aryan Beverages Ltd,03,Punjab,446307,Beverages,Active,,2024-04-01,DIR-000372-Anil-Kumar;DIR-000373-Neha-Nair;DIR-000374-Meera-Singh,NORMAL
+24WCIPI1254I1ZV,Emerald Textiles Corp,24,Gujarat,377378,Textiles,Active,,2024-04-01,DIR-000375-Anil-Iyer;DIR-000376-Divya-Gupta;DIR-000377-Vikram-Verma,NORMAL
+07CQRPY7310R1Z4,Aryan Textiles Enterprises,07,Delhi,134001,Textiles,Active,,2024-04-01,DIR-000378-Kavya-Rao,NORMAL
+27PZMAE1549Q1ZC,Vedic Textiles Enterprises,27,Maharashtra,417294,Textiles,Active,,2024-04-01,DIR-000381-Kavya-Verma;DIR-000382-Rahul-Patel;DIR-000383-Sanjay-Gupta,NORMAL
+24MRUTF4541K1ZB,Horizon Chemicals Corp,24,Gujarat,314341,Chemicals,Active,,2024-04-01,DIR-000384-Kavya-Mehta;DIR-000385-Rahul-Gupta,NORMAL
+29RELFV5600C1ZJ,Emerald Beauty Corp,29,Karnataka,540081,Personal care,Active,,2024-04-01,DIR-000387-Priya-Verma,NORMAL
+22RUTFB3388J1ZC,Vertex Motors Enterprises,22,Chhattisgarh,433968,Automotive,Active,,2024-04-01,DIR-000390-Sanjay-Sharma;DIR-000391-Anil-Verma,NORMAL
+27EEGFH7004S1Z2,Falcon Beverages LLP,27,Maharashtra,404157,Beverages,Active,,2024-04-01,DIR-000393-Neha-Gupta,NORMAL
+10NMDCC8089I1ZU,Tirupati Steels Pvt Ltd,10,Bihar,247008,Metals,Active,,2024-04-01,DIR-000396-Ajay-Khan,NORMAL
+37MNUFF4687E1ZC,Ocean Papers Corp,37,Andhra Pradesh,533001,Stationery,Active,,2024-04-01,DIR-000399-Meera-Sharma;DIR-000400-Kavya-Verma;DIR-000401-Rahul-Mehta,NORMAL
+27CFIFF7982J1ZR,Sapphire Steels Ltd,27,Maharashtra,450706,Metals,Active,,2024-04-01,DIR-500003-Priya-Iyer,CIRCULAR_TRADING
+27GTKPN8397Z1ZU,Vertex Textiles Corp,27,Maharashtra,497976,Textiles,Active,,2024-04-01,DIR-000405-Vikram-Mehta;DIR-000406-Ajay-Reddy,NORMAL
+09CRUPQ7083O1Z7,Bharat Beauty Corp,09,Uttar Pradesh,229770,Personal care,Active,,2024-04-01,DIR-000408-Ravi-Sharma;DIR-000409-Priya-Sharma;DIR-000410-Kavya-Gupta,NORMAL
+24JYZFX8897C1ZU,Zenith Foods Pvt Ltd,24,Gujarat,333950,Food,Active,,2024-04-01,DIR-000411-Ravi-Mehta,NORMAL
+09EWFPD8195T1Z7,Ocean Steels Enterprises,09,Uttar Pradesh,228385,Metals,Active,,2024-04-01,DIR-000414-Ravi-Khan,NORMAL
+24XGVPK6684M1ZB,Zenith Foods LLP,24,Gujarat,344514,Food,Active,,2024-04-01,DIR-000417-Meera-Sharma;DIR-000418-Anil-Gupta,NORMAL
+24SNXAU4273C1ZS,Crest Motors Ltd,24,Gujarat,380037,Automotive,Active,,2024-04-01,DIR-000420-Seema-Patel;DIR-000421-Neha-Patel,NORMAL
+36HKUCU9270B1ZK,Moonlight Chemicals Ltd,36,Telangana,599251,Chemicals,Active,,2024-04-01,DIR-000423-Rahul-Nair,NORMAL
+32MKITW0465K1Z3,Emerald Electronics Pvt Ltd,32,Kerala,658970,Electronics,Active,,2024-04-01,DIR-000426-Priya-Kumar;DIR-000427-Seema-Reddy,NORMAL
+24XNKPB9681N1ZB,Crest Papers Corp,24,Gujarat,348742,Stationery,Active,,2024-04-01,DIR-000429-Divya-Gupta,NORMAL
+07DDVPY0087K1Z6,Crest Chemicals Pvt Ltd,07,Delhi,179321,Chemicals,Active,,2024-04-01,DIR-000432-Meera-Iyer,NORMAL
+29WXBFI0944B1ZP,Aryan Industries Enterprises,29,Karnataka,518288,Machinery,Active,,2024-04-01,DIR-000435-Seema-Verma,NORMAL
+09OIQPJ6732S1Z3,Vedic Foods Corp,09,Uttar Pradesh,205909,Food,Active,,2024-04-01,DIR-500004-Seema-Verma,CIRCULAR_TRADING
+19CXTHI1540E1Z5,Zenith Beauty Pvt Ltd,19,West Bengal,721841,Personal care,Active,,2024-04-01,DIR-000441-Sanjay-Iyer,NORMAL
+29FDBCJ2328A1ZE,Zenith Furnishings Ltd,29,Karnataka,553174,Furniture,Active,,2024-04-01,DIR-000444-Sanjay-Nair,NORMAL
+09JAGAD4613T1Z1,Ocean Electronics Pvt Ltd,09,Uttar Pradesh,213638,Electronics,Active,,2024-04-01,DIR-000447-Vikram-Reddy,NORMAL
+27SORFI8209J1Z3,Sunrise Beauty LLP,27,Maharashtra,435932,Personal care,Active,,2024-04-01,DIR-500005-Ravi-Reddy,CIRCULAR_TRADING
+08QZMTY4993X1ZE,Everest Beauty Ltd,08,Rajasthan,601901,Personal care,Active,,2024-04-01,DIR-000453-Meera-Iyer;DIR-000454-Ravi-Verma,NORMAL
+22ICNPX1337B1ZM,Southern Beverages LLP,22,Chhattisgarh,194474,Beverages,Active,,2024-04-01,DIR-000456-Meera-Rao,NORMAL
+06DTEHH1746P1ZJ,Falcon Foods Ltd,06,Haryana,110733,Food,Active,,2024-04-01,DIR-000459-Divya-Mehta,NORMAL
+06MLYPB4735Y1ZY,Star Foods Ltd,06,Haryana,168716,Food,Active,,2024-04-01,DIR-000462-Kavya-Rao,NORMAL
+07LIRAR7596U1ZV,Vertex Beauty Enterprises,07,Delhi,159588,Personal care,Active,,2024-04-01,DIR-000465-Seema-Kumar,NORMAL
+20CHLPO8783G1Z1,Aryan Beverages Corp,20,Jharkhand,642543,Beverages,Active,,2024-04-01,DIR-000468-Seema-Patel;DIR-000469-Meera-Nair,NORMAL
+23VBPFT4418P1ZR,Star Electronics Pvt Ltd,23,Madhya Pradesh,236199,Electronics,Active,,2024-04-01,DIR-000471-Priya-Khan;DIR-000472-Priya-Verma,NORMAL
+23WSNFC8636F1ZF,Sapphire Industries Corp,23,Madhya Pradesh,640285,Machinery,Active,,2024-04-01,DIR-000474-Ravi-Rao,NORMAL
+09PBHFM9972K1ZS,Horizon Beauty Pvt Ltd,09,Uttar Pradesh,216291,Personal care,Active,,2024-04-01,DIR-000477-Meera-Patel;DIR-000478-Meera-Rao,NORMAL
+07ANDPA5850B1ZL,Northern Textiles LLP,07,Delhi,157995,Textiles,Active,,2024-04-01,DIR-000480-Sanjay-Gupta;DIR-000481-Rahul-Singh,NORMAL
+32WBOPM6931S1ZR,Vedic Motors Pvt Ltd,32,Kerala,660830,Automotive,Active,,2024-04-01,DIR-000483-Neha-Rao;DIR-000484-Ravi-Singh,NORMAL
+24UDKPS2559C1ZZ,Crest Beauty LLP,24,Gujarat,337187,Personal care,Active,,2024-04-01,DIR-000486-Seema-Gupta,NORMAL
+36CJZFJ5532E1ZZ,Sunrise Electronics Ltd,36,Telangana,549415,Electronics,Active,,2024-04-01,DIR-000489-Anil-Reddy,NORMAL
+27OCGPF3556Q1Z0,Zenith Electronics & Co,27,Maharashtra,441505,Electronics,Active,,2024-04-01,DIR-000492-Rahul-Khan;DIR-000493-Ravi-Mehta,NORMAL
+03QRVFY6516U1ZY,Vedic Steels Enterprises,03,Punjab,866125,Metals,Active,,2024-04-01,DIR-000495-Neha-Kumar,NORMAL
+07MIXPQ8964O1Z8,Northern Electronics Pvt Ltd,07,Delhi,157031,Electronics,Active,,2024-04-01,DIR-000498-Ravi-Gupta,NORMAL
+37TAGHE9278K1Z0,Star Chemicals Ltd,37,Andhra Pradesh,544942,Chemicals,Active,,2024-04-01,DIR-000501-Ravi-Iyer,NORMAL
+09SDWPD1514K1ZG,Aryan Electronics LLP,09,Uttar Pradesh,250445,Electronics,Active,,2024-04-01,DIR-000504-Ravi-Rao;DIR-000505-Neha-Gupta,NORMAL
+07GPBCP8233X1ZC,Bharat Foods Enterprises,07,Delhi,187078,Food,Active,,2024-04-01,DIR-000507-Meera-Sharma;DIR-000508-Anil-Verma;DIR-000509-Sanjay-Singh,NORMAL
+06PBXFZ2877N1Z4,Sapphire Foods Enterprises,06,Haryana,118730,Food,Active,,2024-04-01,DIR-000510-Divya-Singh;DIR-000511-Divya-Mehta;DIR-000512-Ravi-Gupta,NORMAL
+29NNFFQ8147C1ZU,Falcon Textiles LLP,29,Karnataka,514953,Textiles,Active,,2024-04-01,DIR-000513-Priya-Patel,NORMAL
+21RCBCD7150E1ZJ,Vertex Steels Enterprises,21,Odisha,835175,Metals,Active,,2024-04-01,DIR-000516-Anil-Patel;DIR-000517-Ravi-Kumar;DIR-000518-Divya-Kumar,NORMAL
+07VLIPH6489G1Z8,Sunrise Foods LLP,07,Delhi,161970,Food,CANCELLED,2024-04-01,2024-04-01,DIR-000519-Neha-Rao;DIR-000520-Ajay-Gupta;DIR-000521-Rahul-Mehta,NORMAL
+06KLMFY1206I1ZJ,Moonlight Textiles Pvt Ltd,06,Haryana,186859,Textiles,Active,,2024-04-01,DIR-000522-Priya-Mehta;DIR-000523-Divya-Kumar,NORMAL
+36LTTPP2363X1ZF,Crest Beverages Pvt Ltd,36,Telangana,546959,Beverages,Active,,2024-04-01,DIR-000525-Ajay-Mehta,NORMAL
+29UZDFV6245I1ZW,Star Steels & Co,29,Karnataka,551750,Metals,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+32MBSFE9009C1ZC,Bharat Foods & Co,32,Kerala,662098,Food,Active,,2024-04-01,DIR-000531-Ravi-Sharma;DIR-000532-Ravi-Mehta,NORMAL
+33XRGHQ8151B1ZI,Crest Steels Ltd,33,Tamil Nadu,678786,Metals,Active,,2024-04-01,DIR-000534-Meera-Gupta;DIR-000535-Ajay-Iyer,NORMAL
+03MYQCK5905T1Z1,Southern Steels Ltd,03,Punjab,300891,Metals,Active,,2024-04-01,DIR-000537-Ajay-Kumar,NORMAL
+08AEPPI2280V1ZF,Vertex Steels Ltd,08,Rajasthan,190910,Metals,Active,,2024-04-01,DIR-000540-Ravi-Kumar,NORMAL
+07ZZJAO7288T1ZC,Sapphire Industries Enterprises,07,Delhi,156683,Machinery,Active,,2024-04-01,DIR-000543-Priya-Singh;DIR-000544-Rahul-Patel;DIR-000545-Seema-Khan,NORMAL
+33FVACM0199M1ZH,Northern Foods Ltd,33,Tamil Nadu,698771,Food,Active,,2024-04-01,DIR-000546-Priya-Gupta;DIR-000547-Ajay-Patel,NORMAL
+32RCFFU7844M1ZD,Aryan Motors Corp,32,Kerala,687959,Automotive,Active,,2024-04-01,DIR-000549-Vikram-Khan;DIR-000550-Sanjay-Patel;DIR-000551-Anil-Rao,NORMAL
+29OHACQ2898S1ZG,Tirupati Steels & Co,29,Karnataka,525972,Metals,Active,,2024-04-01,DIR-000552-Divya-Reddy,NORMAL
+37VCNAW4705N1ZQ,Everest Chemicals Ltd,37,Andhra Pradesh,531956,Chemicals,Active,,2024-04-01,DIR-000555-Divya-Reddy;DIR-000556-Meera-Singh,NORMAL
+29SJSCO0270L1ZC,Northern Papers Corp,29,Karnataka,505382,Stationery,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+09TXKTW5785U1ZK,Sunrise Steels Enterprises,09,Uttar Pradesh,211313,Metals,Active,,2024-04-01,DIR-500004-Seema-Verma,CIRCULAR_TRADING
+19JHRCQ5690P1ZD,Emerald Papers Enterprises,19,West Bengal,782488,Stationery,Active,,2024-04-01,DIR-000564-Divya-Gupta,NORMAL
+27IBZFN9011M1ZP,Falcon Beverages & Co,27,Maharashtra,497250,Beverages,Active,,2024-04-01,DIR-500000-Meera-Kumar,CIRCULAR_TRADING
+27VTCFR5349N1ZY,Southern Beverages & Co,27,Maharashtra,473175,Beverages,Active,,2024-04-01,DIR-000570-Priya-Nair;DIR-000571-Meera-Sharma,NORMAL
+05LOSFS3908F1ZY,Falcon Furnishings & Co,05,Uttarakhand,331624,Furniture,Active,,2024-04-01,DIR-000573-Meera-Khan;DIR-000574-Vikram-Khan;DIR-000575-Anil-Khan,NORMAL
+29SSDPP8685A1Z3,Ocean Electronics & Co,29,Karnataka,592479,Electronics,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+08WZLFU9791B1ZF,Sunrise Foods Corp,08,Rajasthan,266324,Food,Active,,2024-04-01,DIR-000579-Kavya-Khan;DIR-000580-Sanjay-Mehta;DIR-000581-Meera-Nair,NORMAL
+27ZRCPR1196D1Z1,Vertex Foods LLP,27,Maharashtra,451534,Food,Active,,2024-04-01,DIR-000582-Priya-Nair;DIR-000583-Meera-Reddy,NORMAL
+20CQHFO6755W1ZW,Zenith Papers Corp,20,Jharkhand,444411,Stationery,Active,,2024-04-01,DIR-000585-Sanjay-Rao;DIR-000586-Rahul-Verma,NORMAL
+33PHUFQ7580P1ZV,Tirupati Textiles & Co,33,Tamil Nadu,628691,Textiles,Active,,2024-04-01,DIR-000588-Divya-Nair,NORMAL
+23VWFFA4093Z1ZU,Aryan Electronics & Co,23,Madhya Pradesh,576923,Electronics,Active,,2024-04-01,DIR-000591-Ajay-Singh,NORMAL
+29HFACO1044Q1ZX,Zenith Textiles Corp,29,Karnataka,507319,Textiles,Active,,2024-04-01,DIR-000594-Neha-Singh,NORMAL
+19UVYHN1548Y1ZM,Bharat Chemicals Pvt Ltd,19,West Bengal,738551,Chemicals,Active,,2024-04-01,DIR-000597-Divya-Reddy;DIR-000598-Seema-Sharma;DIR-000599-Rahul-Iyer,NORMAL
+08ASIPS0970Z1ZG,Sunrise Foods Corp,08,Rajasthan,495611,Food,CANCELLED,2024-04-09,2024-04-01,DIR-000600-Neha-Rao,NORMAL
+37QMGFT4503M1ZF,Sunrise Textiles Enterprises,37,Andhra Pradesh,570894,Textiles,Active,,2024-04-01,DIR-000603-Meera-Sharma;DIR-000604-Kavya-Sharma;DIR-000605-Priya-Gupta,NORMAL
+33ZXNAU1331E1ZU,Northern Textiles & Co,33,Tamil Nadu,642957,Textiles,Active,,2024-04-01,DIR-000606-Sanjay-Sharma,NORMAL
+29OVVPY0756H1ZP,Moonlight Textiles Ltd,29,Karnataka,557601,Textiles,Active,,2024-04-01,DIR-000609-Kavya-Khan,NORMAL
+09KOZFE5054V1ZE,Sapphire Motors & Co,09,Uttar Pradesh,281298,Automotive,Active,,2024-04-01,DIR-000612-Sanjay-Rao,NORMAL
+29RXDCE3848X1ZC,Zenith Electronics LLP,29,Karnataka,501233,Electronics,Active,,2024-04-01,DIR-000615-Anil-Kumar;DIR-000616-Meera-Reddy;DIR-000617-Priya-Rao,NORMAL
+37IVIPG6203I1Z6,Falcon Papers & Co,37,Andhra Pradesh,502452,Stationery,Active,,2024-04-01,DIR-000618-Kavya-Singh;DIR-000619-Divya-Patel;DIR-000620-Priya-Gupta,NORMAL
+33QNWTE9260K1Z5,Vedic Steels LLP,33,Tamil Nadu,662023,Metals,Active,,2024-04-01,DIR-000621-Ravi-Verma,NORMAL
+24PLTCI5732T1Z8,Southern Beauty Enterprises,24,Gujarat,364511,Personal care,Active,,2024-04-01,DIR-000624-Anil-Mehta,NORMAL
+24NCPFG3268Q1ZV,Horizon Chemicals Corp,24,Gujarat,317169,Chemicals,CANCELLED,2024-04-01,2024-04-01,DIR-000627-Sanjay-Sharma;DIR-000628-Sanjay-Nair;DIR-000629-Seema-Kumar,NORMAL
+27OKVPA7728K1Z4,Crest Foods LLP,27,Maharashtra,409334,Food,Active,,2024-04-01,DIR-000630-Kavya-Nair;DIR-000631-Anil-Rao,NORMAL
+33SMXFT1337H1ZH,Ocean Papers & Co,33,Tamil Nadu,666505,Stationery,Active,,2024-04-01,DIR-000633-Ravi-Verma;DIR-000634-Ajay-Iyer;DIR-000635-Ravi-Khan,NORMAL
+37MPQPI3246K1ZA,Horizon Textiles Ltd,37,Andhra Pradesh,503631,Textiles,Active,,2024-04-01,DIR-000636-Rahul-Kumar;DIR-000637-Neha-Gupta;DIR-000638-Vikram-Patel,NORMAL
+03FDVFZ5039Q1Z4,Ocean Electronics Pvt Ltd,03,Punjab,733978,Electronics,Active,,2024-04-01,DIR-000639-Anil-Kumar;DIR-000640-Rahul-Patel;DIR-000641-Vikram-Patel,NORMAL
+23ZDNPP5380B1Z7,Vedic Steels Ltd,23,Madhya Pradesh,759906,Metals,Active,,2024-04-01,DIR-000642-Rahul-Patel,NORMAL
+36HLAAP0978Q1Z0,Moonlight Steels & Co,36,Telangana,527020,Metals,Active,,2024-04-01,DIR-000645-Divya-Iyer;DIR-000646-Rahul-Khan;DIR-000647-Anil-Nair,NORMAL
+24GBTAB4263M1ZV,Tirupati Textiles Ltd,24,Gujarat,344660,Textiles,CANCELLED,2024-05-31,2024-04-01,DIR-000648-Anil-Singh,NORMAL
+37TVWPB5860S1ZH,Everest Electronics & Co,37,Andhra Pradesh,529238,Electronics,Active,,2024-04-01,DIR-000651-Ajay-Mehta;DIR-000652-Seema-Rao;DIR-000653-Divya-Khan,NORMAL
+09YFZPT4473N1ZR,Tirupati Foods LLP,09,Uttar Pradesh,251247,Food,Active,,2024-04-01,DIR-000654-Kavya-Sharma,NORMAL
+27QTFAF9956R1ZH,Everest Electronics & Co,27,Maharashtra,461063,Electronics,Active,,2024-04-01,DIR-500005-Ravi-Reddy,CIRCULAR_TRADING
+09EJAPY8263A1ZB,Crest Beauty LLP,09,Uttar Pradesh,204282,Personal care,Active,,2024-04-01,DIR-000660-Divya-Rao;DIR-000661-Neha-Singh;DIR-000662-Sanjay-Verma,NORMAL
+19YAZAX3657D1Z2,Aryan Tobacco Co & Co,19,West Bengal,783897,Tobacco,Active,,2024-04-01,DIR-000663-Ravi-Khan;DIR-000664-Rahul-Mehta;DIR-000665-Rahul-Verma,NORMAL
+19TONPJ8072C1ZF,Southern Foods LLP,19,West Bengal,788575,Food,Active,,2024-04-01,DIR-000666-Anil-Patel;DIR-000667-Ravi-Rao,NORMAL
+29APTPU8770O1ZV,Bharat Chemicals & Co,29,Karnataka,505475,Chemicals,Active,,2024-04-01,DIR-000669-Priya-Gupta;DIR-000670-Priya-Nair;DIR-000671-Divya-Singh,NORMAL
+03RSBFA8724M1ZI,Aryan Foods Enterprises,03,Punjab,424114,Food,Active,,2024-04-01,DIR-000672-Meera-Nair,NORMAL
+29YRQPL0305O1ZH,Aryan Tobacco Co Enterprises,29,Karnataka,516939,Tobacco,Active,,2024-04-01,DIR-000675-Ravi-Iyer,NORMAL
+09BBDPP6081T1ZQ,Vedic Motors Pvt Ltd,09,Uttar Pradesh,252472,Automotive,Active,,2024-04-01,DIR-000678-Ajay-Mehta;DIR-000679-Ravi-Verma,NORMAL
+08ODNCI6605K1Z1,Ocean Textiles Ltd,08,Rajasthan,567864,Textiles,Active,,2024-04-01,DIR-000681-Seema-Iyer,NORMAL
+19RZMPU3180P1ZH,Emerald Papers Pvt Ltd,19,West Bengal,722305,Stationery,CANCELLED,2024-04-01,2024-04-01,DIR-000684-Divya-Iyer;DIR-000685-Priya-Reddy,NORMAL
+24QETPD6355Q1ZD,Bharat Foods Enterprises,24,Gujarat,301011,Food,Active,,2024-04-01,DIR-000687-Divya-Nair,NORMAL
+08PJSCX4543D1Z0,Ocean Chemicals Corp,08,Rajasthan,213371,Chemicals,Active,,2024-04-01,DIR-000690-Ravi-Iyer,NORMAL
+09QPFCK0732L1Z3,Ocean Furnishings Ltd,09,Uttar Pradesh,240441,Furniture,Active,,2024-04-01,DIR-500004-Seema-Verma,CIRCULAR_TRADING
+36WIOCX7001P1ZU,Southern Beverages Enterprises,36,Telangana,538532,Beverages,Active,,2024-04-01,DIR-000696-Seema-Patel;DIR-000697-Rahul-Sharma;DIR-000698-Rahul-Nair,NORMAL
+08AMEAP3806Z1ZA,Sunrise Industries LLP,08,Rajasthan,196762,Machinery,Active,,2024-04-01,DIR-000699-Ravi-Rao,NORMAL
+27OCHAW9397O1Z8,Sunrise Steels Corp,27,Maharashtra,424084,Metals,Active,,2024-04-01,DIR-000702-Sanjay-Mehta;DIR-000703-Divya-Sharma,NORMAL
+08HYIPG4977P1ZD,Aryan Papers LLP,08,Rajasthan,621140,Stationery,Active,,2024-04-01,DIR-000705-Sanjay-Patel;DIR-000706-Anil-Verma;DIR-000707-Ravi-Nair,NORMAL
+23WVGFN1320S1ZH,Vedic Foods Corp,23,Madhya Pradesh,589654,Food,Active,,2024-04-01,DIR-000708-Anil-Reddy,NORMAL
+09VFLPS8124W1ZN,Northern Industries Ltd,09,Uttar Pradesh,214915,Machinery,Active,,2024-04-01,DIR-000711-Divya-Patel;DIR-000712-Vikram-Gupta;DIR-000713-Ravi-Kumar,NORMAL
+09OOQAE7292X1ZL,Vedic Electronics LLP,09,Uttar Pradesh,209432,Electronics,Active,,2024-04-01,DIR-000714-Priya-Singh;DIR-000715-Vikram-Singh,NORMAL
+29LIZFV4485D1ZL,Tirupati Furnishings Corp,29,Karnataka,519477,Furniture,Active,,2024-04-01,DIR-000717-Neha-Gupta;DIR-000718-Vikram-Khan;DIR-000719-Anil-Rao,NORMAL
+02XMBFQ7789E1Z9,Everest Electronics LLP,02,Himachal Pradesh,611699,Electronics,Active,,2024-04-01,DIR-000720-Meera-Gupta;DIR-000721-Ajay-Verma;DIR-000722-Priya-Reddy,NORMAL
+27NDMPY7274T1ZM,Tirupati Papers Enterprises,27,Maharashtra,408158,Stationery,Active,,2024-04-01,DIR-000723-Meera-Nair;DIR-000724-Divya-Sharma,NORMAL
+24BAITR0977P1ZQ,Ocean Furnishings Pvt Ltd,24,Gujarat,378634,Furniture,Active,,2024-04-01,DIR-000726-Meera-Sharma,NORMAL
+19KIEAS0001O1ZO,Everest Industries LLP,19,West Bengal,720762,Machinery,Active,,2024-04-01,DIR-000729-Neha-Verma;DIR-000730-Sanjay-Khan;DIR-000731-Vikram-Gupta,NORMAL
+08WAIAI2539A1Z5,Southern Steels Corp,08,Rajasthan,866365,Metals,Active,,2024-04-01,DIR-000732-Divya-Kumar;DIR-000733-Divya-Iyer,NORMAL
+07MNRPX7202G1ZY,Sunrise Steels LLP,07,Delhi,171926,Metals,Active,,2024-04-01,DIR-000735-Divya-Iyer;DIR-000736-Priya-Khan;DIR-000737-Vikram-Iyer,NORMAL
+08PHKFZ6162E1ZG,Emerald Industries Pvt Ltd,08,Rajasthan,173247,Machinery,Active,,2024-04-01,DIR-000738-Anil-Nair;DIR-000739-Anil-Mehta;DIR-000740-Ravi-Reddy,NORMAL
+08KMWFG7217X1Z9,Tirupati Steels LLP,08,Rajasthan,633059,Metals,Active,,2024-04-01,DIR-000741-Priya-Nair;DIR-000742-Rahul-Nair,NORMAL
+10MMLAN3279M1ZS,Northern Industries & Co,10,Bihar,283002,Machinery,Active,,2024-04-01,DIR-000744-Ravi-Iyer;DIR-000745-Meera-Singh;DIR-000746-Neha-Nair,NORMAL
+29SFQTO7416O1ZJ,Everest Textiles & Co,29,Karnataka,550750,Textiles,Active,,2024-04-01,DIR-000747-Neha-Patel,NORMAL
+23JKXPD4682G1ZN,Vedic Textiles Enterprises,23,Madhya Pradesh,842774,Textiles,Active,,2024-04-01,DIR-000750-Rahul-Sharma;DIR-000751-Meera-Verma,NORMAL
+07HFEPC7192Q1ZY,Tirupati Chemicals Pvt Ltd,07,Delhi,137229,Chemicals,Active,,2024-04-01,DIR-000753-Rahul-Singh;DIR-000754-Divya-Patel;DIR-000755-Anil-Rao,NORMAL
+09RATFT4642K1Z0,Bharat Foods Pvt Ltd,09,Uttar Pradesh,214191,Food,Active,,2024-04-01,DIR-000756-Priya-Reddy;DIR-000757-Anil-Reddy;DIR-000758-Vikram-Patel,NORMAL
+07SVWPB2112K1ZF,Vedic Foods LLP,07,Delhi,194062,Food,Active,,2024-04-01,DIR-000759-Sanjay-Khan;DIR-000760-Rahul-Gupta,NORMAL
+06ASQTB5280P1ZF,Bharat Electronics LLP,06,Haryana,169327,Electronics,Active,,2024-04-01,DIR-000762-Anil-Sharma;DIR-000763-Kavya-Singh;DIR-000764-Kavya-Rao,NORMAL
+01EXXPT5576Q1ZE,Everest Tobacco Co & Co,01,Jammu & Kashmir,196489,Tobacco,Active,,2024-04-01,DIR-000765-Meera-Patel,NORMAL
+29YSLCY7384L1Z3,Star Beverages LLP,29,Karnataka,587134,Beverages,Active,,2024-04-01,DIR-000768-Neha-Gupta,NORMAL
+08HBUFU3290Y1ZB,Everest Beverages & Co,08,Rajasthan,486873,Beverages,Active,,2024-04-01,DIR-000771-Meera-Verma,NORMAL
+33HSNPX1034I1ZB,Sunrise Furnishings Pvt Ltd,33,Tamil Nadu,613212,Furniture,Active,,2024-04-01,DIR-000774-Ajay-Singh,NORMAL
+24IIPAI9495X1ZL,Bharat Electronics Pvt Ltd,24,Gujarat,312802,Electronics,Active,,2024-04-01,DIR-000777-Kavya-Verma;DIR-000778-Divya-Kumar;DIR-000779-Divya-Patel,NORMAL
+09UPIFF2315B1Z8,Aryan Foods & Co,09,Uttar Pradesh,267559,Food,Active,,2024-04-01,DIR-000780-Ravi-Gupta;DIR-000781-Seema-Nair;DIR-000782-Seema-Iyer,NORMAL
+24JEDFI3336V1ZL,Crest Furnishings LLP,24,Gujarat,379650,Furniture,CANCELLED,2024-06-22,2024-04-01,DIR-500006-Sanjay-Khan,CIRCULAR_TRADING
+24IFFAM6836K1ZD,Tirupati Motors Enterprises,24,Gujarat,340289,Automotive,Active,,2024-04-01,DIR-000786-Vikram-Rao,NORMAL
+32TISCW9565W1Z1,Everest Steels LLP,32,Kerala,693461,Metals,Active,,2024-04-01,DIR-000789-Anil-Singh;DIR-000790-Kavya-Sharma;DIR-000791-Ajay-Patel,NORMAL
+24RYDPO9947U1ZF,Bharat Electronics LLP,24,Gujarat,397541,Electronics,Active,,2024-04-01,DIR-000792-Rahul-Gupta;DIR-000793-Ajay-Patel,NORMAL
+10VPYCM0016H1Z5,Tirupati Motors Ltd,10,Bihar,209768,Automotive,Active,,2024-04-01,DIR-000795-Rahul-Sharma,NORMAL
+29WTLCZ1329T1ZY,Vertex Motors Pvt Ltd,29,Karnataka,505084,Automotive,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+21ZNDHQ8277O1ZZ,Aryan Foods & Co,21,Odisha,537108,Food,Active,,2024-04-01,DIR-000801-Seema-Nair;DIR-000802-Kavya-Singh,NORMAL
+29RHDCY4766N1Z0,Star Foods Ltd,29,Karnataka,575367,Food,Active,,2024-04-01,DIR-000804-Meera-Sharma,NORMAL
+19SPKCC3795P1ZK,Southern Papers Ltd,19,West Bengal,775433,Stationery,Active,,2024-04-01,DIR-000807-Ravi-Nair,NORMAL
+07IWWFU6340Q1ZS,Southern Textiles LLP,07,Delhi,172463,Textiles,Active,,2024-04-01,DIR-000810-Priya-Verma,NORMAL
+24IWGFS4339Q1ZD,Vedic Steels LLP,24,Gujarat,333082,Metals,Active,,2024-04-01,DIR-000813-Divya-Rao;DIR-000814-Vikram-Kumar;DIR-000815-Neha-Verma,NORMAL
+02YXOAA9475K1ZE,Tirupati Chemicals Corp,02,Himachal Pradesh,694681,Chemicals,Active,,2024-04-01,DIR-000816-Ravi-Verma;DIR-000817-Ajay-Patel;DIR-000818-Meera-Nair,NORMAL
+02MDEAY6265T1ZT,Falcon Industries Enterprises,02,Himachal Pradesh,384315,Machinery,Active,,2024-04-01,DIR-000819-Kavya-Verma;DIR-000820-Priya-Iyer,NORMAL
+37QIRPB0952H1ZL,Sapphire Steels Pvt Ltd,37,Andhra Pradesh,538616,Metals,Active,,2024-04-01,DIR-000822-Divya-Patel,NORMAL
+21MXITT0950U1ZQ,Ocean Papers Enterprises,21,Odisha,687675,Stationery,Active,,2024-04-01,DIR-000825-Ajay-Khan;DIR-000826-Ajay-Iyer,NORMAL
+27ILPFQ2284A1ZV,Moonlight Beverages LLP,27,Maharashtra,416016,Beverages,CANCELLED,2024-05-03,2024-04-01,DIR-000828-Seema-Verma;DIR-000829-Sanjay-Verma;DIR-000830-Seema-Mehta,NORMAL
+19NPCPW5804R1ZY,Zenith Steels Corp,19,West Bengal,750628,Metals,Active,,2024-04-01,DIR-000831-Seema-Iyer,NORMAL
+33HLIPO1047E1Z7,Horizon Beauty Ltd,33,Tamil Nadu,673208,Personal care,Active,,2024-04-01,DIR-000834-Seema-Rao;DIR-000835-Sanjay-Verma;DIR-000836-Priya-Nair,NORMAL
+03FIRFM8852D1Z3,Falcon Industries & Co,03,Punjab,845664,Machinery,Active,,2024-04-01,DIR-000837-Priya-Rao;DIR-000838-Divya-Patel,NORMAL
+05VZKFO5375C1Z3,Moonlight Furnishings Enterprises,05,Uttarakhand,832037,Furniture,Active,,2024-04-01,DIR-000840-Priya-Kumar;DIR-000841-Anil-Gupta,NORMAL
+24MSTCV4309V1ZD,Vedic Furnishings Corp,24,Gujarat,366584,Furniture,Active,,2024-04-01,DIR-000843-Divya-Singh;DIR-000844-Ravi-Nair,NORMAL
+27KKRPO1560C1ZL,Sunrise Chemicals Enterprises,27,Maharashtra,476034,Chemicals,Active,,2024-04-01,DIR-500000-Meera-Kumar,CIRCULAR_TRADING
+21RKNPI5521K1ZN,Aryan Steels Corp,21,Odisha,203140,Metals,Active,,2024-04-01,DIR-000849-Ajay-Nair;DIR-000850-Ravi-Verma;DIR-000851-Meera-Khan,NORMAL
+29BERFQ7124W1ZS,Northern Electronics Pvt Ltd,29,Karnataka,565632,Electronics,Active,,2024-04-01,DIR-000852-Neha-Khan;DIR-000853-Kavya-Rao,NORMAL
+08YQFAL5536D1ZM,Northern Textiles & Co,08,Rajasthan,640996,Textiles,Active,,2024-04-01,DIR-000855-Rahul-Kumar;DIR-000856-Priya-Iyer,NORMAL
+24ZFLPO0184Y1ZO,Everest Steels Enterprises,24,Gujarat,327816,Metals,Active,,2024-04-01,DIR-000858-Rahul-Singh;DIR-000859-Seema-Khan;DIR-000860-Meera-Patel,NORMAL
+27IOCPX3221E1Z2,Sapphire Electronics Corp,27,Maharashtra,452158,Electronics,Active,,2024-04-01,DIR-000861-Ravi-Nair,NORMAL
+19GWNPJ5577C1ZH,Tirupati Papers Enterprises,19,West Bengal,721120,Stationery,Active,,2024-04-01,DIR-000864-Ajay-Verma,NORMAL
+01USUCS4736T1Z5,Aryan Steels Pvt Ltd,01,Jammu & Kashmir,283190,Metals,Active,,2024-04-01,DIR-000867-Anil-Nair;DIR-000868-Rahul-Mehta,NORMAL
+07YRMPE8525O1ZW,Sapphire Beauty Corp,07,Delhi,104738,Personal care,Active,,2024-04-01,DIR-000870-Priya-Patel;DIR-000871-Neha-Rao;DIR-000872-Sanjay-Patel,NORMAL
+29FJXCW6381V1ZS,Falcon Foods Pvt Ltd,29,Karnataka,577144,Food,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+27FZTPB2287W1Z9,Sapphire Beverages Pvt Ltd,27,Maharashtra,418744,Beverages,Active,,2024-04-01,DIR-000876-Ravi-Khan;DIR-000877-Seema-Patel;DIR-000878-Neha-Iyer,NORMAL
+21EHLCT6911H1Z7,Vertex Electronics Ltd,21,Odisha,504853,Electronics,Active,,2024-04-01,DIR-000879-Rahul-Nair;DIR-000880-Meera-Kumar,NORMAL
+21SXUPK9584S1Z2,Horizon Papers Ltd,21,Odisha,654254,Stationery,Active,,2024-04-01,DIR-000882-Vikram-Singh;DIR-000883-Sanjay-Singh,NORMAL
+07DSCPY6102S1ZW,Moonlight Electronics Corp,07,Delhi,119833,Electronics,Active,,2024-04-01,DIR-000885-Neha-Sharma;DIR-000886-Ajay-Reddy;DIR-000887-Sanjay-Rao,NORMAL
+36DKPTK4334J1ZW,Crest Chemicals & Co,36,Telangana,503903,Chemicals,Active,,2024-04-01,DIR-000888-Divya-Mehta,NORMAL
+27GXYTY7474K1ZU,Northern Textiles Enterprises,27,Maharashtra,481864,Textiles,Active,,2024-04-01,DIR-000891-Kavya-Kumar;DIR-000892-Vikram-Khan,NORMAL
+23GBUFG4332H1ZN,Emerald Industries Corp,23,Madhya Pradesh,878006,Machinery,Active,,2024-04-01,DIR-000894-Rahul-Sharma;DIR-000895-Meera-Mehta,NORMAL
+06VFCCC1036N1ZW,Horizon Chemicals Pvt Ltd,06,Haryana,110460,Chemicals,Active,,2024-04-01,DIR-000897-Meera-Iyer,NORMAL
+29BTTPB2495A1Z6,Horizon Chemicals Corp,29,Karnataka,571306,Chemicals,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+33BMZFL8815U1Z4,Sapphire Furnishings & Co,33,Tamil Nadu,687708,Furniture,Active,,2024-04-01,DIR-000903-Seema-Kumar;DIR-000904-Rahul-Rao,NORMAL
+20TKGAU1108Z1ZB,Northern Motors & Co,20,Jharkhand,263252,Automotive,Active,,2024-04-01,DIR-000906-Vikram-Verma,NORMAL
+19AGRCV7151U1ZS,Falcon Beauty Pvt Ltd,19,West Bengal,750051,Personal care,Active,,2024-04-01,DIR-000909-Anil-Nair;DIR-000910-Vikram-Mehta,NORMAL
+27TLOPX7388B1Z7,Vedic Chemicals Pvt Ltd,27,Maharashtra,470410,Chemicals,Active,,2024-04-01,DIR-000912-Meera-Kumar;DIR-000913-Sanjay-Mehta;DIR-000914-Seema-Reddy,NORMAL
+03VEJFL4083W1ZO,Sunrise Electronics Pvt Ltd,03,Punjab,217822,Electronics,Active,,2024-04-01,DIR-000915-Vikram-Mehta;DIR-000916-Kavya-Sharma,NORMAL
+10FVUPK3444G1ZM,Moonlight Foods & Co,10,Bihar,241646,Food,Active,,2024-04-01,DIR-000918-Ajay-Verma;DIR-000919-Anil-Gupta;DIR-000920-Ajay-Verma,NORMAL
+19BYZPM1951U1ZN,Crest Chemicals Enterprises,19,West Bengal,769530,Chemicals,Active,,2024-04-01,DIR-000921-Sanjay-Patel;DIR-000922-Kavya-Singh,NORMAL
+06BIECC7838F1ZC,Sunrise Motors LLP,06,Haryana,116769,Automotive,Active,,2024-04-01,DIR-000924-Kavya-Singh;DIR-000925-Neha-Nair;DIR-000926-Seema-Kumar,NORMAL
+08YJWAF6940R1ZV,Southern Papers Pvt Ltd,08,Rajasthan,350530,Stationery,Active,,2024-04-01,DIR-000927-Divya-Rao,NORMAL
+37PMOFM0504C1ZQ,Vertex Electronics Pvt Ltd,37,Andhra Pradesh,545085,Electronics,Active,,2024-04-01,DIR-000930-Neha-Nair;DIR-000931-Vikram-Verma,NORMAL
+06YHWFA1201B1Z5,Everest Steels Corp,06,Haryana,175051,Metals,CANCELLED,2024-04-01,2024-04-01,DIR-000933-Priya-Singh,NORMAL
+03BQYCR0303Y1ZI,Southern Chemicals Ltd,03,Punjab,411512,Chemicals,Active,,2024-04-01,DIR-000936-Neha-Iyer,NORMAL
+09HQCFU1982D1Z2,Aryan Tobacco Co Ltd,09,Uttar Pradesh,265971,Tobacco,Active,,2024-04-01,DIR-000939-Sanjay-Rao;DIR-000940-Kavya-Rao,NORMAL
+32ZAFCR3321D1Z3,Horizon Tobacco Co Corp,32,Kerala,666720,Tobacco,Active,,2024-04-01,DIR-000942-Ajay-Rao;DIR-000943-Ravi-Iyer,NORMAL
+07JMWPF3419J1ZE,Bharat Furnishings Ltd,07,Delhi,103068,Furniture,Active,,2024-04-01,DIR-000945-Divya-Nair;DIR-000946-Rahul-Khan,NORMAL
+27WLJPE9897E1Z0,Moonlight Industries Ltd,27,Maharashtra,472495,Machinery,Active,,2024-04-01,DIR-000948-Ravi-Singh;DIR-000949-Divya-Gupta,NORMAL
+06NMBPJ7434T1ZZ,Horizon Papers Ltd,06,Haryana,193031,Stationery,CANCELLED,2024-06-01,2024-04-01,DIR-000951-Anil-Rao;DIR-000952-Ajay-Rao,NORMAL
+24VOXCL3097J1ZP,Tirupati Steels & Co,24,Gujarat,355331,Metals,Active,,2024-04-01,DIR-000954-Anil-Singh;DIR-000955-Divya-Patel,NORMAL
+27IFNAJ8479T1ZM,Falcon Electronics Ltd,27,Maharashtra,494405,Electronics,Active,,2024-04-01,DIR-000957-Neha-Gupta;DIR-000958-Priya-Nair,NORMAL
+07QYOAX8556C1ZK,Ocean Chemicals Ltd,07,Delhi,173941,Chemicals,Active,,2024-04-01,DIR-000960-Seema-Iyer;DIR-000961-Anil-Rao;DIR-000962-Sanjay-Gupta,NORMAL
+27NFBAZ5557O1ZH,Emerald Furnishings Corp,27,Maharashtra,470059,Furniture,Active,,2024-04-01,DIR-000963-Sanjay-Reddy,NORMAL
+27SVUCQ0632R1ZG,Crest Chemicals & Co,27,Maharashtra,462226,Chemicals,Active,,2024-04-01,DIR-500001-Neha-Sharma,CIRCULAR_TRADING
+19AIIPR4562N1Z2,Zenith Textiles Corp,19,West Bengal,772617,Textiles,Active,,2024-04-01,DIR-000969-Seema-Rao;DIR-000970-Priya-Singh;DIR-000971-Ajay-Iyer,NORMAL
+37HXAFK9844M1Z0,Horizon Electronics Enterprises,37,Andhra Pradesh,589521,Electronics,Active,,2024-04-01,DIR-000972-Sanjay-Iyer,NORMAL
+06PEHCB6477M1ZJ,Crest Electronics LLP,06,Haryana,168626,Electronics,Active,,2024-04-01,DIR-000975-Anil-Reddy;DIR-000976-Vikram-Singh,NORMAL
+32HEZPL8884I1ZY,Zenith Steels & Co,32,Kerala,697274,Metals,Active,,2024-04-01,DIR-000978-Divya-Iyer,NORMAL
+19YHRPI8058E1ZU,Northern Electronics Enterprises,19,West Bengal,718245,Electronics,Active,,2024-04-01,DIR-000981-Rahul-Gupta;DIR-000982-Anil-Reddy;DIR-000983-Neha-Iyer,NORMAL
+27EGXFF3522S1Z1,Crest Foods & Co,27,Maharashtra,465336,Food,Active,,2024-04-01,DIR-000984-Ajay-Verma;DIR-000985-Seema-Mehta,NORMAL
+24TBUFR4129T1ZN,Moonlight Chemicals Corp,24,Gujarat,377002,Chemicals,Active,,2024-04-01,DIR-500006-Sanjay-Khan,CIRCULAR_TRADING
+20FYFCK2850K1ZL,Bharat Foods Ltd,20,Jharkhand,895917,Food,Active,,2024-04-01,DIR-000990-Seema-Gupta;DIR-000991-Neha-Rao,NORMAL
+20CVWPL6629I1Z3,Moonlight Motors & Co,20,Jharkhand,113722,Automotive,Active,,2024-04-01,DIR-000993-Sanjay-Singh;DIR-000994-Rahul-Iyer;DIR-000995-Seema-Sharma,NORMAL
+27CYFCE3784B1ZW,Vertex Industries LLP,27,Maharashtra,464481,Machinery,Active,,2024-04-01,DIR-500000-Meera-Kumar,CIRCULAR_TRADING
+09ITGPN4144H1Z1,Moonlight Steels & Co,09,Uttar Pradesh,238176,Metals,Active,,2024-04-01,DIR-000999-Seema-Verma;DIR-001000-Kavya-Iyer,NORMAL
+32TGHAZ3860G1ZC,Northern Foods Enterprises,32,Kerala,695141,Food,Active,,2024-04-01,DIR-001002-Ravi-Khan;DIR-001003-Rahul-Sharma;DIR-001004-Vikram-Nair,NORMAL
+07XZCPU7187A1ZR,Star Motors Pvt Ltd,07,Delhi,119285,Automotive,Active,,2024-04-01,DIR-001005-Divya-Mehta;DIR-001006-Divya-Sharma;DIR-001007-Seema-Reddy,NORMAL
+20FVPPI0279Z1Z9,Bharat Papers Corp,20,Jharkhand,696828,Stationery,Active,,2024-04-01,DIR-001008-Ravi-Reddy;DIR-001009-Kavya-Sharma,NORMAL
+29QDHFP8954R1Z6,Zenith Electronics Enterprises,29,Karnataka,505144,Electronics,Active,,2024-04-01,DIR-001011-Neha-Nair;DIR-001012-Vikram-Verma,NORMAL
+37NSHFD4530W1Z3,Everest Electronics & Co,37,Andhra Pradesh,501602,Electronics,CANCELLED,2024-04-17,2024-04-01,DIR-001014-Meera-Verma,NORMAL
+37QBGPH4892W1ZI,Star Chemicals Corp,37,Andhra Pradesh,536055,Chemicals,Active,,2024-04-01,DIR-001017-Meera-Rao;DIR-001018-Seema-Patel,NORMAL
+20ZISPW7415A1ZB,Northern Electronics Pvt Ltd,20,Jharkhand,210974,Electronics,Active,,2024-04-01,DIR-001020-Rahul-Khan,NORMAL
+32ALRCI7037A1ZS,Emerald Motors Pvt Ltd,32,Kerala,615739,Automotive,Active,,2024-04-01,DIR-001023-Rahul-Singh;DIR-001024-Ravi-Reddy;DIR-001025-Ajay-Verma,NORMAL
+02SMOTU9202K1ZU,Tirupati Motors Corp,02,Himachal Pradesh,113332,Automotive,Active,,2024-04-01,DIR-001026-Anil-Reddy;DIR-001027-Meera-Mehta;DIR-001028-Kavya-Rao,NORMAL
+07PPQFJ0579X1ZT,Sapphire Foods Corp,07,Delhi,103489,Food,CANCELLED,2024-05-11,2024-04-01,DIR-001029-Divya-Gupta;DIR-001030-Sanjay-Gupta;DIR-001031-Rahul-Rao,NORMAL
+06QQNPQ3435K1ZX,Crest Beauty & Co,06,Haryana,121074,Personal care,Active,,2024-04-01,DIR-001032-Kavya-Reddy;DIR-001033-Ajay-Iyer,NORMAL
+33HQIAA4588Z1Z6,Star Electronics Pvt Ltd,33,Tamil Nadu,681127,Electronics,Active,,2024-04-01,DIR-001035-Divya-Rao,NORMAL
+27ZBEPJ2927Q1Z4,Sapphire Foods Enterprises,27,Maharashtra,460685,Food,Active,,2024-04-01,DIR-001038-Ajay-Singh,NORMAL
+33AFBCU2449Z1Z9,Aryan Electronics LLP,33,Tamil Nadu,695158,Electronics,Active,,2024-04-01,DIR-001041-Vikram-Kumar,NORMAL
+27CWTTO3982Y1ZG,Bharat Beauty Enterprises,27,Maharashtra,410923,Personal care,Active,,2024-04-01,DIR-001044-Meera-Iyer;DIR-001045-Vikram-Rao,NORMAL
+22BVLFI0029X1Z8,Zenith Textiles Enterprises,22,Chhattisgarh,381851,Textiles,Active,,2024-04-01,DIR-001047-Meera-Kumar,NORMAL
+37LNWPD8556O1ZX,Zenith Motors Enterprises,37,Andhra Pradesh,591259,Automotive,Active,,2024-04-01,DIR-001050-Sanjay-Sharma,NORMAL
+07MFNPZ3855P1ZI,Tirupati Motors Enterprises,07,Delhi,116604,Automotive,Active,,2024-04-01,DIR-001053-Vikram-Rao;DIR-001054-Ravi-Gupta;DIR-001055-Neha-Mehta,NORMAL
+23BFRHV1601S1ZT,Sunrise Tobacco Co & Co,23,Madhya Pradesh,893213,Tobacco,Active,,2024-04-01,DIR-001056-Rahul-Rao,NORMAL
+32QGHPL7478U1Z4,Bharat Motors Corp,32,Kerala,658157,Automotive,CANCELLED,2024-04-01,2024-04-01,DIR-001059-Ajay-Sharma,NORMAL
+32IZOPP6207G1Z6,Everest Chemicals Ltd,32,Kerala,658242,Chemicals,Active,,2024-04-01,DIR-001062-Divya-Gupta,NORMAL
+06ATKCB0349U1ZR,Star Chemicals LLP,06,Haryana,136707,Chemicals,CANCELLED,2024-06-01,2024-04-01,DIR-001065-Ajay-Gupta,NORMAL
+20SHHFF6392P1Z8,Moonlight Furnishings Pvt Ltd,20,Jharkhand,294196,Furniture,Active,,2024-04-01,DIR-001068-Priya-Singh,NORMAL
+21MTEAM1174E1ZL,Vertex Papers LLP,21,Odisha,423094,Stationery,Active,,2024-04-01,DIR-001071-Meera-Khan,NORMAL
+01XOECC1805A1ZM,Vertex Furnishings Corp,01,Jammu & Kashmir,735398,Furniture,Active,,2024-04-01,DIR-001074-Ajay-Mehta,NORMAL
+33YDPCL7987F1ZS,Tirupati Furnishings Ltd,33,Tamil Nadu,605466,Furniture,Active,,2024-04-01,DIR-001077-Anil-Reddy;DIR-001078-Priya-Iyer;DIR-001079-Meera-Gupta,NORMAL
+08MWTPR2047N1ZK,Vertex Chemicals LLP,08,Rajasthan,187324,Chemicals,Active,,2024-04-01,DIR-001080-Kavya-Rao;DIR-001081-Ajay-Kumar,NORMAL
+33JFYPO1264S1ZY,Bharat Beverages Pvt Ltd,33,Tamil Nadu,679418,Beverages,Active,,2024-04-01,DIR-001083-Divya-Patel;DIR-001084-Ravi-Nair,NORMAL
+21QAAPN9825H1Z1,Ocean Textiles Enterprises,21,Odisha,533669,Textiles,Active,,2024-04-01,DIR-001086-Neha-Nair;DIR-001087-Seema-Patel;DIR-001088-Kavya-Mehta,NORMAL
+37OJAFH3418L1ZG,Vedic Papers Ltd,37,Andhra Pradesh,520921,Stationery,Active,,2024-04-01,DIR-001089-Kavya-Reddy;DIR-001090-Kavya-Gupta;DIR-001091-Priya-Nair,NORMAL
+37LOYPH8066A1Z7,Zenith Foods Ltd,37,Andhra Pradesh,527346,Food,Active,,2024-04-01,DIR-001092-Rahul-Kumar,NORMAL
+09EZXPG8719Y1ZG,Moonlight Electronics LLP,09,Uttar Pradesh,284643,Electronics,Active,,2024-04-01,DIR-500004-Seema-Verma,CIRCULAR_TRADING
+36BHAPV4342D1ZP,Zenith Textiles Corp,36,Telangana,592248,Textiles,Active,,2024-04-01,DIR-001098-Divya-Verma,NORMAL
+07CXTPC3810C1ZB,Zenith Motors Ltd,07,Delhi,195930,Automotive,Active,,2024-04-01,DIR-001101-Kavya-Verma;DIR-001102-Divya-Sharma,NORMAL
+29JJCFK7469E1ZB,Sunrise Foods Corp,29,Karnataka,503640,Food,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+24WOZPN6244M1Z3,Horizon Foods Corp,24,Gujarat,379422,Food,Active,,2024-04-01,DIR-001107-Ravi-Nair,NORMAL
+10HGGPV9580G1Z0,Bharat Foods Enterprises,10,Bihar,277482,Food,Active,,2024-04-01,DIR-001110-Meera-Khan;DIR-001111-Neha-Mehta,NORMAL
+21RLSPG4055F1ZM,Horizon Industries & Co,21,Odisha,250737,Machinery,CANCELLED,2024-04-01,2024-04-01,DIR-001113-Divya-Iyer;DIR-001114-Neha-Gupta,NORMAL
+23FPKCL4680G1ZH,Sunrise Chemicals Corp,23,Madhya Pradesh,589111,Chemicals,Active,,2024-04-01,DIR-001116-Sanjay-Reddy,NORMAL
+21RJIPF4131T1Z4,Everest Papers Ltd,21,Odisha,302404,Stationery,Active,,2024-04-01,DIR-001119-Vikram-Reddy;DIR-001120-Meera-Mehta,NORMAL
+36GGEAV4074A1ZP,Crest Motors Pvt Ltd,36,Telangana,531319,Automotive,Active,,2024-04-01,DIR-001122-Priya-Kumar;DIR-001123-Priya-Iyer,NORMAL
+32OAHTX3574U1ZW,Bharat Textiles Ltd,32,Kerala,688553,Textiles,Active,,2024-04-01,DIR-001125-Vikram-Nair;DIR-001126-Sanjay-Iyer;DIR-001127-Ravi-Khan,NORMAL
+27GUTPJ9684R1ZR,Moonlight Electronics Ltd,27,Maharashtra,421432,Electronics,Active,,2024-04-01,DIR-500000-Meera-Kumar,CIRCULAR_TRADING
+24PCOHT5588D1Z3,Crest Foods Ltd,24,Gujarat,304974,Food,Active,,2024-04-01,DIR-001131-Divya-Verma;DIR-001132-Ravi-Iyer,NORMAL
+29GXHCM2055Y1ZV,Star Industries Enterprises,29,Karnataka,513710,Machinery,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+07EFJAD2144O1ZE,Crest Textiles Ltd,07,Delhi,199889,Textiles,Active,,2024-04-01,DIR-001137-Rahul-Patel;DIR-001138-Ravi-Reddy,NORMAL
+20VAHAQ3891A1Z1,Falcon Beverages Enterprises,20,Jharkhand,122474,Beverages,Active,,2024-04-01,DIR-001140-Kavya-Iyer;DIR-001141-Meera-Iyer;DIR-001142-Ravi-Rao,NORMAL
+07YCCPM6832X1Z7,Moonlight Beverages Enterprises,07,Delhi,178776,Beverages,Active,,2024-04-01,DIR-001143-Priya-Rao;DIR-001144-Ajay-Mehta;DIR-001145-Priya-Nair,NORMAL
+24MDOPW6181S1Z0,Tirupati Steels Ltd,24,Gujarat,339256,Metals,Active,,2024-04-01,DIR-001146-Priya-Iyer;DIR-001147-Divya-Khan,NORMAL
+37JZPPN6153A1ZC,Southern Tobacco Co Ltd,37,Andhra Pradesh,578164,Tobacco,Active,,2024-04-01,DIR-001149-Meera-Rao;DIR-001150-Divya-Sharma,NORMAL
+02COGAI8872L1ZU,Tirupati Beauty Ltd,02,Himachal Pradesh,226503,Personal care,Active,,2024-04-01,DIR-001152-Meera-Patel;DIR-001153-Vikram-Singh,NORMAL
+09VCZPZ0709Y1Z6,Zenith Foods LLP,09,Uttar Pradesh,258255,Food,Active,,2024-04-01,DIR-001155-Rahul-Patel;DIR-001156-Neha-Nair,NORMAL
+33QEAFX3539Y1Z5,Falcon Steels Ltd,33,Tamil Nadu,623930,Metals,Active,,2024-04-01,DIR-001158-Neha-Singh;DIR-001159-Sanjay-Nair,NORMAL
+09UMCCE1730P1ZG,Tirupati Industries Pvt Ltd,09,Uttar Pradesh,299752,Machinery,Active,,2024-04-01,DIR-001161-Divya-Kumar;DIR-001162-Seema-Singh;DIR-001163-Divya-Nair,NORMAL
+24QMICD8035F1ZL,Southern Textiles Enterprises,24,Gujarat,353289,Textiles,Active,,2024-04-01,DIR-001164-Kavya-Khan;DIR-001165-Ravi-Khan;DIR-001166-Priya-Khan,NORMAL
+10RQSCC3936B1ZS,Vertex Papers Enterprises,10,Bihar,212268,Stationery,Active,,2024-04-01,DIR-001167-Priya-Iyer;DIR-001168-Anil-Sharma,NORMAL
+06PCTCE3022Q1ZC,Sunrise Furnishings Corp,06,Haryana,134711,Furniture,Active,,2024-04-01,DIR-001170-Meera-Kumar;DIR-001171-Divya-Khan,NORMAL
+33RYKPQ8829W1ZU,Horizon Electronics Corp,33,Tamil Nadu,614987,Electronics,Active,,2024-04-01,DIR-001173-Meera-Nair;DIR-001174-Ajay-Verma;DIR-001175-Vikram-Verma,NORMAL
+24NGWFQ7715P1ZQ,Ocean Furnishings LLP,24,Gujarat,385164,Furniture,Active,,2024-04-01,DIR-500006-Sanjay-Khan,CIRCULAR_TRADING
+19SYIAK8503D1ZO,Aryan Electronics Corp,19,West Bengal,753382,Electronics,Active,,2024-04-01,DIR-001179-Seema-Khan;DIR-001180-Neha-Mehta,NORMAL
+09NBRFH7557O1ZK,Falcon Electronics Enterprises,09,Uttar Pradesh,207154,Electronics,Active,,2024-04-01,DIR-001182-Meera-Singh;DIR-001183-Priya-Singh;DIR-001184-Ravi-Patel,NORMAL
+27IPDFL4445Y1ZY,Aryan Chemicals LLP,27,Maharashtra,480624,Chemicals,Active,,2024-04-01,DIR-001185-Rahul-Singh,NORMAL
+08EGIFP7169F1ZC,Crest Beauty & Co,08,Rajasthan,283364,Personal care,Active,,2024-04-01,DIR-001188-Neha-Nair;DIR-001189-Priya-Singh;DIR-001190-Meera-Iyer,NORMAL
+29EYQCT9955B1ZZ,Vertex Chemicals & Co,29,Karnataka,537649,Chemicals,Active,,2024-04-01,DIR-500007-Anil-Nair,CIRCULAR_TRADING
+08DDEAU1390Y1ZJ,Everest Steels & Co,08,Rajasthan,616118,Metals,Active,,2024-04-01,DIR-001194-Ravi-Kumar;DIR-001195-Seema-Mehta;DIR-001196-Seema-Mehta,NORMAL
+23SLICQ3601Q1ZL,Sapphire Chemicals LLP,23,Madhya Pradesh,573683,Chemicals,Active,,2024-04-01,DIR-001197-Vikram-Kumar;DIR-001198-Vikram-Kumar,NORMAL
+33QLQFO4446O1ZZ,Ocean Steels LLP,33,Tamil Nadu,603985,Metals,Active,,2024-04-01,DIR-001200-Anil-Mehta,NORMAL
+36FJIPN3220I1ZI,Zenith Industries Pvt Ltd,36,Telangana,531018,Machinery,Active,,2024-04-01,DIR-001203-Rahul-Mehta;DIR-001204-Neha-Rao;DIR-001205-Neha-Kumar,NORMAL
+27YIDTJ3324U1ZA,Northern Motors Enterprises,27,Maharashtra,476824,Automotive,Active,,2024-04-01,DIR-001206-Kavya-Reddy;DIR-001207-Anil-Rao,NORMAL
+19TDTAE0415L1ZV,Vertex Electronics LLP,19,West Bengal,737398,Electronics,Active,,2024-04-01,DIR-001209-Divya-Sharma;DIR-001210-Ravi-Verma;DIR-001211-Rahul-Khan,NORMAL
+32ABUTF0578B1ZC,Everest Steels Enterprises,32,Kerala,610191,Metals,Active,,2024-04-01,DIR-001212-Anil-Nair;DIR-001213-Divya-Sharma,NORMAL
+07ZIVPW7147T1ZI,Horizon Textiles Enterprises,07,Delhi,192121,Textiles,Active,,2024-04-01,DIR-001215-Ajay-Rao;DIR-001216-Vikram-Patel;DIR-001217-Sanjay-Iyer,NORMAL
+27VQTFY6237S1ZP,Horizon Foods Enterprises,27,Maharashtra,434081,Food,Active,,2024-04-01,DIR-500003-Priya-Iyer,CIRCULAR_TRADING
+10LGFCO1727O1Z8,Southern Foods Ltd,10,Bihar,289216,Food,Active,,2024-04-01,DIR-001221-Priya-Patel,NORMAL
+09FZLFK1100L1ZI,Bharat Chemicals & Co,09,Uttar Pradesh,220643,Chemicals,Active,,2024-04-01,DIR-001224-Vikram-Gupta;DIR-001225-Seema-Singh;DIR-001226-Sanjay-Singh,NORMAL
+10VFZCW2429D1ZG,Emerald Foods Ltd,10,Bihar,248620,Food,Active,,2024-04-01,DIR-001227-Seema-Singh,NORMAL
+05NCICH8053T1ZK,Zenith Electronics Enterprises,05,Uttarakhand,658829,Electronics,Active,,2024-04-01,DIR-001230-Divya-Rao;DIR-001231-Anil-Rao,NORMAL
+02WFUPF9889W1Z6,Falcon Chemicals Pvt Ltd,02,Himachal Pradesh,504924,Chemicals,Active,,2024-04-01,DIR-001233-Meera-Rao,NORMAL
+24SYLCJ1494G1ZG,Emerald Textiles Ltd,24,Gujarat,355320,Textiles,Active,,2024-04-01,DIR-001236-Neha-Singh,NORMAL
+33QUSFV3947A1ZB,Emerald Textiles Enterprises,33,Tamil Nadu,684624,Textiles,Active,,2024-04-01,DIR-001239-Ajay-Mehta,NORMAL
+06WKQPD7060C1ZV,Bharat Papers & Co,06,Haryana,144754,Stationery,Active,,2024-04-01,DIR-001242-Sanjay-Rao,NORMAL
+37LIWHC9816B1ZM,Vedic Papers Corp,37,Andhra Pradesh,512014,Stationery,Active,,2024-04-01,DIR-001245-Priya-Mehta;DIR-001246-Priya-Iyer;DIR-001247-Ravi-Reddy,NORMAL
+19KRKPC3442K1Z7,Sapphire Electronics & Co,19,West Bengal,703948,Electronics,Active,,2024-04-01,DIR-001248-Priya-Nair,NORMAL
+07VMWPU6925P1ZJ,Bharat Motors & Co,07,Delhi,177548,Automotive,Active,,2024-04-01,DIR-001251-Priya-Mehta;DIR-001252-Seema-Patel;DIR-001253-Seema-Verma,NORMAL
+37UJCFM6785O1ZC,Everest Motors Pvt Ltd,37,Andhra Pradesh,582044,Automotive,Active,,2024-04-01,DIR-001254-Vikram-Rao,NORMAL
+24QGOCJ3091N1Z1,Ocean Papers LLP,24,Gujarat,374603,Stationery,Active,,2024-04-01,DIR-001257-Ravi-Nair;DIR-001258-Ajay-Rao;DIR-001259-Ajay-Nair,NORMAL
+09EUGAF5214R1ZV,Everest Electronics Enterprises,09,Uttar Pradesh,214029,Electronics,Active,,2024-04-01,DIR-001260-Vikram-Khan,NORMAL
+07SQRCJ0692I1ZC,Everest Foods Ltd,07,Delhi,154131,Food,Active,,2024-04-01,DIR-001263-Priya-Khan;DIR-001264-Priya-Rao,NORMAL
+33TKZFH3057W1ZP,Vedic Beauty Ltd,33,Tamil Nadu,626571,Personal care,Active,,2024-04-01,DIR-001266-Rahul-Kumar;DIR-001267-Ravi-Nair;DIR-001268-Anil-Singh,NORMAL
+27TDTFF2214L1ZS,Crest Textiles Corp,27,Maharashtra,434010,Textiles,Active,,2024-04-01,DIR-500001-Neha-Sharma,CIRCULAR_TRADING
+23DRQPW6925K1ZS,Star Textiles Ltd,23,Madhya Pradesh,380629,Textiles,Active,,2024-04-01,DIR-001272-Priya-Nair;DIR-001273-Meera-Gupta;DIR-001274-Sanjay-Singh,NORMAL
+24RKZPF1933J1ZV,Horizon Foods & Co,24,Gujarat,317783,Food,Active,,2024-04-01,DIR-001275-Rahul-Mehta,NORMAL
+09GVXTS3731V1Z9,Everest Textiles Ltd,09,Uttar Pradesh,215264,Textiles,Active,,2024-04-01,DIR-001278-Kavya-Reddy;DIR-001279-Meera-Kumar,NORMAL
+03VDCFQ4794U1ZF,Sapphire Foods LLP,03,Punjab,807698,Food,Active,,2024-04-01,DIR-001281-Meera-Sharma,NORMAL
+33VENPI3657L1Z1,Zenith Papers Corp,33,Tamil Nadu,651850,Stationery,Active,,2024-04-01,DIR-001284-Anil-Verma;DIR-001285-Kavya-Mehta;DIR-001286-Ajay-Sharma,NORMAL
+09EHCTW9992L1ZI,Everest Furnishings Corp,09,Uttar Pradesh,279534,Furniture,Active,,2024-04-01,DIR-001287-Priya-Verma,NORMAL
+33EBMPX5765A1ZL,Moonlight Electronics & Co,33,Tamil Nadu,678594,Electronics,Active,,2024-04-01,DIR-001290-Seema-Iyer,NORMAL
+29UJRPU0322T1ZC,Zenith Industries Enterprises,29,Karnataka,521875,Machinery,Active,,2024-04-01,DIR-001293-Priya-Rao,NORMAL
+32XZCPB5855D1ZL,Falcon Papers Enterprises,32,Kerala,686583,Stationery,Active,,2024-04-01,DIR-001296-Kavya-Mehta;DIR-001297-Seema-Reddy,NORMAL
+27QYDPQ2629I1ZX,Northern Furnishings Enterprises,27,Maharashtra,428741,Furniture,Active,,2024-04-01,DIR-001299-Anil-Verma;DIR-001300-Vikram-Gupta;DIR-001301-Sanjay-Patel,NORMAL
+06QOHCW0207S1ZB,Horizon Chemicals Ltd,06,Haryana,198781,Chemicals,Active,,2024-04-01,DIR-001302-Ravi-Verma;DIR-001303-Sanjay-Gupta;DIR-001304-Rahul-Rao,NORMAL
+27LASPQ0513O1ZB,Aryan Chemicals Enterprises,27,Maharashtra,454632,Chemicals,Active,,2024-04-01,DIR-001305-Neha-Reddy,NORMAL
+29LGDFP0871A1ZG,Vertex Steels Enterprises,29,Karnataka,543022,Metals,Active,,2024-04-01,DIR-500002-Rahul-Singh,CIRCULAR_TRADING
+09PQVPI8486D1ZR,Southern Motors Pvt Ltd,09,Uttar Pradesh,271705,Automotive,Active,,2024-04-01,DIR-001311-Seema-Patel;DIR-001312-Kavya-Iyer,NORMAL
+36APRPI1751V1ZO,Sunrise Textiles Pvt Ltd,36,Telangana,534017,Textiles,Active,,2024-04-01,DIR-001314-Meera-Reddy,NORMAL
+33BZIFK9256S1ZY,Emerald Furnishings Enterprises,33,Tamil Nadu,656816,Furniture,Active,,2024-04-01,DIR-001317-Kavya-Singh;DIR-001318-Meera-Singh,NORMAL
+23FMFHE9077M1ZT,Sunrise Textiles & Co,23,Madhya Pradesh,186862,Textiles,Active,,2024-04-01,DIR-001320-Seema-Sharma;DIR-001321-Neha-Mehta;DIR-001322-Neha-Verma,NORMAL
+23BBCPD8722U1Z6,Bharat Foods LLP,23,Madhya Pradesh,496783,Food,Active,,2024-04-01,DIR-001323-Meera-Nair;DIR-001324-Vikram-Singh,NORMAL
+36BVIPH1990A1ZG,Ocean Industries Pvt Ltd,36,Telangana,537569,Machinery,Active,,2024-04-01,DIR-001326-Kavya-Sharma;DIR-001327-Priya-Patel;DIR-001328-Sanjay-Singh,NORMAL
+36NTNAZ6471B1Z1,Moonlight Industries Pvt Ltd,36,Telangana,518982,Machinery,Active,,2024-04-01,DIR-001329-Neha-Sharma,NORMAL
+10ZTHPS5743S1ZC,Star Beverages Enterprises,10,Bihar,259838,Beverages,Active,,2024-04-01,DIR-001332-Priya-Patel;DIR-001333-Sanjay-Singh;DIR-001334-Kavya-Rao,NORMAL
+19XAUAQ3800H1Z3,Southern Chemicals & Co,19,West Bengal,754995,Chemicals,Active,,2024-04-01,DIR-001335-Rahul-Singh;DIR-001336-Priya-Singh;DIR-001337-Sanjay-Rao,NORMAL
+36EMSPJ5257I1ZM,Everest Steels Pvt Ltd,36,Telangana,539806,Metals,Active,,2024-04-01,DIR-001338-Ajay-Verma;DIR-001339-Ravi-Rao;DIR-001340-Ravi-Sharma,NORMAL
+08CUGFP7333F1ZI,Zenith Textiles Ltd,08,Rajasthan,575139,Textiles,Active,,2024-04-01,DIR-001341-Vikram-Gupta,NORMAL
+09RSJPK6602X1ZZ,Southern Industries & Co,09,Uttar Pradesh,225986,Machinery,Active,,2024-04-01,DIR-001344-Seema-Patel;DIR-001345-Meera-Gupta,NORMAL
+09FAQAO6915R1ZS,Vedic Motors Corp,09,Uttar Pradesh,220976,Automotive,Active,,2024-04-01,DIR-001347-Ravi-Iyer;DIR-001348-Anil-Reddy,NORMAL
+03SEHPX8316X1ZR,Ocean Chemicals Corp,03,Punjab,383739,Chemicals,Active,,2024-04-01,DIR-001350-Rahul-Singh;DIR-001351-Priya-Rao,NORMAL
+37LELAE4063K1ZS,Star Textiles Corp,37,Andhra Pradesh,504581,Textiles,Active,,2024-04-01,DIR-001353-Kavya-Reddy;DIR-001354-Divya-Sharma;DIR-001355-Priya-Reddy,NORMAL
+27YFVPW6531S1ZQ,Sapphire Tobacco Co Pvt Ltd,27,Maharashtra,492575,Tobacco,Active,,2024-04-01,DIR-001356-Divya-Khan,NORMAL
+29XLFPV8033Y1ZH,Everest Electronics Enterprises,29,Karnataka,575834,Electronics,Active,,2024-04-01,DIR-001359-Neha-Khan;DIR-001360-Seema-Reddy;DIR-001361-Vikram-Mehta,NORMAL
+27CVYTO3745O1ZJ,Ocean Steels Ltd,27,Maharashtra,451204,Metals,Active,,2024-04-01,DIR-001362-Ajay-Nair;DIR-001363-Vikram-Kumar;DIR-001364-Kavya-Mehta,NORMAL
+09OHWFZ0401X1ZI,Aryan Chemicals Corp,09,Uttar Pradesh,220288,Chemicals,Active,,2024-04-01,DIR-001365-Ajay-Verma;DIR-001366-Meera-Patel;DIR-001367-Seema-Nair,NORMAL
+23NWMAB5610H1ZH,Zenith Electronics Ltd,23,Madhya Pradesh,347428,Electronics,Active,,2024-04-01,DIR-001368-Sanjay-Iyer;DIR-001369-Seema-Gupta;DIR-001370-Kavya-Rao,NORMAL
+07ELPAS6961U1ZF,Ocean Foods Enterprises,07,Delhi,163867,Food,Active,,2024-04-01,DIR-001371-Vikram-Sharma;DIR-001372-Meera-Rao,NORMAL
+10LEWPU2802S1ZR,Zenith Motors Enterprises,10,Bihar,228388,Automotive,Active,,2024-04-01,DIR-001374-Rahul-Reddy;DIR-001375-Sanjay-Rao;DIR-001376-Priya-Gupta,NORMAL
+19QFMTH2761C1ZS,Moonlight Foods & Co,19,West Bengal,710475,Food,Active,,2024-04-01,DIR-001377-Rahul-Patel;DIR-001378-Divya-Patel;DIR-001379-Meera-Patel,NORMAL
+29EQNFB0474O1ZH,Vedic Foods Ltd,29,Karnataka,527544,Food,Active,,2024-04-01,DIR-001380-Seema-Gupta,NORMAL
+29YEIHP7600G1ZF,Sunrise Foods & Co,29,Karnataka,592078,Food,Active,,2024-04-01,DIR-001383-Vikram-Iyer;DIR-001384-Sanjay-Singh;DIR-001385-Vikram-Iyer,NORMAL
+27XNQFM9513J1ZS,Zenith Steels Corp,27,Maharashtra,431668,Metals,Active,,2024-04-01,DIR-001386-Divya-Kumar;DIR-001387-Vikram-Sharma,NORMAL
+29DHRTO5778X1ZN,Falcon Beauty LLP,29,Karnataka,569458,Personal care,Active,,2024-04-01,DIR-001389-Rahul-Singh;DIR-001390-Kavya-Patel;DIR-001391-Meera-Kumar,NORMAL
+29NAPCH0036C1ZL,Tirupati Foods & Co,29,Karnataka,533674,Food,Active,,2024-04-01,DIR-001392-Sanjay-Rao;DIR-001393-Ravi-Kumar,NORMAL
+19PPVFV6080Y1ZB,Ocean Textiles & Co,19,West Bengal,726173,Textiles,Active,,2024-04-01,DIR-001395-Ajay-Singh;DIR-001396-Vikram-Patel;DIR-001397-Ajay-Sharma,NORMAL
+19UPYTC6440F1ZZ,Southern Chemicals Corp,19,West Bengal,720398,Chemicals,Active,,2024-04-01,DIR-001398-Meera-Khan,NORMAL
+03IKOPF7033Q1Z9,Falcon Textiles Pvt Ltd,03,Punjab,358178,Textiles,Active,,2024-04-01,DIR-001401-Vikram-Rao,NORMAL
+27XXIFR9424U1ZC,Southern Industries LLP,27,Maharashtra,417625,Machinery,Active,,2024-04-01,DIR-001404-Ravi-Iyer;DIR-001405-Meera-Sharma;DIR-001406-Anil-Sharma,NORMAL
+10HJSPQ7651X1Z2,Tirupati Steels Enterprises,10,Bihar,260073,Metals,Active,,2024-04-01,DIR-001407-Ajay-Kumar,NORMAL
+07EHJPY3800B1Z0,Aryan Textiles LLP,07,Delhi,141926,Textiles,Active,,2024-04-01,DIR-001410-Meera-Sharma;DIR-001411-Seema-Mehta;DIR-001412-Anil-Nair,NORMAL
+23QHHFA4493U1ZC,Horizon Beverages Corp,23,Madhya Pradesh,142119,Beverages,Active,,2024-04-01,DIR-001413-Ajay-Khan;DIR-001414-Kavya-Rao,NORMAL
+05KQOCQ6589I1Z5,Vertex Chemicals & Co,05,Uttarakhand,778160,Chemicals,Active,,2024-04-01,DIR-001416-Ajay-Mehta;DIR-001417-Priya-Khan;DIR-001418-Vikram-Singh,NORMAL
+36NRFCA9841R1Z9,Star Furnishings Pvt Ltd,36,Telangana,582078,Furniture,CANCELLED,2024-04-01,2024-04-01,DIR-001419-Priya-Mehta,NORMAL
+23AGYHN5731R1ZO,Sunrise Foods Ltd,23,Madhya Pradesh,292296,Food,Active,,2024-04-01,DIR-001422-Sanjay-Mehta,NORMAL
+03LKEFK4413X1ZD,Falcon Foods & Co,03,Punjab,395456,Food,Active,,2024-04-01,DIR-001425-Vikram-Gupta;DIR-001426-Divya-Verma,NORMAL
+08UGBCY5852E1ZJ,Aryan Chemicals Corp,08,Rajasthan,826298,Chemicals,Active,,2024-04-01,DIR-001428-Meera-Kumar,NORMAL
+21FRHCD2058L1Z1,Sapphire Industries LLP,21,Odisha,812354,Machinery,Active,,2024-04-01,DIR-001431-Anil-Sharma;DIR-001432-Seema-Sharma;DIR-001433-Divya-Gupta,NORMAL
+36IKWHG7830U1ZC,Zenith Beverages Corp,36,Telangana,554426,Beverages,Active,,2024-04-01,DIR-001434-Anil-Patel,NORMAL
+09CKOPI0878U1ZI,Bharat Textiles Enterprises,09,Uttar Pradesh,256589,Textiles,Active,,2024-04-01,DIR-001437-Anil-Sharma;DIR-001438-Meera-Gupta,NORMAL
+27JYFCR8692K1ZH,Ocean Electronics Pvt Ltd,27,Maharashtra,488812,Electronics,Active,,2024-04-01,DIR-500001-Neha-Sharma,CIRCULAR_TRADING
+23GXJHC0195N1ZJ,Vedic Motors Enterprises,23,Madhya Pradesh,382770,Automotive,Active,,2024-04-01,DIR-001443-Priya-Gupta;DIR-001444-Anil-Khan,NORMAL
+06MSTPQ2012P1Z3,Horizon Chemicals Corp,06,Haryana,137059,Chemicals,Active,,2024-04-01,DIR-001446-Neha-Kumar;DIR-001447-Rahul-Gupta,NORMAL
+19MYDAJ9510A1ZK,Northern Steels Corp,19,West Bengal,789467,Metals,Active,,2024-04-01,DIR-001449-Divya-Mehta,NORMAL
+10EKAFI0271J1ZP,Vedic Electronics & Co,10,Bihar,285091,Electronics,Active,,2024-04-01,DIR-001452-Anil-Gupta;DIR-001453-Ravi-Singh,NORMAL
+23QWMFJ3373J1ZJ,Aryan Foods Enterprises,23,Madhya Pradesh,124226,Food,Active,,2024-04-01,DIR-001455-Ravi-Patel;DIR-001456-Rahul-Gupta,NORMAL
+32IKNAI0028L1ZH,Everest Foods LLP,32,Kerala,644926,Food,Active,,2024-04-01,DIR-001458-Neha-Verma;DIR-001459-Ajay-Iyer,NORMAL
+07OWUAX6404L1ZI,Moonlight Motors LLP,07,Delhi,119209,Automotive,Active,,2024-04-01,DIR-001461-Meera-Verma;DIR-001462-Seema-Gupta,NORMAL
+07QJGCC8547S1Z4,Ocean Chemicals LLP,07,Delhi,122808,Chemicals,Active,,2024-04-01,DIR-001464-Priya-Nair;DIR-001465-Ravi-Nair,NORMAL
+37IGVCG5438S1ZI,Vedic Foods Ltd,37,Andhra Pradesh,552439,Food,Active,,2024-04-01,DIR-001467-Sanjay-Patel;DIR-001468-Priya-Nair,NORMAL
+08KQZPK2162X1ZS,Aryan Foods LLP,08,Rajasthan,663505,Food,Active,,2024-04-01,DIR-001470-Meera-Khan;DIR-001471-Vikram-Mehta,NORMAL
+06XYGHV0368N1ZH,Aryan Industries Enterprises,06,Haryana,192538,Machinery,Active,,2024-04-01,DIR-001473-Sanjay-Singh;DIR-001474-Divya-Mehta,NORMAL
+33DPDPH0116I1Z1,Northern Industries Pvt Ltd,33,Tamil Nadu,651109,Machinery,Active,,2024-04-01,DIR-001476-Neha-Kumar;DIR-001477-Anil-Gupta,NORMAL
+19UCMCT8610M1Z8,Vedic Foods LLP,19,West Bengal,762510,Food,Active,,2024-04-01,DIR-001479-Seema-Mehta;DIR-001480-Neha-Iyer,NORMAL
+09GEAHC1021P1ZX,Horizon Foods Ltd,09,Uttar Pradesh,296868,Food,Active,,2024-04-01,DIR-001482-Divya-Patel;DIR-001483-Anil-Reddy,NORMAL
+09WPJFY0381U1ZJ,Northern Foods Pvt Ltd,09,Uttar Pradesh,284971,Food,Active,,2024-04-01,DIR-001485-Neha-Rao;DIR-001486-Anil-Khan;DIR-001487-Anil-Verma,NORMAL
+09RKICV4720N1ZC,Aryan Tobacco Co Ltd,09,Uttar Pradesh,241611,Tobacco,Active,,2024-04-01,DIR-500004-Seema-Verma,CIRCULAR_TRADING
+22SQPFT6464Z1ZA,Moonlight Electronics Ltd,22,Chhattisgarh,650245,Electronics,Active,,2024-04-01,DIR-001491-Meera-Kumar;DIR-001492-Priya-Verma,NORMAL
+07HXKPV2302E1ZM,Sunrise Foods Enterprises,07,Delhi,158719,Food,Active,,2024-04-01,DIR-001494-Vikram-Kumar;DIR-001495-Neha-Verma,NORMAL
+36PQDFB4970I1ZG,Tirupati Chemicals Corp,36,Telangana,528638,Chemicals,Active,,2024-04-01,DIR-001497-Kavya-Reddy;DIR-001498-Priya-Rao;DIR-001499-Divya-Iyer,NORMAL

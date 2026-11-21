@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-28T02:34:46.064917+00:00",
+  "git_commit": "df6f6cbe44c788b91113dc60f9bbe66b7026ab52",
+  "mode": "full",
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 12,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "ring_difficulty": 0.6,
+    "ring_broken_share": 0.25,
+    "n_hard_negatives": 5,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+    "notes": ""
+  },
+  "dataset_prep_sec": 0.467,
+  "headlines": {
+    "ring.average_precision": 0.9714,
+    "ring.f1_at_thresh": 0.769,
+    "ring.recoverability_recall": 1.0,
+    "ring.detected": 752.0,
+    "reconcile.micro_f1": 0.961,
+    "reconcile.micro_precision": 0.935,
+    "reconcile.micro_recall": 0.988,
+    "risk.recon_auc": 0.887,
+    "risk.recon_p_at_50": 0.74,
+    "risk.ring_auc_circular": 0.892,
+    "embed.hit_at_10": 1.0,
+    "embed.cohesion_recall_at_10": 0.761,
+    "embed.structural_hit_at_10": 0.667
+  },
+  "benches": {
+    "ring_recall": {
+      "status": "ok",
+      "elapsed_sec": 2.271,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "n_rings_planted": 12,
+          "seed": 42,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5
+        },
+        "counts": {
+          "edges": 3749,
+          "planted_closed_rings": 10,
+          "planted_broken_rings": 2,
+          "hard_negatives": 5,
+          "detected_rings": 752,
+          "recovered_rings": 10,
+          "missed_rings": 0,
+          "non_planted_detected": 742
+        },
+        "recall": 1.0,
+        "average_precision": 0.9714,
+        "at_threshold": {
+          "threshold": 0.45,
+          "recall": 1.0,
+          "precision": 0.625,
+          "f1": 0.769,
+          "rings_flagged": 16,
+          "negatives_flagged": 1
+        },
+        "threshold_sweep": [
+          {
+            "threshold": 0.35,
+            "recall": 1.0,
+            "precision": 0.07,
+            "f1": 0.132,
+            "rings_flagged": 142,
+            "negatives_flagged": 12
+          },
+          {
+            "threshold": 0.4,
+            "recall": 1.0,
+            "precision": 0.208,
+            "f1": 0.345,
+            "rings_flagged": 48,
+            "negatives_flagged": 4
+          },
+          {
+            "threshold": 0.45,
+            "recall": 1.0,
+            "precision": 0.625,
+            "f1": 0.769,
+            "rings_flagged": 16,
+            "negatives_flagged": 1
+          },
+          {
+            "threshold": 0.5,
+            "recall": 0.9,
+            "precision": 1.0,
+            "f1": 0.947,
+            "rings_flagged": 9,
+            "negatives_flagged": 0
+          },
+          {
+            "threshold": 0.55,
+            "recall": 0.4,
+            "precision": 1.0,
+            "f1": 0.571,
+            "rings_flagged": 4,
+            "negatives_flagged": 0
+          },
+          {
+            "threshold": 0.6,
+            "recall": 0.0,
+            "precision": 0.0,
+            "f1": 0.0,
+            "rings_flagged": 0,
+            "negatives_flagged": 0
+          }
+        ],
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.126,
+          "detect": 2.112
+        },
+        "sample_recovered": [
+          {
+            "ring_id_truth": "RING-42-00000",
+            "ring_id_detected": "R-39fc83f3574b84c3",
+            "members": [
+              "27LASPQ0513O1ZB",
+              "27NFBAZ5557O1ZH",
+              "27VQTFY6237S1ZP"
+            ],
+            "score": 0.531,
+            "signals": {
+              "C": 1.0,
+              "V": 0.958,
+              "T": 0.978,
+              "R": 0.0,
+              "N": 0.25,
+              "H": 0.0
+            },
+            "size": 3
+          },
+          {
+            "ring_id_truth": "RING-42-00001",
+            "ring_id_detected": "R-56effa2f577e3e35",
+            "members": [
+              "27CVYTO3745O1ZJ",
+              "27EGXFF3522S1Z1",
+              "27TDTFF2214L1ZS"
+            ],
+            "score": 0.511,
+            "signals": {
+              "C": 1.0,
+              "V": 0.871,
+              "T": 0.944,
+              "R": 0.0,
+              "N": 0.25,
+              "H": 0.0
+            },
+            "size": 3
+          },
+          {
+            "ring_id_truth": "RING-42-00004",
+            "ring_id_detected": "R-1a45966e165466fc",
+            "members": [
+              "09GVXTS3731V1Z9",
+              "09KOZFE5054V1ZE",
+              "09YFZPT4473N1ZR",
+              "09YCSFA5231Z1ZK",
+              "09JVUCQ6600N1Z5",
+              "09UPIFF2315B1Z8"
+            ],
+            "score": 0.533,
+            "signals": {
+              "C": 1.0,
+              "V": 0.801,
+              "T": 0.844,
+              "R": 0.0,
+              "N": 0.55,
+              "H": 0.0
+            },
+            "size": 6
+          }
+        ],
+        "sample_missed": []
+      }
+    },
+    "reconcile_prf": {
+      "status": "ok",
+      "elapsed_sec": 1.191,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 12,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.316,
+          "reconcile": 0.81
+        },
+        "counts": {
+          "events_emitted": 1440,
+          "planted_anomalies": 258,
+          "invoices": 3749
+        },
+        "micro": {
+          "precision": 0.935,
+          "recall": 0.988,
+          "f1": 0.961
+        },
+        "per_outcome": {
+          "AMOUNT_MISMATCH": {
+            "tp": 44,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 44,
+            "n_detected": 44
+          },
+          "CANCELLED_SUPPLIER": {
+            "tp": 338,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 338,
+            "n_detected": 338
+          },
+          "DATE_MISMATCH": {
+            "tp": 11,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 11,
+            "n_detected": 11
+          },
+          "DUPLICATE": {
+            "tp": 10,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 10,
+            "n_detected": 10
+          },
+          "HSN_MISMATCH": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 5,
+            "precision": 1.0,
+            "recall": 0.444,
+            "f1": 0.615,
+            "n_planted": 9,
+            "n_detected": 4
+          },
+          "MISSING_EWB": {
+            "tp": 17,
+            "fp": 20,
+            "fn": 0,
+            "precision": 0.459,
+            "recall": 1.0,
+            "f1": 0.63,
+            "n_planted": 17,
+            "n_detected": 37
+          },
+          "MISSING_GSTR1": {
+            "tp": 651,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "n_planted": 651,
+            "n_detected": 651
+          },
+          "MISSING_GSTR3B": {
+            "tp": 215,
+            "fp": 0,
+            "fn": 2,
+            "precision": 1.0,
+            "recall": 0.991,
+            "f1": 0.995,
+            "n_planted": 217,
+            "n_detected": 215
+          },
+          "MISSING_TAX_PAYMENT": {
+            "tp": 29,
+            "fp": 0,
+            "fn": 8,
+            "precision": 1.0,
+            "recall": 0.784,
+            "f1": 0.879,
+            "n_planted": 37,
+            "n_detected": 29
+          },
+          "NEAR_DUPLICATE": {
+            "tp": 27,
+            "fp": 37,
+            "fn": 0,
+            "precision": 0.422,
+            "recall": 1.0,
+            "f1": 0.593,
+            "n_planted": 27,
+            "n_detected": 64
+          },
+          "NEAR_MATCH": {
+            "tp": 0,
+            "fp": 37,
+            "fn": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "n_planted": 0,
+            "n_detected": 37
+          },
+          "CANCELLED_SUPPLIER (gstin-level)": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 1,
+            "precision": 1.0,
+            "recall": 0.923,
+            "f1": 0.96,
+            "n_planted": 13,
+            "n_detected": 12
+          }
+        }
+      }
+    },
+    "risk_discrimination": {
+      "status": "ok",
+      "elapsed_sec": 2.278,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 12,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "scorers": [
+          "reconcile",
+          "ring",
+          "rules",
+          "temporal"
+        ],
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.167,
+          "reconcile": 0.377,
+          "rings": 1.519,
+          "compose": 0.154
+        },
+        "counts": {
+          "gstins": 500,
+          "planted_ring_members": 42,
+          "detected_rings": 752,
+          "match_events": 1440,
+          "recon_positives": 133
+        },
+        "recon_auc": 0.887,
+        "ring_auc_circular": 0.892,
+        "recon_precision_at_k": {
+          "50": 0.74,
+          "100": 0.58
+        },
+        "band_histogram": {
+          "LOW": 392,
+          "MED": 71,
+          "HIGH": 28,
+          "CRITICAL": 9
+        },
+        "score_summary": {
+          "median": 0.0,
+          "p90": 0.256,
+          "max": 0.589
+        },
+        "note": "Composite is a triage aggregator. Standalone component discrimination is in benchmarks/ablation/risk_ablation.json. ring_auc_circular re-measures ring detection (RingScorer \u2248 the ring label) and is NOT independent evidence."
+      }
+    },
+    "embed_lookalike": {
+      "status": "ok",
+      "elapsed_sec": 1.871,
+      "report": {
+        "config": {
+          "n_gstins": 500,
+          "months": 3,
+          "period_start": "2024-04-01",
+          "normal_share": 0.9,
+          "recon_issue_share": 0.06,
+          "circular_share": 0.03,
+          "duplicate_share": 0.01,
+          "avg_out_degree": 4.0,
+          "degree_power_law": 2.2,
+          "intra_state_pref": 0.7,
+          "n_rings": 12,
+          "ring_size_min": 3,
+          "ring_size_max": 6,
+          "ring_temporal_window_days": 7,
+          "ring_value_inflation": 0.15,
+          "ring_common_vehicle": true,
+          "ring_common_directors": true,
+          "ring_difficulty": 0.6,
+          "ring_broken_share": 0.25,
+          "n_hard_negatives": 5,
+          "anom_mix_missing_gstr1": 0.3,
+          "anom_mix_missing_gstr3b": 0.15,
+          "anom_mix_missing_tax": 0.1,
+          "anom_mix_amount_mismatch": 0.2,
+          "anom_mix_missing_ewb": 0.1,
+          "anom_mix_cancelled_supplier": 0.05,
+          "anom_mix_hsn_mismatch": 0.05,
+          "anom_mix_date_mismatch": 0.05,
+          "amount_lognorm_mu": 11.0,
+          "amount_lognorm_sigma": 1.1,
+          "ewb_threshold_amount": 50000.0,
+          "seed": 42,
+          "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_bench_all",
+          "notes": ""
+        },
+        "embed_config": {
+          "dim": 64,
+          "walks_per_node": 15,
+          "walk_len": 25,
+          "window": 5,
+          "seed": 42
+        },
+        "timing_sec": {
+          "generate": 0.0,
+          "load_csv": 0.035,
+          "train_embed": 1.823
+        },
+        "counts": {
+          "n_edges": 3749,
+          "n_indexed_gstins": 497,
+          "n_planted_rings": 10,
+          "n_planted_members": 42
+        },
+        "stats": {
+          "n_nodes": 497,
+          "n_indexed": 497,
+          "n_walks": 7455,
+          "n_pairs": 1640100,
+          "sppmi_density": 0.15805092122149395
+        },
+        "per_k": [
+          {
+            "k": 3,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.5,
+            "cohesion_recall_median": 0.5,
+            "hit_at_k": 0.833,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.233
+          },
+          {
+            "k": 5,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.588,
+            "cohesion_recall_median": 0.5,
+            "hit_at_k": 0.952,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.433
+          },
+          {
+            "k": 10,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.761,
+            "cohesion_recall_median": 0.9,
+            "hit_at_k": 1,
+            "structural_queries": 30,
+            "structural_hit_at_k": 0.667
+          },
+          {
+            "k": 25,
+            "n_queries": 42,
+            "cohesion_recall_mean": 0.958,
+            "cohesion_recall_median": 1.0,
+            "hit_at_k": 1,
+            "structural_queries": 30,
+            "structural_hit_at_k": 1
+          }
+        ],
+        "random_baseline_recall": {
+          "3": 0.0,
+          "5": 0.0,
+          "10": 0.0,
+          "25": 0.034
+        }
+      }
+    }
+  }
+}

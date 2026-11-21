@@ -1,0 +1,10 @@
+# Repo-root ignores. Project-specific rules live in graphgst/.gitignore.
+
+# Loose archives (e.g. the old gst_v5_upgraded.zip snapshot)
+*.zip
+
+# Tool caches
+.pytest_cache/
+
+# Local editor / tool state
+.claude/

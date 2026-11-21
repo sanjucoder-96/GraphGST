@@ -1,0 +1,172 @@
+{
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 4,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "./_b",
+    "notes": ""
+  },
+  "timing_sec": {
+    "generate": 0.426,
+    "load_csv": 0.399,
+    "reconcile": 0.25
+  },
+  "counts": {
+    "events_emitted": 1354,
+    "planted_anomalies": 255,
+    "invoices": 3701
+  },
+  "micro": {
+    "precision": 0.933,
+    "recall": 0.991,
+    "f1": 0.961
+  },
+  "per_outcome": {
+    "AMOUNT_MISMATCH": {
+      "tp": 44,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "n_planted": 44,
+      "n_detected": 44
+    },
+    "CANCELLED_SUPPLIER": {
+      "tp": 313,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "n_planted": 313,
+      "n_detected": 313
+    },
+    "DATE_MISMATCH": {
+      "tp": 11,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "n_planted": 11,
+      "n_detected": 11
+    },
+    "DUPLICATE": {
+      "tp": 13,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "n_planted": 13,
+      "n_detected": 13
+    },
+    "HSN_MISMATCH": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1.0,
+      "recall": 0.625,
+      "f1": 0.769,
+      "n_planted": 8,
+      "n_detected": 5
+    },
+    "MISSING_EWB": {
+      "tp": 16,
+      "fp": 18,
+      "fn": 0,
+      "precision": 0.471,
+      "recall": 1.0,
+      "f1": 0.64,
+      "n_planted": 16,
+      "n_detected": 34
+    },
+    "MISSING_GSTR1": {
+      "tp": 534,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "n_planted": 534,
+      "n_detected": 534
+    },
+    "MISSING_GSTR3B": {
+      "tp": 212,
+      "fp": 0,
+      "fn": 4,
+      "precision": 1.0,
+      "recall": 0.981,
+      "f1": 0.991,
+      "n_planted": 216,
+      "n_detected": 212
+    },
+    "MISSING_TAX_PAYMENT": {
+      "tp": 90,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1.0,
+      "recall": 0.968,
+      "f1": 0.984,
+      "n_planted": 93,
+      "n_detected": 90
+    },
+    "NEAR_DUPLICATE": {
+      "tp": 24,
+      "fp": 37,
+      "fn": 0,
+      "precision": 0.393,
+      "recall": 1.0,
+      "f1": 0.565,
+      "n_planted": 24,
+      "n_detected": 61
+    },
+    "NEAR_MATCH": {
+      "tp": 0,
+      "fp": 37,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "n_planted": 0,
+      "n_detected": 37
+    },
+    "CANCELLED_SUPPLIER (gstin-level)": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.923,
+      "f1": 0.96,
+      "n_planted": 13,
+      "n_detected": 12
+    }
+  }
+}

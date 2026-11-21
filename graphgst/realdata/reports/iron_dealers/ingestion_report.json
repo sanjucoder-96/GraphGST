@@ -1,0 +1,171 @@
+{
+  "dataset": {
+    "name": "iron_dealers",
+    "source_url": "https://github.com/Sindhuja-5/circular-trade-detection",
+    "license": "No license file (treat as all-rights-reserved; research/testing use only)",
+    "description": "Real (non-synthetic) Indian commercial-tax dealer transaction graph used in circular-trading research: 130,535 directed seller\u2192buyer transactions between 799 anonymised dealers. Anonymised dealer integers (NOT GSTINs).",
+    "notes": "Genuine (non-synthetic) transactions, but anonymised: dealer ids are integers, not GSTINs; no dates, tax split, filings or fraud labels. Suitable for UNSUPERVISED ring/graph analysis only.",
+    "is_real_taxpayer_data": false,
+    "anonymized": false,
+    "field_availability": {
+      "dates": false,
+      "invoice_ids": false,
+      "tax_amounts": false,
+      "filing_returns": false,
+      "labels": false,
+      "supplier_buyer_edges": true,
+      "amounts": true
+    }
+  },
+  "quality": {
+    "records": 130535,
+    "unique_taxpayers": 799,
+    "unique_suppliers": 703,
+    "unique_buyers": 371,
+    "unique_invoices": 130535,
+    "duplicate_invoice_ids": 0,
+    "exact_duplicate_rows": 7386,
+    "missing_supplier": 0,
+    "missing_buyer": 0,
+    "self_loops": 0,
+    "missing_invoice_id": 0,
+    "missing_dates": 130535,
+    "invalid_dates": 0,
+    "negative_or_invalid_tax": 0,
+    "valid_gstin_ids": 0,
+    "non_gstin_ids": 799,
+    "orphan_invoice_endpoints": 0,
+    "pure_suppliers": 428,
+    "pure_buyers": 96,
+    "field_coverage_pct": {
+      "supplier": 100.0,
+      "buyer": 100.0,
+      "invoice_id": 100.0,
+      "date": 0.0,
+      "taxable_value": 100.0,
+      "tax_amount": 0.0,
+      "label": 0.0
+    },
+    "date_range": [
+      "\u2014",
+      "\u2014"
+    ],
+    "months_covered": 0,
+    "issues": [
+      "7386 exact-duplicate rows (kept \u2014 may be legitimate repeat trades).",
+      "date coverage 0.0% \u2192 temporal analysis limited/disabled.",
+      "no tax amounts \u2192 reconciliation / ITC-mismatch cannot run.",
+      "no fraud/ring labels \u2192 UNSUPERVISED analysis only (no precision/recall).",
+      "no source id is a valid 15-char GSTIN \u2192 entity ids are non-GSTIN (public/anonymised data)."
+    ]
+  },
+  "validation": {
+    "entities_in": 799,
+    "txns_in": 130535,
+    "entities_out": 799,
+    "txns_out": 130535,
+    "txns_rejected": 0,
+    "reject_reasons": {},
+    "entities_inferred": 0,
+    "missing_field_pct": {
+      "date": 100.0,
+      "taxable_value": 0.0,
+      "tax_amount": 100.0,
+      "label": 100.0,
+      "status": 100.0
+    },
+    "notes": []
+  },
+  "canonical_csv_rows": {
+    "gstins.csv": 799,
+    "invoices.csv": 130535
+  },
+  "feature_availability": [
+    {
+      "feature": "Reconciliation (GSTR-1\u21942B\u21943B, ITC)",
+      "required_fields": "GSTR filings + tax amounts",
+      "available": false,
+      "can_run": "NO",
+      "reason": "requires GSTR-1/2B/3B filing rows the source does not provide"
+    },
+    {
+      "feature": "ITC-mismatch detection",
+      "required_fields": "invoice tax vs claimed ITC",
+      "available": false,
+      "can_run": "NO",
+      "reason": "needs statutory tax amounts and filed returns"
+    },
+    {
+      "feature": "Ring / circular-trade detection",
+      "required_fields": "directed supplier\u2192buyer edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "the core graph capability; runs on the edge list"
+    },
+    {
+      "feature": "GSTIN / entity relationships",
+      "required_fields": "entities + edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "neighbourhood + community structure"
+    },
+    {
+      "feature": "Temporal analysis",
+      "required_fields": "per-transaction dates",
+      "available": false,
+      "can_run": "NO",
+      "reason": "source has no per-transaction dates \u2192 temporal engine skipped"
+    },
+    {
+      "feature": "Risk scoring (composed)",
+      "required_fields": "ring + temporal (+ reconcile/rules if filings)",
+      "available": true,
+      "can_run": "PARTIAL",
+      "reason": "ring + temporal scorers fire; reconcile/rules contribute ~0 without filing/status data"
+    },
+    {
+      "feature": "Graph embeddings (structural)",
+      "required_fields": "graph structure",
+      "available": true,
+      "can_run": "YES",
+      "reason": "node2vec/PMI-SVD over the real graph"
+    },
+    {
+      "feature": "Ground-truth evaluation (precision/recall)",
+      "required_fields": "fraud/ring labels",
+      "available": false,
+      "can_run": "NO",
+      "reason": "no labels \u2192 UNSUPERVISED analysis only (no P/R/AUC)"
+    }
+  ],
+  "field_mapping": [
+    {
+      "source_field": "Seller ID",
+      "canonical_field": "supplier_id",
+      "graph": "(:GSTIN {gstin_id})",
+      "engine": "rings, risk, embeddings",
+      "note": "canonicalised as IRONDLR:<id>; anonymised integer, not a GSTIN"
+    },
+    {
+      "source_field": "Buyer ID",
+      "canonical_field": "buyer_id",
+      "graph": "(:Invoice)-[:BILLED_TO]->(:GSTIN)",
+      "engine": "rings, reconcile",
+      "note": ""
+    },
+    {
+      "source_field": "(row index)",
+      "canonical_field": "txn_id",
+      "graph": "(:GSTIN)-[:ISSUED_INVOICE]->(:Invoice)",
+      "engine": "rings, reconcile",
+      "note": "synthesised \u2014 source has no invoice id"
+    },
+    {
+      "source_field": "Value",
+      "canonical_field": "taxable_value",
+      "graph": "Invoice.taxable_value / Invoice.amount",
+      "engine": "rings (value signal), risk",
+      "note": "transaction VALUE, not GST (no tax split in source)"
+    }
+  ]
+}

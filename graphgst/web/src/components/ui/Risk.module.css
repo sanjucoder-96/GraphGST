@@ -1,0 +1,83 @@
+/* Risk primitives — one semantic-color grammar for the whole app.
+   Band color is set per-variant via the .low/.med/.high/.crit classes
+   feeding a single --rc (risk color) custom property. */
+
+.low  { --rc: var(--risk-low);  --rc-dim: var(--risk-low-dim); }
+.med  { --rc: var(--risk-med);  --rc-dim: var(--risk-med-dim); }
+.high { --rc: var(--risk-high); --rc-dim: var(--risk-high-dim); }
+.crit { --rc: var(--risk-crit); --rc-dim: var(--risk-crit-dim); }
+
+/* ── RiskMeter ──────────────────────────────────────────────────── */
+.meter {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.score {
+  font-variant-numeric: tabular-nums;
+  color: var(--rc);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.sm .score { font-size: var(--fs-num-sm); }
+.md .score { font-size: var(--fs-num); }
+.lg .score { font-size: var(--fs-num-lg); }
+
+.segs { display: inline-flex; gap: 2px; }
+.seg {
+  width: 12px; height: 3px;
+  border-radius: 999px;
+  background: var(--line-2);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.sm .seg { width: 9px; }
+.lg .seg { width: 16px; height: 4px; }
+.seg.on { background: var(--rc); }
+
+/* ── RiskBand chip ──────────────────────────────────────────────── */
+.band {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 7px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-2xs);
+  font-weight: 550;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--rc);
+  background: var(--rc-dim);
+  border: 1px solid color-mix(in srgb, var(--rc) 22%, transparent);
+  white-space: nowrap;
+}
+.bandDot {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--rc);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rc) 20%, transparent);
+}
+.bandScore {
+  color: color-mix(in srgb, var(--rc) 80%, var(--text-1));
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+/* ── RiskBar ────────────────────────────────────────────────────── */
+.bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+  border: 1px solid var(--line-1);
+}
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--rc) 70%, transparent), var(--rc));
+  transition: width var(--dur-slow) var(--ease-out);
+}

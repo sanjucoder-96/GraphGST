@@ -1,0 +1,96 @@
+{
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 8,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "./_bench_embed",
+    "notes": ""
+  },
+  "embed_config": {
+    "dim": 64,
+    "walks_per_node": 15,
+    "walk_len": 25,
+    "window": 5,
+    "seed": 42
+  },
+  "timing_sec": {
+    "generate": 0.316,
+    "load_csv": 0.038,
+    "train_embed": 1.6
+  },
+  "counts": {
+    "n_edges": 3718,
+    "n_indexed_gstins": 496,
+    "n_planted_rings": 8,
+    "n_planted_members": 34
+  },
+  "stats": {
+    "n_nodes": 496,
+    "n_indexed": 496,
+    "n_walks": 7440,
+    "n_pairs": 1636800,
+    "sppmi_density": 0.1535144055671176
+  },
+  "per_k": [
+    {
+      "k": 3,
+      "n_queries": 34,
+      "cohesion_recall_mean": 0.363,
+      "cohesion_recall_median": 0.333,
+      "hit_at_k": 0.676
+    },
+    {
+      "k": 5,
+      "n_queries": 34,
+      "cohesion_recall_mean": 0.492,
+      "cohesion_recall_median": 0.45,
+      "hit_at_k": 0.912
+    },
+    {
+      "k": 10,
+      "n_queries": 34,
+      "cohesion_recall_mean": 0.776,
+      "cohesion_recall_median": 0.9,
+      "hit_at_k": 1
+    },
+    {
+      "k": 25,
+      "n_queries": 34,
+      "cohesion_recall_mean": 0.971,
+      "cohesion_recall_median": 1.0,
+      "hit_at_k": 1
+    }
+  ],
+  "random_baseline_recall": {
+    "3": 0.0,
+    "5": 0.006,
+    "10": 0.015,
+    "25": 0.025
+  }
+}
