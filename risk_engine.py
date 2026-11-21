@@ -8,8 +8,9 @@ from db import run_query
 
 logger = logging.getLogger(__name__)
 
+# ── IsolationForest model path ───────────────────────────────────────────────
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), "isolation_forest_model.pkl")
-_IF_MODEL = None  
+_IF_MODEL = None   # module-level cache after first load/train
 
 
 def _get_isolation_forest():
@@ -237,7 +238,7 @@ def generate_audit_narrative(invoice_id: str) -> dict:
         "status":"ACTIVE" if h1_ok else f"CANCELLED",
         "detail":f"State: {s.get('state','N/A')} | Type: {s.get('taxpayer_type','Regular')}",
         "narrative":f"{sname} is {'an active registered' if h1_ok else 'a CANCELLED'} taxpayer in {s.get('state','N/A')}. "
-            + ("GSTIN verification PASSED." if h1_ok else f"CRITICAL: GSTIN was cancelled on {s.get('cancellation_date','N/A')}. Any ITC claimed is immediately ineligible.")})
+            + ("GSTIN verification PASSED." if h1_ok else f"FLAG: GSTIN was cancelled on {s.get('cancellation_date','N/A')}; ITC on invoices issued after cancellation may be ineligible — for investigator verification (not a legal determination).")})
 
     # HOP 2 — Invoice
     steps.append({"hop":2,"node_type":"Invoice","node_id":inv.get("invoice_id","?"),
@@ -274,7 +275,7 @@ def generate_audit_narrative(invoice_id: str) -> dict:
         "status":g1.get("filed_status","NOT_FILED") if g1 else "NOT_FILED",
         "detail":f"Period: {g1.get('period','N/A')}" if g1 else "Invoice absent from buyer's GSTR-2B",
         "narrative":(f"Supplier filed GSTR-1 for period {g1.get('period','N/A')} on {g1.get('filed_date','N/A')}. Invoice reflected in {bname}'s auto-populated GSTR-2B." if h5_ok
-            else f"⛔ ITC BLOCKED: {sname} did not file GSTR-1. Under Section 16(2)(aa) CGST Act, {bname} cannot claim ITC of ₹{gst:,.0f} — invoice absent from GSTR-2B.")})
+            else f"⛔ POTENTIAL ITC RISK: {sname} did not file GSTR-1, so {bname}'s ITC of ₹{gst:,.0f} on this invoice may be ineligible (cf. Section 16(2)(aa) CGST Act) — flagged for verification, not a legal determination.")})
 
     # HOP 6 — GSTR-3B
     h6_ok = g3b is not None and g3b.get("tax_paid_status") == "PAID"
@@ -293,7 +294,7 @@ def generate_audit_narrative(invoice_id: str) -> dict:
         "status":tp.get("status","NOT_PAID") if tp else "NOT_PAID",
         "detail":f"UTR: {tp.get('utr','N/A')} · Date: {tp.get('payment_date','N/A')}" if tp else "Challan not generated or bounced",
         "narrative":(f"Tax payment of ₹{tp.get('amount_paid',0):,.0f} remitted to government exchequer on {tp.get('payment_date','N/A')} via {tp.get('bank','N/A')} (UTR: {tp.get('utr','N/A')}). Tax fully deposited — ITC chain validated end-to-end." if h7_ok
-            else f"⛔ CRITICAL: No cleared challan found for {sname}. Tax collected from {bname} has NOT reached the exchequer. ITC of ₹{gst:,.0f} may be recovered under Section 74 with 18% interest + 100% penalty.")})
+            else f"⛔ FLAG: No cleared challan found for {sname}; tax on this supply may not have been remitted, a potential ITC-recovery exposure (cf. Section 74 CGST) to be assessed by the officer — not a legal determination.")})
 
     # HOP 8 — Buyer ITC Claim
     itc = g3b_buyer.get("itc_claimed", 0) if g3b_buyer else 0

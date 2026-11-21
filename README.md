@@ -1,99 +1,152 @@
-🕸️ GraphGST: Intelligent GST Reconciliation
-Replacing vulnerable flat-table tax databases with an intelligent Knowledge Graph engine.
+# Graph GST — Knowledge Graph Intelligence for Indian GST Reconciliation
 
-GraphGST physically traverses the supply chain to instantly expose multi-hop ITC fraud, score vendor risk using unsupervised AI, and auto-generate explainable, legally sound audit notices via a GraphRAG Copilot.
+Graph GST is a graph-native platform for reconciling GST filings, quantifying ITC risk, and discovering circular-trading rings across the Indian GST supply chain.
 
-🛑 The Problem
-Flat SQL databases fail at GST reconciliation because circular trading is a multi-hop network problem, not a row-matching task. Fraudsters exploit this by hiding fake invoices across complex supply chains. Therefore, stopping ITC leakage affecting 1.4 crore taxpayers requires an interconnected Knowledge Graph, not isolated 2D tables.
+Unlike table-based reconciliation, it models GSTIN, Invoice, GSTR-1/2B/3B, TaxPayment, e-Way Bill, and IRN as connected nodes in Neo4j. Reconciliation, cycle detection, and risk scoring all run as native graph queries, and every alert is explainable by pointing at the exact hops in the graph that produced it.
 
-💡 Our Solution Approach
-GraphGST transforms flat tax data into a Neo4j Knowledge Graph. We deploy multi-hop Cypher algorithms to validate end-to-end ITC compliance and uncover circular fraud. An Isolation Forest model predicts vendor risk, while our GraphRAG Copilot translates complex network mathematics into explainable, legally sound audit narratives.
+**Status:** V6 in active development. See `IMPLEMENTATION_LOG.md` for the running change log and `ARCHITECTURE.md` for the design.
 
-🚀 Key Features & Deliverables Achieved:
+---
 
+## Quick start — one command
 
-✅ 1. GST Knowledge Graph Schema: Meticulously modeled entities (GSTIN, Invoice, IRN, e-Way Bill, GSTR-1, GSTR-3B, TaxPayment) connected via factual supply-chain edges. Includes a robust mock-data seeder simulating 9 complex fraud and compliance scenarios.
+```bash
+docker compose up --build
+```
 
-✅ 2. Multi-Hop Reconciliation Engine: Uses native Cypher traversal (MATCH (s)-[:ISSUED_INVOICE]->(i)-[:DECLARED_IN]->(:GSTR1)) to mathematically validate the ITC chain and classify mismatches (e.g., MISSING_GSTR3B, AMOUNT_MISMATCH).
+Then:
+- Investigator Console (React):  <http://localhost:5173>
+- Legacy vanilla-JS shell:       <http://localhost:3000>
+- API docs:                       <http://localhost:8000/docs>
+- Neo4j Browser:                  <http://localhost:7474>  (`neo4j` / `graphgst-dev-password`)
 
-✅ 3. Interactive Cytoscape Dashboard: A React-based physics engine visualizing the entire GST network. Features 1-click filters for identifying High-Risk vendors and Circular Fraud rings.
+The compose file starts four services: `neo4j` (with APOC + GDS plugins), `backend` (FastAPI on :8000), `web` (React SPA on :5173) and `web-legacy` (vanilla-JS shell on :3000 for regression comparison).
 
-✅ 4. GraphRAG Audit Copilot (XAI): Translates complex graph mathematics into plain-English (and Hindi) audit trails. Automatically drafts legally sound "Show Cause Notices u/s 74" for tax evasion.
+## Scripted 3-5 minute demo
 
-✅ 5. Predictive Vendor Risk ML: Extracts structural network topology (PageRank, Betweenness Centrality) and feeds it into an Isolation Forest (Unsupervised ML) to predict and score vendor compliance risk, flagging isolated shell syndicates.
+Graph GST ships with a fully reproducible investigation story built around one controlled hero ring with known ground truth. See [`demo/README.md`](demo/README.md).
 
-🔬 R&D Roadmap (V5): A separate research pipeline utilizing Graph Neural Networks (GraphSAGE) and Reinforcement Learning (PPO Agent) to autonomously adapt to evolving fraud topologies.
+```bash
+# 1. Reset — regenerates the fixed dataset (byte-deterministic, seed 42)
+python -m demo.reset
 
-🛠️ Tech Stack
-Graph Database: Neo4j (AuraDB)
+# 2. Verify — asserts every narrator number against real engine output
+python -m demo.verify
 
-Backend: Python, FastAPI, Neo4j Python Driver
+# 3. Present — /model-card shows the numbers gating each claim, /ring/…
+#    walks the case queue → investigation → timeline → break-simulator flow
+```
 
-Frontend: React, Cytoscape.js, HTML5/CSS3
+Verification runs in-memory (no Neo4j needed) and exits non-zero if any story number drifts.
 
-AI & Machine Learning: Scikit-Learn (Isolation Forest), NetworkX, PyTorch (R&D)
+## Quick start — without Docker
 
-Domain: Indian FinTech, GST Law (Section 16, Section 74)
+Requires Python 3.11+ and a running Neo4j 5.x with APOC and Graph Data Science plugins.
 
-🏗️ System Architecture
+```bash
+python -m venv .venv
+source .venv/bin/activate           # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 
-
-Client Layer: React Dashboard visualizing graph physics via Cytoscape.js.
-
-API Layer: FastAPI routing REST endpoints (/api/graph/full, /api/fraud, /api/agent/query).
-
-Core Service Engine: - Multi-Hop Traversal Algorithms (Cycle Detection)
-
-ML Risk Engine (Isolation Forest)
-
-GraphRAG Copilot
-
-Data Layer: Neo4j Graph Database executing native Cypher logic.
-
-⚙️ Local Setup & Installation
-Prerequisites
-Python 3.9+
-
-Node.js & npm
-
-A Neo4j AuraDB instance (or local Neo4j Desktop)
-
-1. Clone the Repository
-Bash
-git clone https://github.com/sanjucoder-96/Hack_Me
-cd GraphGST
-2. Backend Setup
-Bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-pip install fastapi uvicorn neo4j networkx scikit-learn numpy pydantic
-
-# Set your Neo4j Environment Variables
-export NEO4J_URI="neo4j+s://<your-db-id>.databases.neo4j.io"
-export NEO4J_USERNAME="neo4j"
-export NEO4J_PASSWORD="your-password"
-
-# Run the FastAPI server
+cp .env.example .env                 # fill in NEO4J_URI, USERNAME, PASSWORD, ADMIN_TOKEN
 uvicorn main:app --reload --port 8000
-3. Frontend Setup
-Bash
-# Navigate to frontend directory
-cd ../frontend
+```
 
-# (If using standard HTML/JS, simply serve the directory)
-# Or if using a React build:
-npm install
-npm start
-4. Seed the Database
-Once the backend is running, hit the seed endpoint to inject the 9 complex fraud scenarios into your Neo4j database:
+Serve the static shell:
 
-Bash
+```bash
+python -m http.server 3000           # from the graphgst/ directory
+```
+
+## Seed the demo scenarios
+
+Ten well-known fraud/compliance scenarios (SC1–SC9 from V5 plus a validity case) can be planted with:
+
+```bash
 curl -X POST http://localhost:8000/api/seed
-🏆 Hackathon Track Details
-Theme: Intelligent GST Reconciliation Using Knowledge Graphs
+```
 
-Focus: Data Modeling, AI/ML, FinTech, Graph Traversal
+This is idempotent (uses `MERGE`); re-seeding never duplicates nodes.
 
-Built with ❤️ for the 2026 Hackathon and Won 2nd Prize.
+## Generate synthetic data with ground truth
+
+For anything beyond a canned demo, use the synthetic generator (Phase 1). See `datagen/README.md`.
+
+```bash
+python -m datagen.cli \
+  --n-gstins 5000 --months 6 \
+  --normal-share 0.90 --recon-issue-share 0.05 --circular-share 0.03 \
+  --n-rings 15 --ring-size-min 3 --ring-size-max 8 \
+  --seed 42 --out ./datagen_output
+```
+
+Emits `gstr1.csv`, `gstr2b.csv`, `gstr3b.csv`, `pr.csv`, `ewb.csv`, `irn.csv`, and `truth.json` — the labeled anomalies used by every benchmark.
+
+## Load a generated dataset into Neo4j
+
+```bash
+curl -X POST -H "X-Admin-Token: <your-token>" \
+     "http://localhost:8000/api/datagen/load?dir=./datagen_output"
+```
+
+---
+
+## Where things live
+
+| Path | Purpose | Phase |
+|---|---|---|
+| `main.py` | FastAPI app, mounts every module router | 0 |
+| `db.py` | Neo4j driver singleton (`run_query`, `run_write`) | 0 |
+| `seeder.py` | Hand-crafted scenarios + graph constraints + indexes | 0 |
+| `datagen/` | Synthetic GST generator with `truth.json` | 1 |
+| `reconcile/` | MatchEvent nodes + fuzzy matchers | 2 |
+| `rings/` | SCC → bounded Johnson → six-signal ring engine + counterfactual | 3 |
+| `risk/` | Composable scorers + `Reason[]` attribution + composed score | 4 |
+| `embed/` | Random walks + PMI-SVD embeddings + cosine lookalike | 5 |
+| `web/` | React 18 + TS Investigator Console (Vite) | 6 |
+| `benchmarks/` | Unified runner + baseline + comparator + Model Card | 7 |
+| `demo/` | Reproducible 3-5 minute scripted story | 8 |
+| `tests/` | Pytest test suite (160+ tests) | — |
+| `pages/`, `assets/`, `index.html` | Vanilla-JS legacy shell (kept for regression) | 0 |
+| `.github/workflows/ci.yml` | pytest + benchmarks + web build on push | — |
+| `ARCHITECTURE.md` | V6 target design | — |
+| `IMPLEMENTATION_LOG.md` | Running change log | — |
+| `DEV_GUIDE.md` | Beginner-friendly walkthrough | — |
+
+## What Graph GST claims and what number backs it
+
+These are the **V6.1-corrected, honest** headline metrics — measured on the
+*hardened* benchmark (dropped ring tells, broken near-rings, legit-cycle
+negatives). The V6.1 audit replaced three earlier numbers that were circular or
+tautological; see [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) for the full
+old→new correction and why.
+
+| Claim | Number | Where measured |
+|---|---:|---|
+| Ring detection — Average Precision (threshold-free, hard data) | **0.971** | `benchmarks/bench_ring_recall.py` |
+| Reconciliation micro-F1 | **0.961** | `benchmarks/bench_reconcile_prf.py` |
+| Composed risk ROC-AUC (ring-**independent** label) | **0.887** | `benchmarks/bench_risk_discrimination.py` |
+| Lookalike structural Hit@10 (non-adjacent same-ring member) | **0.667** | `benchmarks/bench_embed_lookalike.py` |
+
+> Corrected in V6.1 (do not reinstate the old numbers): ring **recall 1.000** was
+> *recoverability* (Johnson finds every cycle), not detection; risk **AUC 0.937**
+> used a *circular* ring-membership label; embedding **Hit@10 1.000** was
+> *tautological* (ring members are 1-hop neighbours).
+
+Nine metrics are baseline-gated. `python -m benchmarks.run_all` exits 1 if any
+regresses by more than 0.02. The Model Card page renders them live in the
+Investigator Console.
+
+## Historical notes
+
+- The older `D:\GraphGST\Hack_Me\` snapshot was a broken subset of V5 (missing `db.py`, missing `pages/dashboard.js` / `add.js` / `agent.js`, folders flattened). It is now obsolete; work happens here in `graphgst/`.
+- V5's checked-in `isolation_forest_model.pkl` and its standalone retrain path
+  (`risk_engine.compute_risk_scores`) are retired. Risk is now produced by the
+  composable engine in `risk/` — reconcile + ring + rules + temporal scorers
+  summed by `RiskComposer`. An IsolationForest scorer (`risk/scorers/ml.py`)
+  exists but is deliberately **excluded** from the composed score (negative
+  marginal AUC on the hardened benchmark); see `docs/RISK_ENGINE.md`.
+
+## License
+
+MIT. See `LICENSE`.

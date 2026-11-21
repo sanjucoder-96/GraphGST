@@ -7,17 +7,53 @@ def clear_graph():
     run_write("MATCH (n) DETACH DELETE n")
 
 def create_constraints():
-    for q in [
-        "CREATE CONSTRAINT gstin_id   IF NOT EXISTS FOR (g:GSTIN)      REQUIRE g.gstin_id   IS UNIQUE",
-        "CREATE CONSTRAINT invoice_id IF NOT EXISTS FOR (i:Invoice)     REQUIRE i.invoice_id IS UNIQUE",
-        "CREATE CONSTRAINT gstr1_id   IF NOT EXISTS FOR (r:GSTR1)       REQUIRE r.return_id  IS UNIQUE",
-        "CREATE CONSTRAINT gstr3b_id  IF NOT EXISTS FOR (r:GSTR3B)      REQUIRE r.return_id  IS UNIQUE",
-        "CREATE CONSTRAINT ewb_id     IF NOT EXISTS FOR (e:EWayBill)     REQUIRE e.ewb_id     IS UNIQUE",
-        "CREATE CONSTRAINT irn_id     IF NOT EXISTS FOR (i:IRN)          REQUIRE i.irn        IS UNIQUE",
-        "CREATE CONSTRAINT tp_id      IF NOT EXISTS FOR (t:TaxPayment)   REQUIRE t.challan_no IS UNIQUE",
-    ]:
-        try: run_write(q)
-        except: pass
+    """Create uniqueness constraints AND lookup indexes.
+
+    Uniqueness constraints double as indexes on the key field. The extra
+    range indexes below cover every property the code filters or sorts by;
+    without them Neo4j falls back to a label scan (linear in node count),
+    which is fine at 100 nodes and disastrous at 1M.
+    """
+    statements = [
+        # ── uniqueness constraints (also serve as key-lookup indexes) ─────────
+        "CREATE CONSTRAINT gstin_id   IF NOT EXISTS FOR (g:GSTIN)         REQUIRE g.gstin_id   IS UNIQUE",
+        "CREATE CONSTRAINT invoice_id IF NOT EXISTS FOR (i:Invoice)       REQUIRE i.invoice_id IS UNIQUE",
+        "CREATE CONSTRAINT gstr1_id   IF NOT EXISTS FOR (r:GSTR1)         REQUIRE r.return_id  IS UNIQUE",
+        "CREATE CONSTRAINT gstr3b_id  IF NOT EXISTS FOR (r:GSTR3B)        REQUIRE r.return_id  IS UNIQUE",
+        "CREATE CONSTRAINT ewb_id     IF NOT EXISTS FOR (e:EWayBill)      REQUIRE e.ewb_id     IS UNIQUE",
+        "CREATE CONSTRAINT irn_id     IF NOT EXISTS FOR (i:IRN)           REQUIRE i.irn        IS UNIQUE",
+        "CREATE CONSTRAINT tp_id      IF NOT EXISTS FOR (t:TaxPayment)    REQUIRE t.challan_no IS UNIQUE",
+        # ── V6 additions (uniqueness for new node types; MERGE-safe) ──────────
+        "CREATE CONSTRAINT ring_id    IF NOT EXISTS FOR (r:Ring)          REQUIRE r.ring_id    IS UNIQUE",
+        # (V6.4) :Alert constraint/indexes removed — no code path writes :Alert.
+        "CREATE CONSTRAINT match_id   IF NOT EXISTS FOR (m:MatchEvent)    REQUIRE m.event_id   IS UNIQUE",
+        "CREATE CONSTRAINT pr_id      IF NOT EXISTS FOR (p:PurchaseRegister) REQUIRE p.pr_line_id IS UNIQUE",
+        "CREATE CONSTRAINT dir_id     IF NOT EXISTS FOR (d:Director)      REQUIRE d.director_id IS UNIQUE",
+        "CREATE CONSTRAINT veh_num    IF NOT EXISTS FOR (v:Vehicle)       REQUIRE v.vehicle_number IS UNIQUE",
+        "CREATE CONSTRAINT g2b_id     IF NOT EXISTS FOR (r:GSTR2B)        REQUIRE r.return_id  IS UNIQUE",
+        # ── range indexes on non-key properties the code filters/sorts on ─────
+        "CREATE INDEX inv_date       IF NOT EXISTS FOR (i:Invoice)     ON (i.date)",
+        "CREATE INDEX inv_status     IF NOT EXISTS FOR (i:Invoice)     ON (i.status)",
+        "CREATE INDEX inv_scenario   IF NOT EXISTS FOR (i:Invoice)     ON (i.scenario)",
+        "CREATE INDEX inv_hsn        IF NOT EXISTS FOR (i:Invoice)     ON (i.hsn)",
+        "CREATE INDEX gstin_status   IF NOT EXISTS FOR (g:GSTIN)       ON (g.status)",
+        "CREATE INDEX gstin_scenario IF NOT EXISTS FOR (g:GSTIN)       ON (g.scenario)",
+        "CREATE INDEX gstin_risk     IF NOT EXISTS FOR (g:GSTIN)       ON (g.risk_score)",
+        "CREATE INDEX gstin_state    IF NOT EXISTS FOR (g:GSTIN)       ON (g.state)",
+        "CREATE INDEX ewb_vehicle    IF NOT EXISTS FOR (e:EWayBill)    ON (e.vehicle_number)",
+        "CREATE INDEX ewb_scenario   IF NOT EXISTS FOR (e:EWayBill)    ON (e.scenario)",
+        "CREATE INDEX tp_date        IF NOT EXISTS FOR (t:TaxPayment)  ON (t.payment_date)",
+        "CREATE INDEX tp_status      IF NOT EXISTS FOR (t:TaxPayment)  ON (t.status)",
+        "CREATE INDEX gstr1_period   IF NOT EXISTS FOR (r:GSTR1)       ON (r.period)",
+        "CREATE INDEX gstr3b_period  IF NOT EXISTS FOR (r:GSTR3B)      ON (r.period)",
+        # (V6.4) ring_period + alert_severity indexes removed — :Ring has no
+        # `period` property and :Alert is never created; both were dead.
+    ]
+    for q in statements:
+        try:
+            run_write(q)
+        except Exception as e:
+            logger.debug(f"index/constraint skipped: {q[:60]}… → {e}")
 
 SC1 = """
 MERGE (s1:GSTIN {gstin_id:'27AAPFU0939F1ZV',name:'TechSupplies Pvt Ltd',state:'Maharashtra',status:'Active',taxpayer_type:'Regular',risk_score:10,scenario:'VALID'})
