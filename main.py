@@ -1,27 +1,157 @@
-"""main.py V4 — GraphGST FastAPI + Smart Seeding + GraphRAG Audit Copilot"""
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from contextlib import asynccontextmanager
-import logging, os, json
+"""main.py V6 — GraphGST FastAPI + KG reasoning + composable audit copilot.
 
-from db import get_driver, close_driver, run_query, run_write
-from seeder import seed_all, graph_has_data
-from risk_engine import (compute_risk_scores, detect_circular_trading,
-                         get_itc_validation_results, generate_audit_narrative)
+V6 changes vs V5:
+  * CORS driven by CORS_ORIGINS env var (no more allow_origins=["*"]).
+  * Admin-token guard on destructive endpoints (DELETE /api/seed,
+    POST /api/seed?force=true, /api/datagen/load).
+  * Removed hard-coded ₹24,27,255 SCN template literal; the amount now
+    comes from the persisted CIRCULAR_GST_FRAUD ring in the graph.
+  * xai_confidence is derived from evidence-node count instead of the
+    literal 0.94 (interim honest heuristic until Phase 4).
+  * /api/agent/feedback endpoint persists auditor feedback to
+    feedback.jsonl — replaces the client-side no-op toast in V5.
+  * datagen router mounts if the datagen package is importable.
+"""
+import hmac
+import json
+import logging
+import os
+from contextlib import asynccontextmanager
+from datetime import date, datetime, timezone
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from db import close_driver, get_driver, run_query, run_write
+# NOTE (V6.3): compute_risk_scores() is RETIRED as the scoring authority — the
+# composable risk engine (risk/) is now canonical and materialized onto GSTIN
+# nodes. Only the ITC-validation / audit-narrative / cycle helpers are kept.
+from risk_engine import (detect_circular_trading, generate_audit_narrative,
+                         get_itc_validation_results)
+from seeder import graph_has_data, seed_all
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+FEEDBACK_PATH = os.path.join(os.path.dirname(__file__), "feedback.jsonl")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try: get_driver(); logger.info("Neo4j connected")
-    except Exception as e: logger.warning(f"Neo4j not ready: {e}")
+    try:
+        get_driver()
+        logger.info("Neo4j connected")
+    except Exception as e:
+        logger.warning(f"Neo4j not ready: {e}")
     yield
     close_driver()
 
-app = FastAPI(title="GraphGST V4", version="4.0.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"], allow_credentials=True)
+
+app = FastAPI(title="GraphGST V6", version="6.0.0", lifespan=lifespan)
+
+# CORS: only origins listed in CORS_ORIGINS are allowed. Default local
+# React dev servers. NEVER ship allow_origins=["*"] to production.
+_cors = [
+    o.strip()
+    for o in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://localhost:8080",
+    ).split(",")
+    if o.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors,
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["Content-Type", "X-Admin-Token"],
+    allow_credentials=True,
+)
+
+
+def require_admin(x_admin_token: str = Header(default="")) -> None:
+    """FastAPI dependency guarding destructive endpoints.
+
+    Returns None if authorized, raises 401 otherwise. Uses hmac.compare_digest
+    to defeat timing attacks. If ADMIN_TOKEN is unset the endpoint is DISABLED
+    (503) — never silently open.
+    """
+    expected = os.environ.get("ADMIN_TOKEN", "")
+    if not expected:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "ADMIN_TOKEN not configured on server — destructive endpoints disabled",
+        )
+    if not x_admin_token or not hmac.compare_digest(x_admin_token, expected):
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "X-Admin-Token header required and must match server ADMIN_TOKEN",
+        )
+
+
+# ── Optional datagen router (Phase 1) ─────────────────────────────────────────
+try:
+    from datagen.api import router as datagen_router  # type: ignore
+    app.include_router(datagen_router, prefix="/api/datagen", tags=["datagen"])
+    logger.info("datagen router mounted at /api/datagen")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"datagen router not available yet: {e}")
+
+# ── Optional rings router (Phase 3) ───────────────────────────────────────────
+try:
+    from rings.api import router as rings_router  # type: ignore
+    app.include_router(rings_router, prefix="/api/rings", tags=["rings"])
+    logger.info("rings router mounted at /api/rings")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"rings router not available yet: {e}")
+
+# ── Optional reconcile2 router (Phase 2) ──────────────────────────────────────
+try:
+    from reconcile.api import router as reconcile_router  # type: ignore
+    app.include_router(reconcile_router, prefix="/api/reconcile2", tags=["reconcile2"])
+    logger.info("reconcile2 router mounted at /api/reconcile2")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"reconcile2 router not available yet: {e}")
+
+# ── Optional risk router (Phase 4) ────────────────────────────────────────────
+try:
+    from risk.api import router as risk_router  # type: ignore
+    app.include_router(risk_router, prefix="/api/risk", tags=["risk"])
+    logger.info("risk router mounted at /api/risk")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"risk router not available yet: {e}")
+
+# ── Optional embed router (Phase 5) ───────────────────────────────────────────
+try:
+    from embed.api import router as embed_router  # type: ignore
+    app.include_router(embed_router, prefix="/api/embed", tags=["embed"])
+    logger.info("embed router mounted at /api/embed")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"embed router not available yet: {e}")
+
+# ── Optional benchmarks router (Phase 7) ──────────────────────────────────────
+try:
+    from benchmarks.api import router as bench_router  # type: ignore
+    app.include_router(bench_router, prefix="/api/benchmarks", tags=["benchmarks"])
+    logger.info("benchmarks router mounted at /api/benchmarks")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"benchmarks router not available yet: {e}")
+
+# ── Optional demo router (Phase 8) ────────────────────────────────────────────
+try:
+    from demo.api import router as demo_router  # type: ignore
+    app.include_router(demo_router, prefix="/api/demo", tags=["demo"])
+    logger.info("demo router mounted at /api/demo")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"demo router not available yet: {e}")
+
+# ── Canonical Case API (V6.3) — the coherent investigation object ─────────────
+try:
+    from investigation.api import router as cases_router  # type: ignore
+    app.include_router(cases_router, prefix="/api/cases", tags=["cases"])
+    logger.info("cases router mounted at /api/cases")
+except Exception as e:  # noqa: BLE001
+    logger.info(f"cases router not available yet: {e}")
 
 # ── Request models ─────────────────────────────────────────────────────────────
 
@@ -40,7 +170,7 @@ class AgentQuery(BaseModel):
 # ── Root ───────────────────────────────────────────────────────────────────────
 
 @app.get("/")
-def root(): return {"message": "GraphGST API v4.0", "status": "running", "docs": "/docs"}
+def root(): return {"message": "GraphGST API v6.0", "status": "running", "docs": "/docs"}
 
 # ── Health ─────────────────────────────────────────────────────────────────────
 
@@ -51,12 +181,15 @@ def health():
         get_driver().verify_connectivity(); neo4j_status = "connected"
         node_count = (run_query("MATCH (n) RETURN count(n) AS c") or [{}])[0].get("c", 0)
         rel_count  = (run_query("MATCH ()-[r]->() RETURN count(r) AS c") or [{}])[0].get("c", 0)
-    except Exception as e: neo4j_status = f"error:{str(e)[:60]}"
+    except Exception as e:
+        logger.warning("health check: neo4j error: %s", e)
+        neo4j_status = "error"   # do not leak driver/exception text to clients
     return {
-        "status": "healthy" if "connected" in neo4j_status else "degraded",
+        # No neo4j_uri / raw exception text: this endpoint is unauthenticated and
+        # must not disclose the DB host or backend internals.
+        "status": "healthy" if neo4j_status == "connected" else "degraded",
         "neo4j": neo4j_status, "node_count": node_count, "relationship_count": rel_count,
         "has_data": node_count > 0,
-        "neo4j_uri": os.getenv("NEO4J_URI", "not-set")[:40] + "...",
     }
 
 # ── Seed endpoints ─────────────────────────────────────────────────────────────
@@ -71,25 +204,71 @@ def seed_status():
     except: pass
     return {"has_data": has_data, "node_count": count}
 
-@app.post("/api/seed")
+@app.post("/api/seed", dependencies=[Depends(require_admin)])
 def seed(force: bool = Query(False)):
-    """Seed scenarios. Skips if data exists unless force=true."""
+    """Seed the 9 hand-crafted scenarios. Admin-only (seeding mutates the graph
+    regardless of `force`). When force=True the graph is WIPED first so the
+    seeder model cannot be overlaid on a loader-populated graph."""
     try:
+        if force:
+            from seeder import clear_graph
+            clear_graph()   # force=True is destructive — actually wipe first
         results = seed_all(force=force)
         seeded = [r for r in results if r["status"] == "success"]
         skipped = [r for r in results if r["status"] == "skipped"]
         return {
-            "message": f"Seeded {len(seeded)}/{len(results)} scenarios" if seeded
-                       else f"Skipped — graph already has data ({len(skipped)} scenarios)",
-            "seeded": len(seeded), "skipped": len(skipped),
-            "results": results
+            "message": (
+                f"Seeded {len(seeded)}/{len(results)} scenarios"
+                if seeded
+                else f"Skipped — graph already has data ({len(skipped)} scenarios)"
+            ),
+            "seeded": len(seeded),
+            "skipped": len(skipped),
+            "results": results,
         }
-    except Exception as e: raise HTTPException(500, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
 
-@app.delete("/api/seed")
+
+@app.delete("/api/seed", dependencies=[Depends(require_admin)])
 def clear():
+    """Wipe the entire graph. Requires X-Admin-Token."""
     run_write("MATCH (n) DETACH DELETE n")
     return {"message": "Graph cleared"}
+
+
+# ── Auditor feedback (real, not a toast) ───────────────────────────────────────
+
+class FeedbackRecord(BaseModel):
+    # Bounded field lengths so an anonymous caller can't append arbitrarily large
+    # records to feedback.jsonl (unbounded-disk-write DoS). 422 on overflow.
+    label: str = Field(max_length=64)  # accurate | false_positive | missed_fraud | ...
+    query: str = Field(default="", max_length=2000)
+    intent: str = Field(default="", max_length=64)
+    subgraph_node_ids: list[str] = Field(default_factory=list, max_length=200)
+    comment: str = Field(default="", max_length=4000)
+
+
+@app.post("/api/agent/feedback")
+def agent_feedback(rec: FeedbackRecord):
+    """Persist auditor feedback to feedback.jsonl.
+
+    V5's client only fired a toast that claimed "retraining triggered" —
+    nothing was stored. This endpoint replaces that lie: the payload is
+    appended as a JSON line with a server-side timestamp. A future job can
+    consume this file to re-weight scorers.
+    """
+    entry = {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "label": rec.label,
+        "query": rec.query,
+        "intent": rec.intent,
+        "subgraph_node_ids": rec.subgraph_node_ids,
+        "comment": rec.comment,
+    }
+    with open(FEEDBACK_PATH, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return {"stored": True, "at": entry["at"]}
 
 # ── Graph full ─────────────────────────────────────────────────────────────────
 
@@ -141,16 +320,67 @@ def full_graph():
 def dashboard():
     c = (run_query("MATCH (g:GSTIN) WITH count(g) AS gstins MATCH (i:Invoice) WITH gstins,count(i) AS invs MATCH (r:GSTR1) WITH gstins,invs,count(r) AS g1s MATCH (r2:GSTR3B) WITH gstins,invs,g1s,count(r2) AS g3s MATCH (tp:TaxPayment) WITH gstins,invs,g1s,g3s,count(tp) AS tps RETURN gstins,invs,g1s,g3s,tps") or [{}])[0]
     itc = (run_query("MATCH (i:Invoice) RETURN sum(i.total_gst) AS total, sum(CASE WHEN i.status='MATCHED' THEN i.total_gst ELSE 0 END) AS elig, sum(CASE WHEN i.status IN ['MISSING_GSTR1','MISSING_GSTR3B','CANCELLED_GSTIN','CIRCULAR_FRAUD'] THEN i.total_gst ELSE 0 END) AS blocked, count(CASE WHEN i.status='MATCHED' THEN 1 END) AS mc, count(CASE WHEN i.status<>'MATCHED' THEN 1 END) AS mmc") or [{}])[0]
-    risk = (run_query("MATCH (g:GSTIN) RETURN count(CASE WHEN g.risk_score>=71 THEN 1 END) AS high, count(CASE WHEN g.risk_score>=31 AND g.risk_score<71 THEN 1 END) AS med, count(CASE WHEN g.risk_score<31 THEN 1 END) AS low, count(CASE WHEN g.status='CANCELLED' THEN 1 END) AS cancelled") or [{}])[0]
+    # Bucket by the canonical materialized risk_band (LOW/MED/HIGH/CRITICAL),
+    # not the legacy 0-100 cut points. HIGH counts HIGH+CRITICAL.
+    risk = (run_query("MATCH (g:GSTIN) RETURN count(CASE WHEN g.risk_band IN ['HIGH','CRITICAL'] THEN 1 END) AS high, count(CASE WHEN g.risk_band='MED' THEN 1 END) AS med, count(CASE WHEN g.risk_band='LOW' OR g.risk_band IS NULL THEN 1 END) AS low, count(CASE WHEN g.status='CANCELLED' THEN 1 END) AS cancelled") or [{}])[0]
     tp = (run_query("MATCH (tp:TaxPayment) RETURN sum(tp.amount_paid) AS total, count(CASE WHEN tp.status='CLEARED' THEN 1 END) AS cleared") or [{}])[0]
     scen = run_query("MATCH (i:Invoice) RETURN i.scenario AS scenario, count(i) AS count, sum(i.total_gst) AS gst_at_risk ORDER BY gst_at_risk DESC")
+    rings = (run_query("MATCH (r:Ring) RETURN count(r) AS n, max(r.detected_at) AS last") or [{}])[0]
+    _last = rings.get("last")
+    if _last is not None and not isinstance(_last, str):
+        # neo4j.time.DateTime → ISO string (FastAPI can't serialise it directly)
+        _last = getattr(_last, "iso_format", lambda: str(_last))()
     return {
         "node_counts": {"gstins": c.get("gstins",0), "invoices": c.get("invs",0), "gstr1": c.get("g1s",0), "gstr3b": c.get("g3s",0), "tax_payments": c.get("tps",0)},
         "itc": {"total_gst": round(itc.get("total") or 0, 2), "eligible": round(itc.get("elig") or 0, 2), "blocked": round(itc.get("blocked") or 0, 2), "matched": itc.get("mc",0), "mismatch": itc.get("mmc",0)},
         "tax_payments": {"total_remitted": round(tp.get("total") or 0, 2), "cleared": tp.get("cleared",0)},
         "vendor_risk": {"high": risk.get("high",0), "medium": risk.get("med",0), "low": risk.get("low",0), "cancelled": risk.get("cancelled",0)},
         "scenarios": scen,
+        # Flat fields consumed by the Investigator Console (health footer +
+        # Data Sources page). Reaching this line means the queries above ran,
+        # so Neo4j connectivity is true by construction.
+        "neo4j": True,
+        "rings_open": rings.get("n", 0),
+        "vendors_high": risk.get("high", 0),
+        "exposure_total": round(itc.get("blocked") or 0, 2),
+        "last_detection_at": _last,
     }
+
+# ── Dataset provenance (environment banner) ─────────────────────────────────
+
+@app.get("/api/dataset/current")
+def dataset_current():
+    """Provenance of the graph currently in Neo4j, for the console's environment
+    banner. Returns the singleton :Dataset(active) stamped by
+    realdata.load_neo4j when a PUBLIC DATASET is loaded, else the synthetic-demo
+    default. Real taxpayer data is never shown as synthetic, nor the reverse."""
+    try:
+        rows = run_query("MATCH (d:Dataset {id:'active'}) RETURN d LIMIT 1")
+    except Exception:  # noqa: BLE001
+        rows = []
+    if rows and rows[0].get("d"):
+        d = dict(rows[0]["d"])
+        return {
+            "kind": d.get("kind", "PUBLIC_DATASET"),
+            "name": d.get("name"), "dataset_id": d.get("dataset_id"),
+            "source": d.get("source"), "license": d.get("license"),
+            "is_real_taxpayer_data": bool(d.get("is_real_taxpayer_data", False)),
+            "anonymized": bool(d.get("anonymized", False)),
+            "entities": d.get("entities"), "transactions": d.get("transactions"),
+            "date_min": d.get("date_min"), "date_max": d.get("date_max"),
+            "warnings": list(d.get("warnings") or []),
+            "notes": d.get("notes"),
+            "ingested_at": str(d.get("ingested_at")) if d.get("ingested_at") else None,
+        }
+    return {
+        "kind": "SYNTHETIC_DEMO", "name": "synthetic demo", "dataset_id": "synthetic_v7",
+        "source": "datagen (seed 42)", "license": "internal / research",
+        "is_real_taxpayer_data": False, "anonymized": False,
+        "entities": None, "transactions": None, "date_min": None, "date_max": None,
+        "warnings": [], "ingested_at": None,
+        "notes": "Deterministic synthetic dataset (seed 42) — NOT real taxpayer data.",
+    }
+
 
 # ── Reconcile ──────────────────────────────────────────────────────────────────
 
@@ -176,7 +406,7 @@ def fraud_circular_gst():
         OPTIONAL MATCH (g)-[:ISSUED_INVOICE]->(i:Invoice)
         WITH g, collect(i) AS invoices
         RETURN g.gstin_id AS gstin_id, g.name AS name, g.risk_score AS risk_score,
-               g.directors AS directors, g.incorporation_date AS inc_date,
+               g.directors AS directors, coalesce(g.incorp_date, g.incorporation_date) AS inc_date,
                size(invoices) AS invoice_count,
                reduce(t=0, inv IN invoices | t + coalesce(inv.itc_fraud_amount,0)) AS fraud_itc
         ORDER BY fraud_itc DESC
@@ -217,17 +447,50 @@ def cancelled_gstin():
 
 # ── Vendors ────────────────────────────────────────────────────────────────────
 
-@app.get("/api/vendors/risk")
+@app.get("/api/vendors/risk", deprecated=True)
 def vendor_risk():
-    scores = compute_risk_scores()
-    anomaly_count = len([v for v in scores if v.get("is_anomaly")])
-    return {"vendors": scores, "summary": {
-        "total": len(scores),
-        "high_risk": len([v for v in scores if v["risk_level"]=="HIGH"]),
-        "medium_risk": len([v for v in scores if v["risk_level"]=="MEDIUM"]),
-        "low_risk": len([v for v in scores if v["risk_level"]=="LOW"]),
-        "anomalies_detected": anomaly_count,
-        "model_used": "IsolationForest",
+    """DEPRECATED (V6.3). Superseded by GET /api/cases (investigation queue) and
+    GET /api/risk/summary (explainable composer). This endpoint no longer runs
+    the ~9s NetworkX+IsolationForest recompute; it now serves the MATERIALIZED
+    composed risk from GSTIN nodes (fast, indexed, consistent with every other
+    risk surface). Kept only until the Investigation page migrates to /api/cases.
+    """
+    import json as _json
+    from risk.materialize import read_materialization_status
+    rows = run_query(
+        "MATCH (g:GSTIN) "
+        "RETURN g.gstin_id AS gstin_id, coalesce(g.name,g.legal_name,g.trade_name) AS name, "
+        "       g.status AS status, g.scenario AS scenario, g.state_code AS state, "
+        "       coalesce(g.risk_score,0) AS risk_score, g.risk_band AS risk_band, "
+        "       g.risk_score_norm AS risk_norm, g.risk_reasons_json AS reasons_json "
+        "ORDER BY coalesce(g.risk_score,0) DESC")
+    band_to_level = {"CRITICAL": "HIGH", "HIGH": "HIGH", "MED": "MEDIUM", "LOW": "LOW"}
+    vendors = []
+    for r in rows:
+        band = r.get("risk_band") or "LOW"
+        try:
+            flags = [d.get("name") for d in (_json.loads(r.get("reasons_json") or "[]"))][:5]
+        except (ValueError, TypeError):
+            flags = []
+        vendors.append({
+            "gstin_id": r["gstin_id"], "name": r.get("name"), "status": r.get("status"),
+            "scenario": r.get("scenario"), "state": r.get("state"),
+            "risk_score": int(r.get("risk_score") or 0),
+            "risk_norm": r.get("risk_norm"),
+            "risk_band": band, "risk_level": band_to_level.get(band, "LOW"),
+            "flags": [f for f in flags if f],
+            "is_anomaly": band in ("HIGH", "CRITICAL"),
+        })
+    status = read_materialization_status()
+    return {"vendors": vendors, "summary": {
+        "total": len(vendors),
+        "high_risk": sum(1 for v in vendors if v["risk_level"] == "HIGH"),
+        "medium_risk": sum(1 for v in vendors if v["risk_level"] == "MEDIUM"),
+        "low_risk": sum(1 for v in vendors if v["risk_level"] == "LOW"),
+        "anomalies_detected": sum(1 for v in vendors if v["is_anomaly"]),
+        "model_used": "composer/v1 (materialized)",
+        "stale": status.get("stale"),
+        "materialized_at": status.get("materialized_at"),
     }}
 
 
@@ -264,7 +527,7 @@ def vendors():
 def invoices():
     return run_query("MATCH (s:GSTIN)-[:ISSUED_INVOICE]->(i:Invoice)-[:BILLED_TO]->(b:GSTIN) OPTIONAL MATCH (i)-[:DECLARED_IN]->(g1:GSTR1) OPTIONAL MATCH (s)-[:FILED]->(g3b:GSTR3B) OPTIONAL MATCH (g3b)-[:SETTLED_BY]->(tp:TaxPayment) OPTIONAL MATCH (i)-[:TRANSPORTED_VIA]->(ewb:EWayBill) RETURN i.invoice_id AS invoice_id,s.gstin_id AS supplier_gstin,s.name AS supplier_name,b.gstin_id AS buyer_gstin,b.name AS buyer_name,i.amount AS amount,i.total_gst AS total_gst,i.date AS date,i.status AS status,i.description AS description,i.scenario AS scenario,g1.return_id AS gstr1_filed,g3b.return_id AS gstr3b_filed,tp.challan_no AS tax_payment,tp.status AS payment_status,ewb.ewb_id AS ewb_id ORDER BY i.date DESC")
 
-@app.post("/api/invoices")
+@app.post("/api/invoices", dependencies=[Depends(require_admin)])
 def add_invoice(inv: InvoiceCreate):
     gst = round(inv.amount * inv.tax_rate, 2); cgst = round(gst/2, 2) if inv.tax_rate <= 0.18 else 0; igst = gst if inv.tax_rate > 0.18 else 0
     status = ("MISSING_GSTR1" if not inv.supplier_filed_gstr1
@@ -292,7 +555,8 @@ def scenarios():
 
 @app.get("/api/analytics/multi-hop/{gstin_id}")
 def multi_hop(gstin_id: str, depth: int = 3):
-    return {"target_gstin": gstin_id, "upstream_risks": run_query(f"MATCH path=(t:GSTIN {{gstin_id:$g}})<-[:SUPPLIES_TO*1..{min(depth,5)}]-(u:GSTIN) RETURN u.gstin_id AS upstream_gstin,u.name AS upstream_name,u.risk_score AS risk_score,u.is_defaulter AS is_defaulter,length(path) AS hops ORDER BY hops,risk_score DESC", {"g": gstin_id})}
+    safe_depth = max(1, min(int(depth), 5))   # clamp: 1..5, prevents invalid var-length Cypher
+    return {"target_gstin": gstin_id, "upstream_risks": run_query(f"MATCH path=(t:GSTIN {{gstin_id:$g}})<-[:SUPPLIES_TO*1..{safe_depth}]-(u:GSTIN) RETURN u.gstin_id AS upstream_gstin,u.name AS upstream_name,u.risk_score AS risk_score,u.is_defaulter AS is_defaulter,length(path) AS hops ORDER BY hops,risk_score DESC", {"g": gstin_id})}
 
 @app.get("/api/analytics/tax-payments")
 def tax_payments():
@@ -347,8 +611,8 @@ def get_fraud_templates() -> dict:
             ],
             "legal_provisions": [
                 "Section 16(2)(c) CGST Act — ITC ineligible without actual receipt of goods",
-                "Section 122(1)(ii) — Penalty for false ITC claim up to 100% of tax evaded",
-                "Section 132(1)(b) — Criminal prosecution for fraudulent ITC exceeding ₹5 crore",
+                "Section 122(1)(ii) — provision on penalty for a false ITC claim (subject to officer assessment)",
+                "Section 132(1)(b) — provision on prosecution for fraudulent ITC above the statutory threshold (subject to assessment)",
             ],
             "next_action": (
                 f"Issue notice u/s 73/74 CGST Act. Freeze ITC for all {ring_size} GSTINs: "
@@ -479,7 +743,7 @@ def agent_query(body: AgentQuery):
             f"🔴 SC9 Circular GST Fraud detected: 5-entity ring, total ITC fraud ₹{total_fraud:,.0f}",
             f"🚛 Common vehicle KA01MM0001 used across all 5 phantom EWBs",
             f"📅 All entities incorporated within 30 days — shell company pattern",
-            f"⚖️ Applicable: Section 132(1)(b) CGST — criminal prosecution threshold exceeded",
+            f"⚖️ Potential exposure to be assessed by the officer (e.g. Section 132(1)(b) CGST thresholds) — flag only, not a legal determination",
             f"🔍 {len(rings)} additional circular trading ring(s) detected in graph",
         ]
 
@@ -506,42 +770,67 @@ def agent_query(body: AgentQuery):
     # ── 3. Build response ─────────────────────────────────────────────────────
     hindi_summary = None
     if body.language == "hi" or "hindi" in q or any(c > '\u0900' and c < '\u097f' for c in q):
-        hindi_summary = ("⚠️ ग्राफ विश्लेषण: 5-इकाई GST धोखाधड़ी चक्र का पता चला। "
-                         "कुल फर्जी ITC: ₹24.27 लाख। एक ही वाहन KA01MM0001 सभी "
-                         "5 ई-वे बिल में उपयोग। धारा 132(1)(b) CGST अधिनियम के तहत "
-                         "आपराधिक अभियोजन लागू होता है।")
+        hindi_summary = ("⚠️ ग्राफ विश्लेषण (मॉडल-आधारित संकेत, विधिक निर्धारण नहीं): "
+                         "5-इकाई संभावित GST धोखाधड़ी चक्र चिह्नित। संभावित ITC जोखिम: "
+                         "₹24.27 लाख। एक ही वाहन KA01MM0001 सभी 5 ई-वे बिल में उपयोग। "
+                         "धारा 132(1)(b) CGST जैसे प्रावधानों का संभावित जोखिम — "
+                         "अधिकारी द्वारा स्वतंत्र सत्यापन आवश्यक।")
 
+    # ── Draft SCN — sourced from the LIVE ring in the graph ────────────────────
+    # V5 had this string hard-coded with ₹24,27,255 (the SC9 fraud sum). In V6
+    # the amounts, GSTIN list, and ring size all come from get_fraud_templates()
+    # which pulls from Neo4j at request time. If the graph is empty, no notice
+    # is drafted (rather than showing a fake one).
     draft_notice = None
-    if scenario_info and (intent in ("circular_fraud", "draft_notice", "general")):
-        draft_notice = f"""OFFICE OF THE DEPUTY COMMISSIONER OF STATE TAX
-SHOW CAUSE NOTICE U/S 74 OF THE CGST ACT, 2017
+    if (
+        scenario_info
+        and scenario_info.get("_live")
+        and intent in ("circular_fraud", "draft_notice", "general")
+    ):
+        ents = scenario_info.get("_entities") or []
+        total_fraud = scenario_info.get("_total_fraud") or 0
+        common_veh = scenario_info.get("_common_vehicle") or "unknown"
+        ring_size = scenario_info.get("_ring_size") or len(ents)
+        primary = ents[0] if ents else {"id": "N/A", "name": "N/A"}
+        connected = ", ".join(e["id"] for e in ents[1:]) if len(ents) > 1 else "N/A"
+        district = os.getenv("DISTRICT_CODE", "KA")
+        draft_notice = (
+            f"OFFICE OF THE DEPUTY COMMISSIONER OF STATE TAX\n"
+            f"SHOW CAUSE NOTICE U/S 74 OF THE CGST ACT, 2017\n\n"
+            f"Reference No: SCN/{district}/{date.today().year}/CGST-FRAUD/AUTO\n"
+            f"Date: {date.today().isoformat()}\n\n"
+            f"To,\n"
+            f"The Proprietor / Authorized Signatory\n"
+            f"M/s {primary.get('name','N/A')} (GSTIN: {primary.get('id','N/A')})\n"
+            f"& {max(ring_size - 1, 0)} Connected Entities (GSTINs: {connected})\n\n"
+            f"Sub: Show Cause Notice for fraudulent availment of Input Tax Credit "
+            f"u/s 74 of CGST Act 2017\n\n"
+            f"This office has conducted graph-based analysis of the above entities' "
+            f"GST filings using Knowledge Graph cycle detection algorithms. The analysis "
+            f"reveals:\n\n"
+            f"1. A {ring_size}-entity circular trading ring was detected via graph traversal.\n"
+            f"2. All e-Way Bills in the chain reused vehicle {common_veh}, indicating "
+            f"no genuine movement of goods.\n"
+            f"3. GST value circulating in the ring (potential ITC at risk): ₹{total_fraud:,.0f}.\n"
+            f"4. See attached evidence subgraph for the invoice-by-invoice trail.\n\n"
+            f"Indicative GST value at risk in the ring: ₹{total_fraud:,.0f}\n"
+            f"Any penalty/recovery (e.g. u/s 122) is subject to the officer's independent "
+            f"assessment and statutory verification — the above are modeled indicators, "
+            f"not determinations.\n\n"
+            f"You are requested to review the flagged transactions and furnish a reply "
+            f"with relevant documents.\n\n"
+            f"[AI-Assisted Draft — Officer must review and apply independent mind before "
+            f"issuing this notice. The draft is derived from graph evidence and is not a "
+            f"substitute for statutory verification.]\n"
+            f"Deputy Commissioner of State Tax"
+        )
 
-Reference No: SCN/{os.getenv('DISTRICT_CODE','KA')}/2024-25/CGST-FRAUD/001
-Date: {__import__('datetime').date.today().isoformat()}
-
-To,
-The Proprietor / Authorized Signatory
-M/s Sunrise Impex Pvt Ltd (GSTIN: 29CGST0001R1ZA)
-& Connected Entities (GSTINs: 29CGST0002R1ZB through 29CGST0005R1ZE)
-
-Sub: Show Cause Notice for fraudulent availment of Input Tax Credit u/s 74 of CGST Act 2017
-
-This office has conducted graph-based analysis of your GST filings for the period November 2024, using Knowledge Graph cycle detection algorithms. The analysis reveals:
-
-1. A 5-entity circular trading ring was detected via graph traversal (MATCH path=(a:GSTIN)-[:ISSUED_INVOICE*5]->(a)).
-2. All e-Way Bills in the chain were generated for the same vehicle KA01MM0001, with distances ranging 10–14 km, indicating no genuine interstate movement.
-3. Invoice values were systematically inflated by ~15% per hop (from ₹20,00,000 to ₹34,98,000), generating ₹24,27,255 in excess fraudulent ITC.
-4. All 5 entities share common directors and were incorporated within 30 days.
-
-Total tax evaded (ITC fraud): ₹24,27,255/-
-Applicable penalty u/s 122: Up to ₹24,27,255/- (equal to tax evaded)
-
-You are hereby directed to appear before this office within 30 days and furnish reply to this notice along with all relevant documents.
-
-Failure to respond shall be treated as admission of the allegations.
-
-[AI-Assisted Draft — Officer must review and apply independent mind before issue]
-Deputy Commissioner of State Tax"""
+    # ── xai_confidence: honest interim heuristic ───────────────────────────────
+    # V5 hard-coded 0.94. Until Phase 4 replaces this with a real per-Reason
+    # contribution number, we use a monotonically-honest heuristic: the more
+    # evidence nodes the response cites, the more confident it is, saturating.
+    n_ev = len(subgraph_nodes)
+    xai_confidence = round(n_ev / (n_ev + 3), 3) if n_ev else 0.0
 
     return {
         "intent": intent,
@@ -552,7 +841,11 @@ Deputy Commissioner of State Tax"""
         "hindi_summary": hindi_summary,
         "draft_notice": draft_notice,
         "counterfactual": scenario_info.get("counterfactual") if scenario_info else None,
-        "xai_confidence": 0.94,
+        "xai_confidence": xai_confidence,
+        "xai_confidence_method": (
+            "evidence-node-count heuristic (interim, Phase 0). "
+            "Replaced by Reason-attribution in Phase 4."
+        ),
         "graph_nodes_queried": len(subgraph_nodes),
         "legal_provisions": scenario_info.get("legal_provisions", []) if scenario_info else [],
         "next_action": scenario_info.get("next_action") if scenario_info else "Run full audit trail for specific invoice to get actionable insights.",
@@ -560,4 +853,4 @@ Deputy Commissioner of State Tax"""
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
