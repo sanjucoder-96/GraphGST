@@ -1,12 +1,64 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Database, Play, RefreshCw } from 'lucide-react';
-import { API_BASE, getDashboardSummary, postDetect } from '../../lib/api';
+import { Database, Play, RefreshCw, FlaskConical, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { API_BASE, getDashboardSummary, getDatasetCurrent, postDetect } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { useStore } from '../../lib/store';
 import styles from './DataHealth.module.css';
 
 /* Data Sources — backend + fixture provenance. Every value cites where it
    came from; fixtures are labelled demo. No fabricated numbers. */
+
+/* Data Provenance — the graph currently loaded (GET /api/dataset/current).
+   The console must never present real/public data as synthetic, nor synthetic
+   as real; this panel makes the distinction explicit and traceable. */
+function DataProvenance() {
+  const q = useQuery({ queryKey: ['dataset', 'current'] as const, queryFn: getDatasetCurrent, staleTime: 30_000 });
+  const d = q.data?.data;
+  if (!d) return null;
+  const isPublic = d.kind === 'PUBLIC_DATASET';
+  const fmt = (v: number | null | undefined) => (v == null ? '—' : v.toLocaleString('en-IN'));
+  const kv: [string, string][] = [
+    ['Source', d.source || '—'],
+    ['Dataset version', d.dataset_id || d.name || '—'],
+    ['Date range', d.date_min && d.date_min !== '—' ? `${d.date_min} → ${d.date_max}` : 'none (no dates)'],
+    ['Records', fmt(d.transactions)],
+    ['Entities', fmt(d.entities)],
+    ['License', d.license || '—'],
+    ['Last imported', d.ingested_at ? d.ingested_at.slice(0, 19).replace('T', ' ') : '—'],
+    ['Anonymization', d.anonymized ? 'anonymized (pseudonyms)' : 'none'],
+  ];
+  return (
+    <section className={styles.prov}>
+      <div className={styles.provHead}>
+        <span className={`${styles.provKind} ${isPublic ? styles.provPublic : styles.provDemo}`}>
+          {isPublic ? <Database size={13} strokeWidth={2} /> : <FlaskConical size={13} strokeWidth={2} />}
+          {isPublic ? 'Public dataset — research validation' : 'Synthetic demo'}
+        </span>
+        <span className={styles.provName} data-mono>{d.name}</span>
+        <span className={styles.provReal} title="Real taxpayer data?">
+          <ShieldCheck size={12} strokeWidth={2} />
+          {d.is_real_taxpayer_data ? 'REAL TAXPAYER DATA' : 'not real taxpayer data'}
+        </span>
+      </div>
+      <div className={styles.provGrid}>
+        {kv.map(([k, v]) => (
+          <div key={k} className={styles.provCell}>
+            <div className={styles.provKey}>{k}</div>
+            <div className={styles.provVal} data-mono>{v}</div>
+          </div>
+        ))}
+      </div>
+      {d.notes && <div className={styles.provNotes}>{d.notes}</div>}
+      {d.warnings && d.warnings.length > 0 && (
+        <ul className={styles.provWarn}>
+          {d.warnings.map((w, i) => (
+            <li key={i}><AlertTriangle size={11} strokeWidth={2} /> {w}</li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
 
 export function DataHealthPage() {
   const qc = useQueryClient();
@@ -49,6 +101,8 @@ export function DataHealthPage() {
         </div>
         <span className={styles.headIcon}><Database size={18} strokeWidth={1.75} /></span>
       </header>
+
+      <DataProvenance />
 
       <div className={styles.table}>
         <div className={styles.thead}>

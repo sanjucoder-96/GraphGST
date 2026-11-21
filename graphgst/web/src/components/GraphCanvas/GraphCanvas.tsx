@@ -34,6 +34,15 @@ interface ContextMenu { x: number; y: number; nodeId: string | null; edgeId: str
 // Cheap structural fingerprint over the payload — same nodes/edges yield the
 // same string even when the array identity changes across a refetch. Used to
 // prevent cytoscape from being torn down when the data is materially unchanged.
+// Fit the graph to its frame after a layout runs. cose-bilkent's own
+// fit:true / layoutstop can land before the flex container reaches its final
+// size, leaving the network squeezed into a corner; an explicit fit scheduled
+// past the animation is the reliable centring path.
+function fitAfterLayout(cy: Core): void {
+  requestAnimationFrame(() => { cy.resize(); cy.fit(undefined, 48); });
+  setTimeout(() => { cy.resize(); cy.fit(undefined, 48); }, 560);
+}
+
 function fingerprint(data: GraphPayload | null): string {
   if (!data) return '';
   let s = '';
@@ -164,7 +173,39 @@ export function GraphCanvas({ data, ring, timelineDate, cutInvoiceId, onNodeSele
       if (evt.target === cy) { setMenu(null); }
     });
 
-    return () => { cy.destroy(); cyRef.current = null; lastFingerprintRef.current = ''; };
+    // Re-fit whenever the layout settles so the network fills its frame
+    // regardless of how big the graph is.
+    cy.on('layoutstop', () => { cy.fit(undefined, 48); });
+
+    // Cytoscape can init before the flex container has its final size (the
+    // page grid settles a frame later), leaving the graph clustered in a tiny
+    // top-left viewport. Observe the container and resize + re-fit on change.
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        cy.resize();
+        cy.fit(undefined, 48);
+      });
+    });
+    if (canvasRef.current) ro.observe(canvasRef.current);
+    // The first layout ran while the flex container was still 0-sized, so
+    // positions were squeezed into a tiny box. Once the grid settles, resize
+    // and RE-RUN the layout (a bare fit would only zoom to the squeezed box).
+    const t0 = setTimeout(() => {
+      cy.resize();
+      cy.layout(layoutOptionsFor(layout, ring)).run();
+      fitAfterLayout(cy);
+    }, 140);
+
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+      clearTimeout(t0);
+      cy.destroy();
+      cyRef.current = null;
+      lastFingerprintRef.current = '';
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -186,6 +227,7 @@ export function GraphCanvas({ data, ring, timelineDate, cutInvoiceId, onNodeSele
     }
     // Re-run layout because element positions were dropped.
     cy.layout(layoutOptionsFor(layout, ring)).run();
+    fitAfterLayout(cy);
     lastFingerprintRef.current = fp;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fp]);
@@ -196,6 +238,7 @@ export function GraphCanvas({ data, ring, timelineDate, cutInvoiceId, onNodeSele
     if (!cy) return;
     const l = cy.layout(layoutOptionsFor(layout, ring));
     l.run();
+    fitAfterLayout(cy);
   }, [layout, ring]);
 
   // Active-ring highlight — repaint amber only on the currently-selected ring node
@@ -362,10 +405,11 @@ function layoutOptionsFor(mode: LayoutMode, ring?: Ring | null): LayoutOptions {
       name: 'concentric',
       concentric: (node: cytoscape.NodeSingular) => (node.data('type') === 'ring' ? 3 : node.data('type') === 'gstin' ? 2 : 1),
       levelWidth: () => 1,
-      minNodeSpacing: 40,
+      minNodeSpacing: 44,
       startAngle: -Math.PI / 2,
-      animate: true,
-      animationDuration: 500,
+      animate: false,
+      fit: true,
+      padding: 56,
       spacingFactor: 1
     } as unknown as LayoutOptions;
   }
@@ -381,14 +425,14 @@ function layoutOptionsFor(mode: LayoutMode, ring?: Ring | null): LayoutOptions {
   }
   return {
     name: 'cose-bilkent',
-    idealEdgeLength: 90,
-    nodeRepulsion: 8000,
-    nodeOverlap: 20,
+    idealEdgeLength: 95,
+    nodeRepulsion: 9000,
+    nodeOverlap: 24,
     numIter: 1200,
-    animate: 'end',
-    animationDuration: 600,
+    animate: false,
     randomize: true,
-    padding: 40,
+    fit: true,
+    padding: 56,
     tile: false,
     edgeElasticity: 0.45
   } as unknown as LayoutOptions;

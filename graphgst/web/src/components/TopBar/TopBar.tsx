@@ -1,9 +1,34 @@
-import { Search, Bell, SlidersHorizontal } from 'lucide-react';
+import { Search, Bell, SlidersHorizontal, FlaskConical, Database } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useStore } from '../../lib/store';
+import { getDatasetCurrent } from '../../lib/api';
 import { KBD } from '../ui/KBD';
 import styles from './TopBar.module.css';
 
 interface Props { latency: number; }
+
+/* Dataset provenance banner — the console must never present real/public data
+   as synthetic, nor synthetic as real. Reads GET /api/dataset/current. */
+function DatasetBadge() {
+  const q = useQuery({
+    queryKey: ['dataset', 'current'] as const,
+    queryFn: getDatasetCurrent,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const d = q.data?.data;
+  const isPublic = d?.kind === 'PUBLIC_DATASET';
+  const title = isPublic
+    ? `PUBLIC DATASET — ${d?.name}\nSource: ${d?.source}\nLicense: ${d?.license}\n${d?.notes ?? ''}`
+    : 'SYNTHETIC DEMO — deterministic generated data (seed 42). Not real taxpayer data.';
+  return (
+    <span className={`${styles.dataset} ${isPublic ? styles.dsPublic : styles.dsDemo}`} title={title}>
+      {isPublic ? <Database size={12} strokeWidth={2} /> : <FlaskConical size={12} strokeWidth={2} />}
+      {isPublic ? 'Public dataset' : 'Synthetic demo'}
+      {isPublic && d?.name && <span className={styles.dsName} data-mono>{d.name}</span>}
+    </span>
+  );
+}
 
 export function TopBar({ latency }: Props) {
   const env = useStore(s => s.env);
@@ -26,6 +51,8 @@ export function TopBar({ latency }: Props) {
       </button>
 
       <div className={styles.spacer} />
+
+      <DatasetBadge />
 
       <button type="button" className={styles.iconBtn} title="Filters" aria-label="Filters">
         <SlidersHorizontal size={16} strokeWidth={1.75} />

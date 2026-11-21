@@ -183,7 +183,7 @@
 }
 .hop .ok   { border-color: rgba(41,199,154,0.4);  color: var(--ok);   background: var(--ok-dim); }
 .hop .warn { border-color: rgba(224,166,58,0.4);  color: var(--warn); background: var(--warn-dim); }
-.hop .fail { border-color: rgba(242,78,99,0.4);   color: var(--bad);  background: var(--bad-dim); }
+.hop .fail { border-color: rgba(236,80,100,0.4);   color: var(--bad);  background: var(--bad-dim); }
 .hop .info { border-color: var(--brand-line);     color: var(--brand-2); background: var(--brand-dim); }
 .hop .lbl {
   color: var(--text-0);

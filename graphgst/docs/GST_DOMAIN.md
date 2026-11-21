@@ -106,6 +106,47 @@ Practical effect: the headline F1 (0.961) is computed over the 11 planted
 outcomes only. These five detectors are real code with real logic, but their
 accuracy is unknown until datagen learns to plant them.
 
+### V7 decision (WS6) — new fraud scenarios: **DEFERRED to V8**
+
+V7 evaluated adding 1–2 of `TAX_MISMATCH`, `POS_MISMATCH`, `MISSING_IN_PR`,
+credit/debit notes, or amendments. **Decision: defer all of them to V8**, on
+purpose, for three reasons:
+
+1. **The detectors already exist; only generation is missing.** `TAX_MISMATCH`,
+   `POS_MISMATCH`, and `MISSING_IN_PR` are already emitted by
+   `reconcile/matcher.py` (see the table above). The missing half is datagen
+   planting, not detection — so shipping them adds *ground truth*, not new
+   capability.
+2. **Any addition forces a full metric re-baseline.** Planting a new anomaly
+   type shifts the label distribution the 9 gated metrics are computed over, so
+   every baseline in `benchmarks/baseline.json` would move. Re-baselining during
+   the *final productization gate* is exactly the change-the-numbers-under-your-
+   own-feet risk the V7 mandate warns against; it belongs in a dedicated data
+   phase with its own before/after audit, not bolted onto the release.
+3. **V7 is a hardening stage, not a new feature phase.** Introducing fraud
+   scenarios is a feature phase and is out of scope for "do not begin another
+   major feature phase after the final gate."
+
+**Ranked recommendation for V8** (do the top one first, in isolation, then
+re-baseline and audit before adding the next):
+
+1. **`TAX_MISMATCH`** — highest value / lowest risk. Detector exists; a clean
+   real-world case (GST charged at the wrong rate / wrong taxable value). Plant
+   by perturbing `invoice.total_gst` away from `rate × taxable_value` on a small
+   labelled share, leaving the filing chain otherwise intact so it is *distinct*
+   from `AMOUNT_MISMATCH` (which perturbs the invoice value itself).
+2. **`MISSING_IN_PR`** — supplier filed GSTR-1 but the invoice never appears in
+   the buyer's purchase register; a common real reconciliation break. Plant by
+   dropping the PR row for a labelled share of otherwise-matched invoices.
+3. **Credit / debit notes & amendments** — larger: new node types + new matcher
+   logic + new detectors. A genuine feature phase; keep last.
+
+**Re-baseline procedure when V8 executes this:** add the planting to
+`datagen/anomalies.py` behind a new `anom_mix_*` weight (default 0), regenerate
+the deterministic dataset, run `python -m benchmarks.run_all`, and *only then*
+commit the shifted numbers into `benchmarks/baseline.json` with a documented
+before/after diff — never silently.
+
 ## The GSTIN identifier (`datagen/identifiers.py`)
 
 A GSTIN is a 15-character code: 2-digit state + 10-char PAN + entity digit +

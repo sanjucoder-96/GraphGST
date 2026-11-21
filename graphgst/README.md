@@ -140,7 +140,12 @@ Investigator Console.
 ## Historical notes
 
 - The older `D:\GraphGST\Hack_Me\` snapshot was a broken subset of V5 (missing `db.py`, missing `pages/dashboard.js` / `add.js` / `agent.js`, folders flattened). It is now obsolete; work happens here in `graphgst/`.
-- V5's checked-in `isolation_forest_model.pkl` has been removed. The model is now retrained on demand from the current graph — see Phase 4.
+- V5's checked-in `isolation_forest_model.pkl` and its standalone retrain path
+  (`risk_engine.compute_risk_scores`) are retired. Risk is now produced by the
+  composable engine in `risk/` — reconcile + ring + rules + temporal scorers
+  summed by `RiskComposer`. An IsolationForest scorer (`risk/scorers/ml.py`)
+  exists but is deliberately **excluded** from the composed score (negative
+  marginal AUC on the hardened benchmark); see `docs/RISK_ENGINE.md`.
 
 ## License
 

@@ -325,13 +325,62 @@ def dashboard():
     risk = (run_query("MATCH (g:GSTIN) RETURN count(CASE WHEN g.risk_band IN ['HIGH','CRITICAL'] THEN 1 END) AS high, count(CASE WHEN g.risk_band='MED' THEN 1 END) AS med, count(CASE WHEN g.risk_band='LOW' OR g.risk_band IS NULL THEN 1 END) AS low, count(CASE WHEN g.status='CANCELLED' THEN 1 END) AS cancelled") or [{}])[0]
     tp = (run_query("MATCH (tp:TaxPayment) RETURN sum(tp.amount_paid) AS total, count(CASE WHEN tp.status='CLEARED' THEN 1 END) AS cleared") or [{}])[0]
     scen = run_query("MATCH (i:Invoice) RETURN i.scenario AS scenario, count(i) AS count, sum(i.total_gst) AS gst_at_risk ORDER BY gst_at_risk DESC")
+    rings = (run_query("MATCH (r:Ring) RETURN count(r) AS n, max(r.detected_at) AS last") or [{}])[0]
+    _last = rings.get("last")
+    if _last is not None and not isinstance(_last, str):
+        # neo4j.time.DateTime → ISO string (FastAPI can't serialise it directly)
+        _last = getattr(_last, "iso_format", lambda: str(_last))()
     return {
         "node_counts": {"gstins": c.get("gstins",0), "invoices": c.get("invs",0), "gstr1": c.get("g1s",0), "gstr3b": c.get("g3s",0), "tax_payments": c.get("tps",0)},
         "itc": {"total_gst": round(itc.get("total") or 0, 2), "eligible": round(itc.get("elig") or 0, 2), "blocked": round(itc.get("blocked") or 0, 2), "matched": itc.get("mc",0), "mismatch": itc.get("mmc",0)},
         "tax_payments": {"total_remitted": round(tp.get("total") or 0, 2), "cleared": tp.get("cleared",0)},
         "vendor_risk": {"high": risk.get("high",0), "medium": risk.get("med",0), "low": risk.get("low",0), "cancelled": risk.get("cancelled",0)},
         "scenarios": scen,
+        # Flat fields consumed by the Investigator Console (health footer +
+        # Data Sources page). Reaching this line means the queries above ran,
+        # so Neo4j connectivity is true by construction.
+        "neo4j": True,
+        "rings_open": rings.get("n", 0),
+        "vendors_high": risk.get("high", 0),
+        "exposure_total": round(itc.get("blocked") or 0, 2),
+        "last_detection_at": _last,
     }
+
+# ── Dataset provenance (environment banner) ─────────────────────────────────
+
+@app.get("/api/dataset/current")
+def dataset_current():
+    """Provenance of the graph currently in Neo4j, for the console's environment
+    banner. Returns the singleton :Dataset(active) stamped by
+    realdata.load_neo4j when a PUBLIC DATASET is loaded, else the synthetic-demo
+    default. Real taxpayer data is never shown as synthetic, nor the reverse."""
+    try:
+        rows = run_query("MATCH (d:Dataset {id:'active'}) RETURN d LIMIT 1")
+    except Exception:  # noqa: BLE001
+        rows = []
+    if rows and rows[0].get("d"):
+        d = dict(rows[0]["d"])
+        return {
+            "kind": d.get("kind", "PUBLIC_DATASET"),
+            "name": d.get("name"), "dataset_id": d.get("dataset_id"),
+            "source": d.get("source"), "license": d.get("license"),
+            "is_real_taxpayer_data": bool(d.get("is_real_taxpayer_data", False)),
+            "anonymized": bool(d.get("anonymized", False)),
+            "entities": d.get("entities"), "transactions": d.get("transactions"),
+            "date_min": d.get("date_min"), "date_max": d.get("date_max"),
+            "warnings": list(d.get("warnings") or []),
+            "notes": d.get("notes"),
+            "ingested_at": str(d.get("ingested_at")) if d.get("ingested_at") else None,
+        }
+    return {
+        "kind": "SYNTHETIC_DEMO", "name": "synthetic demo", "dataset_id": "synthetic_v7",
+        "source": "datagen (seed 42)", "license": "internal / research",
+        "is_real_taxpayer_data": False, "anonymized": False,
+        "entities": None, "transactions": None, "date_min": None, "date_max": None,
+        "warnings": [], "ingested_at": None,
+        "notes": "Deterministic synthetic dataset (seed 42) — NOT real taxpayer data.",
+    }
+
 
 # ── Reconcile ──────────────────────────────────────────────────────────────────
 

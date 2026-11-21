@@ -4,7 +4,10 @@
 // See docs/INVESTIGATION_MODEL.md.
 
 export type Band = 'LOW' | 'MED' | 'HIGH' | 'CRITICAL';
-export type InvestigationStatus = 'open' | 'reviewing' | 'closed';
+// Mirrors backend schemas.InvestigationStatus. The canonical status
+// lifecycle persisted via PATCH /api/cases/{id}.
+export type InvestigationStatus =
+  | 'open' | 'investigating' | 'escalated' | 'resolved' | 'dismissed';
 
 export interface CaseReason {
   name: string;

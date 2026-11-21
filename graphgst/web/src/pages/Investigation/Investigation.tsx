@@ -9,6 +9,8 @@ import { EvidencePanel } from '../../components/EvidencePanel/EvidencePanel';
 import { TimelineScrubber } from '../../components/TimelineScrubber/TimelineScrubber';
 import { RelatedVendors } from '../../components/RelatedVendors/RelatedVendors';
 import { Button } from '../../components/ui/Button';
+import { RiskMeter } from '../../components/ui/Risk';
+import { StatusControl } from '../../components/ui/StatusControl';
 import { useStore } from '../../lib/store';
 import { useShortcuts } from '../../lib/keyboard';
 import type {
@@ -37,6 +39,13 @@ const BLOCKING = new Set([
 const signals = (s: Record<string, number> | undefined): Signals => ({
   C: s?.C ?? 0, V: s?.V ?? 0, T: s?.T ?? 0, R: s?.R ?? 0, N: s?.N ?? 0, H: s?.H ?? 0,
 });
+
+function inrShort(v: number): string {
+  if (v >= 1e7) return `₹${(v / 1e7).toFixed(2)}Cr`;
+  if (v >= 1e5) return `₹${(v / 1e5).toFixed(2)}L`;
+  if (v >= 1e3) return `₹${(v / 1e3).toFixed(1)}K`;
+  return `₹${v.toFixed(0)}`;
+}
 
 function bandToSeverity(b?: string | null): 'high' | 'med' | 'low' {
   if (b === 'CRITICAL' || b === 'HIGH') return 'high';
@@ -304,36 +313,58 @@ export function InvestigationPage({ mode }: Props) {
       <div className={styles.header}>
         <div className={styles.headerId}>
           <span className={styles.kicker}>{mode === 'ring' ? 'Ring investigation' : 'Entity investigation'}</span>
-          <h1 className={styles.headerTitle} data-mono>{ring ? ring.ring_id : (invCase?.entity.name ?? gstinFromUrl ?? 'Investigation')}</h1>
+          <div className={styles.titleRow}>
+            <h1 className={styles.headerTitle}>{invCase?.entity.name ?? gstinFromUrl ?? 'Investigation'}</h1>
+            {invCase?.entity.status === 'CANCELLED' && <span className={styles.cancelledTag}>cancelled</span>}
+          </div>
+          <div className={styles.idRow}>
+            <span className={styles.gstinChip} data-mono>{invCase?.entity.gstin_id ?? caseGstin ?? '—'}</span>
+            {ring && <span className={styles.ringChip} data-mono>{ring.ring_id}</span>}
+            {invCase && invCase.rings.length > 1 && (
+              <span className={styles.ringNav}>
+                <button onClick={() => cycleRing(-1)} title="Previous ring ([)">‹</button>
+                <span data-mono>{(invCase.rings.findIndex(r => r.ring_id === primaryRingSummary?.ring_id) + 1)}/{invCase.rings.length}</span>
+                <button onClick={() => cycleRing(1)} title="Next ring (])">›</button>
+              </span>
+            )}
+          </div>
         </div>
 
-        {ring && (
+        {invCase && (
           <div className={styles.summaryStrip}>
-            <div className={`${styles.stat} ${styles.statRisk}`}>
-              <span className={styles.statLabel}>Risk</span>
-              <span className={`${styles.statValue} ${styles.riskValue}`} data-mono>{ring.score.toFixed(3)}</span>
+            <div className={styles.stat}>
+              <span className={styles.statLabel}>Composed risk</span>
+              <RiskMeter score={invCase.risk.score} band={invCase.risk.band} size="lg" />
             </div>
             <div className={styles.statSep} />
             <div className={styles.stat}>
-              <span className={styles.statLabel}>Exposure</span>
-              <span className={styles.statValue} data-mono>₹{(ring.total_gst/100000).toFixed(2)}L</span>
+              <span className={styles.statLabel}>ITC exposure</span>
+              <span className={styles.statValue} data-mono>{inrShort(invCase.exposure.total_inr)}</span>
+              <span className={styles.statFoot} data-mono>{invCase.exposure.invoice_count} invoices</span>
             </div>
             <div className={styles.statSep} />
             <div className={styles.stat}>
               <span className={styles.statLabel}>Network</span>
-              <span className={styles.statValue} data-mono>{ring.members.length} nodes</span>
+              <span className={styles.statValue} data-mono>{ring ? `${ring.members.length}` : invCase.rings.length}</span>
+              <span className={styles.statFoot} data-mono>{ring ? 'nodes in ring' : 'rings'}</span>
             </div>
-            <div className={styles.statSep} />
-            <div className={styles.stat}>
-              <span className={styles.statLabel}>Window</span>
-              <span className={styles.statValue} data-mono>{ring.date_span_days}d</span>
-            </div>
+            {ring && <>
+              <div className={styles.statSep} />
+              <div className={styles.stat}>
+                <span className={styles.statLabel}>Window</span>
+                <span className={styles.statValue} data-mono>{ring.date_span_days}d</span>
+                <span className={styles.statFoot} data-mono>{ring.hops} hops</span>
+              </div>
+            </>}
           </div>
         )}
 
         <div className={styles.headerSpacer} />
 
-        {ring && <Button variant="primary" size="sm" onClick={draftSCN}>Draft notice</Button>}
+        <div className={styles.headerActions}>
+          {invCase && <StatusControl gstin={invCase.entity.gstin_id} status={invCase.investigation_status} />}
+          {ring && <Button variant="primary" size="sm" onClick={draftSCN}>Draft notice</Button>}
+        </div>
       </div>
 
       <div className={styles.left}>

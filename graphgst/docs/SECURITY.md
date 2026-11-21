@@ -68,6 +68,39 @@ where they feed Cypher. Label columns from the synthetic generator are
 stripped before scoring (evaluation integrity, not security, but same
 defence-in-depth reflex — see `benchmarks/evalsafe.py`).
 
+## Demo mode vs deployment mode
+
+The one operation the **frontend** can trigger that mutates graph state is the
+investigation **status control** (`PATCH /api/cases/{id}`, admin-gated). How that
+control behaves is decided by a single switch — whether an admin token is present
+in the browser bundle — and the two modes are deliberately distinct.
+
+| | DEMO MODE | DEPLOYMENT MODE |
+|---|---|---|
+| `web/.env.local` `VITE_ADMIN_TOKEN` | set (matches server `ADMIN_TOKEN`) | **unset** |
+| Frontend `adminEnabled()` | `true` | `false` |
+| Status control | editable — writes the real `PATCH`, persists to Neo4j, re-reads state | **read-only** — renders the status pill with a lock, no token is ever sent |
+| Who may change status | anyone using the local console | only a separately authenticated operator flow (never a bundled token) |
+
+**Why this is safe for the demo.** In DEMO MODE the token lives only in
+`web/.env.local`, which is git-ignored (alongside `.env`), and the whole stack
+runs locally against a throwaway demo Aura instance. Shipping the token to the
+browser is acceptable *there* because there is no privilege boundary to cross —
+the operator already controls the machine.
+
+**Why it must not ship to a real deployment.** A bundled `VITE_ADMIN_TOKEN` is
+readable by anyone who loads the page (it is baked into the JS at build time).
+DEPLOYMENT MODE therefore leaves it unset: `adminEnabled()` returns `false`, the
+status control degrades to read-only in the UI (`components/ui/StatusControl.tsx`),
+and — defence in depth — the backend still rejects any un-tokened `PATCH` with a
+401 regardless of what the client does. Real status mutation in production must go
+through a per-user authenticated session that injects the token server-side, never
+through the static bundle.
+
+The backend is identical in both modes; only the **client's possession of a
+token** differs. This is intentional: the goal is a clear demo/deployment split
+without building an IAM system the demo does not need.
+
 ## Known limitations (explicit)
 
 - **No user identity / RBAC.** One shared admin token. Fine for a demo;

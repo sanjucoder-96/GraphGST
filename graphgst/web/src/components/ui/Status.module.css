@@ -1,0 +1,27 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--r-xs);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--sc);
+  background: var(--sc-dim);
+  border: 1px solid color-mix(in srgb, var(--sc) 20%, transparent);
+}
+.md { padding: 3px 9px; font-size: var(--fs-xs); }
+.sm { padding: 2px 7px; font-size: var(--fs-2xs); }
+.dot {
+  width: 5px; height: 5px; border-radius: 999px;
+  background: var(--sc);
+}
+
+.open          { --sc: var(--text-2);  --sc-dim: rgba(131,140,155,0.10); }
+.investigating { --sc: var(--brand-2); --sc-dim: var(--brand-dim); }
+.escalated     { --sc: var(--risk-crit); --sc-dim: var(--risk-crit-dim); }
+.resolved      { --sc: var(--risk-low); --sc-dim: var(--risk-low-dim); }
+.dismissed     { --sc: var(--text-3);  --sc-dim: rgba(87,96,112,0.10); }
+
+/* Dismissed reads "closed / not a concern": no dot glow, faded. */
+.dismissed .dot { opacity: 0.7; }

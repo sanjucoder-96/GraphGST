@@ -18,6 +18,11 @@ ROOT = Path(__file__).resolve().parent.parent
 @pytest.fixture(scope="module")
 def demo_state_ready():
     """Regenerate the demo dataset from scratch, byte-deterministic."""
+    # The CSVs are byte-deterministic, but the tracked status.json carries a run
+    # timestamp and the neo4j_loaded flag from the last *live* reset. Snapshot it
+    # and restore it afterwards so running the test suite never dirties the repo.
+    status_file = ROOT / "demo" / "artifacts" / "status.json"
+    status_before = status_file.read_bytes() if status_file.exists() else None
     # PYTHONHASHSEED must be set for determinism; run the CLI which self-execs
     # with it set anyway.
     env = dict(os.environ)
@@ -29,6 +34,8 @@ def demo_state_ready():
     if result.returncode != 0:
         pytest.fail(f"demo.reset failed: {result.stderr}")
     yield
+    if status_before is not None:
+        status_file.write_bytes(status_before)
 
 
 def test_reset_produces_all_artifacts(demo_state_ready):

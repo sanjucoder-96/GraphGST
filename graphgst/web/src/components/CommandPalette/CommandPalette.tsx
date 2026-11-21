@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../../lib/store';
 import { KBD } from '../ui/KBD';
-import { postDetect } from '../../lib/api';
+import { getCaseList, postDetect } from '../../lib/api';
 import { MOCK_GSTINS, MOCK_RINGS } from '../../lib/mocks';
 import styles from './CommandPalette.module.css';
 
@@ -17,11 +17,15 @@ type Item =
 
 function score(item: Item, q: string): number {
   if (!q) return 1;
-  const label = item.label.toLowerCase();
   const query = q.toLowerCase();
-  if (label.startsWith(query)) return 3;
-  if (label.includes(query))   return 2;
-  // fuzzy: all chars in order
+  const label = item.label.toLowerCase();
+  // Match the label (GSTIN / ring id) AND the hint (entity name) so an
+  // investigator can search by company name, not just identifier.
+  const hint = (item.hint ?? '').toLowerCase();
+  if (label.startsWith(query)) return 4;
+  if (hint.startsWith(query))  return 3;
+  if (label.includes(query) || hint.includes(query)) return 2;
+  // fuzzy: all chars in order within the label
   let i = 0;
   for (const c of label) { if (c === query[i]) i += 1; if (i === query.length) return 1; }
   return 0;
@@ -36,6 +40,17 @@ export function CommandPalette() {
   const [q, setQ] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Search the REAL case list (shares the ['caseList'] cache with the queue, so
+  // it is usually instant). Only fetched while the palette is open. Falls back
+  // to the demo fixtures when the backend is unreachable.
+  const caseListQ = useQuery({
+    queryKey: ['caseList'] as const,
+    queryFn: () => getCaseList({ limit: 200 }),
+    staleTime: 30_000,
+    enabled: open,
+  });
+  const live = caseListQ.data && !caseListQ.data.fromMock ? caseListQ.data.data.cases : null;
 
   useEffect(() => {
     if (open) {
@@ -71,14 +86,38 @@ export function CommandPalette() {
     } });
     list.push({ kind: 'action', label: 'Open docs', run: () => { navigate('/docs'); setOpen(false); } });
 
-    for (const r of MOCK_RINGS) {
-      list.push({ kind: 'ring', label: r.ring_id, hint: `score ${r.score.toFixed(3)} · ${r.members.length} members`, ring_id: r.ring_id, run: () => { navigate(`/ring/${r.ring_id}`); setOpen(false); } });
-    }
-    for (const g of MOCK_GSTINS) {
-      list.push({ kind: 'gstin', label: g.id, hint: g.name, gstin: g.id, run: () => { navigate(`/entity/${g.id}`); setOpen(false); } });
+    if (live) {
+      // Real entities (top-ranked cases) + the distinct rings they belong to.
+      const seenRing = new Set<string>();
+      for (const c of live) {
+        list.push({
+          kind: 'gstin', label: c.gstin_id, hint: `${c.name ?? ''} · ${c.band}`, gstin: c.gstin_id,
+          run: () => {
+            if (c.ring_count > 0 && c.ring_ids[0]) navigate(`/ring/${c.ring_ids[0]}?node=${c.gstin_id}`);
+            else navigate(`/entity/${c.gstin_id}`);
+            setOpen(false);
+          },
+        });
+        for (const rid of c.ring_ids) {
+          if (seenRing.has(rid)) continue;
+          seenRing.add(rid);
+          list.push({
+            kind: 'ring', label: rid, hint: `${c.name ?? c.gstin_id}`, ring_id: rid,
+            run: () => { navigate(`/ring/${rid}?node=${c.gstin_id}`); setOpen(false); },
+          });
+        }
+      }
+    } else {
+      // Backend unreachable — fall back to demo fixtures so search still works.
+      for (const r of MOCK_RINGS) {
+        list.push({ kind: 'ring', label: r.ring_id, hint: `score ${r.score.toFixed(3)} · ${r.members.length} members`, ring_id: r.ring_id, run: () => { navigate(`/ring/${r.ring_id}`); setOpen(false); } });
+      }
+      for (const g of MOCK_GSTINS) {
+        list.push({ kind: 'gstin', label: g.id, hint: g.name, gstin: g.id, run: () => { navigate(`/entity/${g.id}`); setOpen(false); } });
+      }
     }
     return list;
-  }, [navigate, setOpen, pushToast, qc]);
+  }, [navigate, setOpen, pushToast, qc, live]);
 
   const filtered = useMemo(() => {
     const scored = items.map((it) => ({ it, s: score(it, q) })).filter(x => x.s > 0);
