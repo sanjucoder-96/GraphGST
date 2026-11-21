@@ -90,7 +90,9 @@ def load_invoices(rows: list[dict]) -> int:
     MATCH (s:GSTIN {gstin_id: r.supplier_gstin})
     MATCH (b:GSTIN {gstin_id: r.buyer_gstin})
     MERGE (i:Invoice {invoice_id: r.invoice_id})
-    SET i.date = date(r.date),
+    // Tolerate a missing invoice date: synthetic data always has one, but a real
+    // dataset may not (e.g. Iron Dealers) — store null rather than crash on date('').
+    SET i.date = CASE WHEN r.date IS NULL OR r.date = '' THEN null ELSE date(r.date) END,
         i.hsn = r.hsn,
         i.description = r.description,
         i.taxable_value = toFloat(r.taxable_value),

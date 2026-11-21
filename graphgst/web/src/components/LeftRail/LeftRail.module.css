@@ -28,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 1px var(--brand-line), 0 4px 12px rgba(79,128,255,0.28);
+  box-shadow: 0 0 0 1px var(--brand-line), 0 4px 12px var(--brand-glow);
   flex-shrink: 0;
 }
 .markGlyph {

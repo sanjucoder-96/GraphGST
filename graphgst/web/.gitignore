@@ -2,6 +2,9 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# TypeScript incremental build cache — regenerated, never commit
+*.tsbuildinfo
 .vscode
 .idea
 .DS_Store

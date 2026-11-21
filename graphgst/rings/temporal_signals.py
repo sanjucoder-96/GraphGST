@@ -8,6 +8,21 @@ threshold/feature overfitting the audit warns against. If a future ablation
 on held-out data shows one of them adds discrimination, it can be promoted
 into the scorer then.
 
+V7 evaluation (WS7) — `cyclic_temporal_incoherence` stays DESCRIPTOR-ONLY.
+The held-out promotion test is currently *vacuous* and would show no gain:
+the synthetic generator plants every fraud ring with causally-coherent
+(monotone) hop dates — the easy planter steps +1 day/hop, and the hard
+planter draws `offs = sorted(...)` (`datagen/rings_hard.py:116`), so the loop
+is monotone non-decreasing. The signal is therefore identically 0 on *every*
+planted positive, and non-zero only on some legitimate hard-negative cycles
+(which get independent random dates). An ablation on this data would show ≤ 0
+marginal AUC/AP — a small loss, not a gain. Promotion must wait until (1) the
+generator can plant a date-incoherent fraud subtype (a resale dated before its
+supply) as labelled ground truth, and (2) a genuine held-out AP/AUC comparison
+(with vs without the term) shows a strict, leakage-free improvement without
+raising the hard-negative false-positive count. Until both hold, this is
+evidence-only.
+
 Definitions
 -----------
 velocity_inr_per_day

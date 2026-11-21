@@ -1,72 +1,92 @@
-/* Graph GST — "SIGNAL" design system.
+/* Graph GST — "MERIDIAN" design system  (V7 redesign).
 
-   A cool, dark graph-intelligence terminal. 2026 financial-intelligence
-   × network-analytics × enterprise-investigation. NOT editorial, NOT
-   warm, NOT literary. Color carries MEANING only — risk, state,
-   selection, relationships. Electric indigo-blue is the single brand /
-   active accent; a green→amber→red ramp expresses risk. Typography is
-   Geist (modern technical product sans) with Geist Mono for all data,
-   IDs, and numerics.
+   A financial-crime intelligence workstation. The reference points are
+   instrument-grade tools — a graph-analytics terminal, a trading desk, a
+   SOC console — not a SaaS dashboard. Three principles carry the whole
+   language:
+
+     1. RESTRAINT.  The surface is a neutral graphite instrument panel.
+        The indigo accent is structural, never decorative — it marks the
+        ONE active/selected/primary thing and nothing else. Most of the
+        UI is greyscale. That restraint is what separates a real analyst
+        tool from a templated dark dashboard.
+
+     2. MEANING-ONLY COLOR.  The green→amber→orange→red ramp expresses
+        risk and state. If something is colored, it means something.
+
+     3. PRECISION & DENSITY.  Data is separated by hairlines, not floated
+        in cards. Every identifier and figure is set in Geist Mono with
+        tabular numerals so columns align to the pixel.
 */
 
 :root {
-  /* ── Surfaces (cool near-black → elevated) ───────────────── */
-  --bg-0:  #070A0F;   /* app ground, deepest */
-  --bg-1:  #0B0F16;   /* rail / top bar / panel */
-  --bg-2:  #10151E;   /* card */
-  --bg-3:  #161C27;   /* elevated / hover */
-  --bg-4:  #1E2632;   /* selected surface / active row */
+  /* ── Surfaces — neutral graphite, near-black → elevated ──────────
+     Deliberately de-blued vs. a typical "dark tech" ground so the
+     panel reads instrument-grey, not gamer-black. */
+  --bg-0:  #0A0B0E;   /* app ground, deepest */
+  --bg-1:  #0E1014;   /* rail / top bar / panel */
+  --bg-2:  #13151B;   /* section / raised surface */
+  --bg-3:  #191C24;   /* elevated / hover */
+  --bg-4:  #222630;   /* selected surface / active row */
 
-  /* Glass overlays for floating chrome */
-  --glass:      rgba(11, 15, 22, 0.72);
-  --glass-2:    rgba(16, 21, 30, 0.82);
+  /* Glass overlays for floating chrome (command palette, popovers) */
+  --glass:      rgba(12, 14, 18, 0.80);
+  --glass-2:    rgba(19, 21, 27, 0.86);
 
-  /* ── Hairlines & borders ─────────────────────────────────── */
-  --line-1: #1A2230;   /* faint hairline */
-  --line-2: #26303F;   /* standard border */
-  --line-3: #35435A;   /* strong / interactive border */
+  /* ── Hairlines & borders ─────────────────────────────────────── */
+  --line-1: #191D25;   /* faint hairline — row separators */
+  --line-2: #242A34;   /* standard border */
+  --line-3: #333B48;   /* strong / interactive border */
 
-  /* ── Text ramp (cool whites → faint) ─────────────────────── */
-  --text-0: #F1F5FB;   /* primary */
-  --text-1: #C2CCDA;   /* secondary */
-  --text-2: #8593A6;   /* muted / labels */
-  --text-3: #5A6879;   /* faint / meta */
-  --text-4: #3C4757;   /* disabled */
+  /* ── Text ramp — cool neutral whites → faint ─────────────────── */
+  --text-0: #EDF0F5;   /* primary */
+  --text-1: #BEC6D2;   /* secondary */
+  --text-2: #838C9B;   /* muted / labels */
+  --text-3: #576070;   /* faint / meta */
+  --text-4: #3B424E;   /* disabled */
 
-  /* ── Brand — electric indigo-blue. Selection / active / primary ── */
-  --brand:       #4F80FF;
-  --brand-2:     #6E97FF;
-  --brand-3:     #9CB6FF;
-  --brand-dim:   rgba(79, 128, 255, 0.12);
-  --brand-veil:  rgba(79, 128, 255, 0.06);
-  --brand-line:  rgba(79, 128, 255, 0.45);
-  --brand-glow:  rgba(79, 128, 255, 0.32);
+  /* ── Accent — restrained iris-indigo. STRUCTURAL ONLY.
+        Active nav, selected row, focus ring, primary action. Never a
+        gradient, never a decorative glow on a card. ──────────────── */
+  --brand:       #6474F0;
+  --brand-2:     #8492F5;
+  --brand-3:     #AEB8F9;
+  --brand-dim:   rgba(100, 116, 240, 0.14);
+  --brand-veil:  rgba(100, 116, 240, 0.06);
+  --brand-line:  rgba(100, 116, 240, 0.42);
+  --brand-glow:  rgba(100, 116, 240, 0.26);
 
-  /* ── Secondary intelligence accent — cyan (relationships/links) ── */
-  --cyan:      #3BC4E6;
-  --cyan-dim:  rgba(59, 196, 230, 0.12);
+  /* ── Relationship accent — cool teal (graph links, similarity) ── */
+  --cyan:      #34C2D9;
+  --cyan-dim:  rgba(52, 194, 217, 0.12);
 
-  /* ── Risk ramp — MEANING ONLY. Desaturated for dark. ─────── */
-  --risk-low:  #29C79A;   /* teal-green — clean */
-  --risk-med:  #E0A63A;   /* amber — elevated */
-  --risk-high: #F0743F;   /* orange — high */
-  --risk-crit: #F24E63;   /* red — critical */
+  /* ── Risk ramp — MEANING ONLY. Calibrated for the graphite ground.
+        clean → elevated → high → critical. ──────────────────────── */
+  --risk-low:  #33B98A;   /* green — clean */
+  --risk-med:  #D6A83C;   /* amber — elevated */
+  --risk-high: #E8814A;   /* orange — high */
+  --risk-crit: #EC5064;   /* red — critical */
+
+  --risk-low-dim:  rgba(51, 185, 138, 0.13);
+  --risk-med-dim:  rgba(214, 168, 60, 0.14);
+  --risk-high-dim: rgba(232, 129, 74, 0.14);
+  --risk-crit-dim: rgba(236, 80, 100, 0.14);
 
   /* Semantic aliases */
-  --ok:   #29C79A;
-  --warn: #E0A63A;
-  --bad:  #F24E63;
-  --info: #4F80FF;
+  --ok:   #33B98A;
+  --warn: #D6A83C;
+  --bad:  #EC5064;
+  --info: #6474F0;
 
-  --ok-dim:   rgba(41, 199, 154, 0.12);
-  --warn-dim: rgba(224, 166, 58, 0.12);
-  --bad-dim:  rgba(242, 78, 99, 0.12);
+  --ok-dim:   rgba(51, 185, 138, 0.13);
+  --warn-dim: rgba(214, 168, 60, 0.14);
+  --bad-dim:  rgba(236, 80, 100, 0.14);
 
-  /* ── Type families ───────────────────────────────────────── */
+  /* ── Type families ───────────────────────────────────────────── */
   --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* ── Type scale (dense dashboard) ────────────────────────── */
+  /* ── Type scale (dense cockpit) ──────────────────────────────── */
   --fs-2xs:  10px;   --lh-2xs:  14px;
   --fs-xs:   11px;   --lh-xs:   16px;
   --fs-sm:   12px;   --lh-sm:   18px;
@@ -85,7 +105,7 @@
   --fs-num-xl:  34px;
   --fs-num-2xl: 46px;
 
-  /* ── Spacing (dense: 4px base) ───────────────────────────── */
+  /* ── Spacing (dense: 4px base) ───────────────────────────────── */
   --sp-1: 2px;
   --sp-2: 4px;
   --sp-3: 6px;
@@ -98,41 +118,43 @@
   --sp-10: 40px;
   --sp-11: 56px;
 
-  /* ── Radii — soft-modern, not sharp, not pill ────────────── */
-  --r-xs:  3px;
-  --r-sm:  5px;
-  --r-md:  7px;
-  --r-lg:  10px;
-  --r-xl:  14px;
+  /* ── Radii — data surfaces stay crisp; controls get a soft round.
+        A documented two-tier system: interactive controls = 6-8px,
+        data plates / rows = 3-4px, floating chrome = 10-12px. ───── */
+  --r-xs:  3px;    /* chips, row plates */
+  --r-sm:  5px;    /* inputs, small controls */
+  --r-md:  7px;    /* buttons, cards */
+  --r-lg:  10px;   /* panels, popovers */
+  --r-xl:  14px;   /* modals */
   --r-full: 999px;
 
-  /* ── Chrome heights ──────────────────────────────────────── */
+  /* ── Chrome heights ──────────────────────────────────────────── */
   --h-topbar: 48px;
-  --h-rail:   220px;   /* expanded sidebar width */
+  --h-rail:   224px;   /* expanded sidebar width */
   --h-rail-collapsed: 60px;
   --h-row:    34px;
   --h-footer: 30px;
 
-  /* ── Motion ──────────────────────────────────────────────── */
+  /* ── Motion — functional, not cinematic. ─────────────────────── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast:  120ms;
-  --dur-base:  200ms;
-  --dur-slow:  320ms;
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast:  110ms;
+  --dur-base:  180ms;
+  --dur-slow:  280ms;
 
-  /* ── Shadows — cool, layered depth ───────────────────────── */
-  --shadow-sm:  0 1px 2px rgba(0,0,0,0.4);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.02);
-  --shadow-lg:  0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-pop: 0 8px 28px rgba(0,0,0,0.55), 0 0 0 1px var(--line-2);
-  --shadow-brand: 0 0 0 1px var(--brand-line), 0 0 24px var(--brand-glow);
+  /* ── Shadows — cool, layered, restrained. No decorative glow. ── */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.45);
+  --shadow-md:  0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.02);
+  --shadow-lg:  0 20px 56px rgba(0,0,0,0.62), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-pop: 0 12px 34px rgba(0,0,0,0.58), 0 0 0 1px var(--line-2);
+  --shadow-brand: 0 0 0 1px var(--brand-line);
 
-  /* ── Focus ───────────────────────────────────────────────── */
+  /* ── Focus ───────────────────────────────────────────────────── */
   --ring: 0 0 0 2px var(--bg-0), 0 0 0 4px var(--brand);
 }
 
-/* ── Global baseline ─────────────────────────────────────────── */
+/* ── Global baseline ─────────────────────────────────────────────── */
 html, body, #root {
   background: var(--bg-0);
   color: var(--text-0);
@@ -142,7 +164,7 @@ html, body, #root {
   font-feature-settings: "cv01","cv03","ss03";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.006em;
 }
 
 [data-mono], code, kbd, samp, pre, .mono {
@@ -151,11 +173,11 @@ html, body, #root {
   letter-spacing: -0.01em;
 }
 
-/* Utility: uppercase label */
+/* Utility: uppercase label / section eyebrow */
 .label {
   font-size: var(--fs-2xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-weight: 550;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-2);
 }
@@ -185,9 +207,16 @@ html, body, #root {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--line-3); }
 
-/* ── Backwards-compat aliases (legacy token names → SIGNAL) ──
-   Keep the old modules rendering while each is migrated. Deleted
-   once every module.css references the new tokens directly. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Backwards-compat aliases (legacy token names → MERIDIAN) ──
+   Keep older modules rendering while each is migrated to the new
+   tokens. Deleted once every module.css references the new names. */
 :root {
   --bg:            var(--bg-0);
   --panel:         var(--bg-1);

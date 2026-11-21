@@ -11,16 +11,14 @@ import type {
   DashboardSummary,
   LookalikeResp,
   ModelCard,
-  Ring,
-  Vendor
+  Ring
 } from '../types/domain';
-import type { CaseList, InvestigationCase } from '../types/case';
+import type { CaseList, InvestigationCase, InvestigationStatus } from '../types/case';
 import {
   MOCK_DASHBOARD,
   lookMockFor,
   MOCK_MODEL_CARD,
-  MOCK_RINGS,
-  MOCK_VENDORS
+  MOCK_RINGS
 } from './mocks';
 
 // API base is configurable via VITE_API_BASE so the backend can run on any
@@ -29,6 +27,12 @@ import {
 export const API_BASE =
   (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') ||
   'http://localhost:8000';
+// DEMO MODE: an admin token shipped to the browser so the demo can persist
+// investigation-status changes (PATCH /api/cases/{id}) live. In a real
+// DEPLOYMENT this is left unset — status mutation then requires a separately
+// authenticated operator flow, never a bundled token. See docs/SECURITY.md.
+const ADMIN_TOKEN = (import.meta.env.VITE_ADMIN_TOKEN as string | undefined) || '';
+export function adminEnabled(): boolean { return ADMIN_TOKEN.length > 0; }
 // Client-side abort budget. A DOWN backend rejects almost instantly
 // (connection refused), so this only bounds slow-but-alive responses. The
 // compute-heavy endpoints (vendor risk = IsolationForest + graph features,
@@ -58,8 +62,8 @@ export interface ApiResult<T> {
 
 async function safeGet<T>(path: string, fallback: T): Promise<ApiResult<T>> {
   const started = performance.now();
+  const ctrl = new AbortController();
   try {
-    const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort('timeout'), TIMEOUT_MS);
     const res = await fetch(API_BASE + path, { signal: ctrl.signal });
     clearTimeout(t);
@@ -68,10 +72,16 @@ async function safeGet<T>(path: string, fallback: T): Promise<ApiResult<T>> {
     lastRoundtripMs = Math.round(performance.now() - started);
     return { data: body, fromMock: false, latency_ms: lastRoundtripMs, status: res.status };
   } catch (err) {
+    // Distinguish OUR timeout from an EXTERNAL abort (page navigation, HMR,
+    // StrictMode remount). Only a real timeout / network error should poison
+    // the cache with demo fixtures; an external cancel is re-thrown so React
+    // Query discards it and refetches — otherwise a rapid reload can leave a
+    // live page showing the empty fallback for the whole staleTime window.
+    const aborted = err instanceof DOMException && err.name === 'AbortError';
+    if (aborted && ctrl.signal.reason !== 'timeout') throw err;
     lastRoundtripMs = Math.round(performance.now() - started);
     lastFallbackAtMs = Date.now();
-    const status: number | 'timeout' | 'network' =
-      err instanceof DOMException && err.name === 'AbortError' ? 'timeout' : 'network';
+    const status: number | 'timeout' | 'network' = aborted ? 'timeout' : 'network';
     return { data: fallback, fromMock: true, latency_ms: lastRoundtripMs, status };
   }
 }
@@ -111,54 +121,12 @@ export function getRing(ringId: string): Promise<ApiResult<Ring>> {
   return safeGet<Ring>(`/api/rings/${ringId}`, local);
 }
 // (V6.3) getVendorRisk / normalizeLiveVendors removed — the deprecated
-// /api/vendors/risk is no longer consumed by the frontend. The Case Queue uses
-// getCases() (composer) and the Investigation page uses getCase() (Case API).
-
-/** Normalize the modern composer's /api/risk/summary `top[]` into Vendor[].
- *  The composer returns the explainable shape (score 0-1, band, reasons with
- *  `detail`) enriched server-side with name/state/scenario. This is the
- *  investigation queue's primary source: it is ~3.5× faster than the legacy
- *  vendor-risk endpoint and its `reasons` carry real evidence text. */
-function normalizeComposerRows(raw: unknown): Vendor[] {
-  const rows: any[] = (raw as any)?.top ?? (Array.isArray(raw) ? raw : []);
-  const sev: Record<string, 'high' | 'med' | 'low'> =
-    { CRITICAL: 'high', HIGH: 'high', MED: 'med', MEDIUM: 'med', LOW: 'low' };
-  return rows.map((r: any): Vendor => {
-    const gstin = r.gstin_id ?? r.gstin ?? '';
-    const score = typeof r.score === 'number' ? r.score : 0;
-    const reasons: string[] = Array.isArray(r.reasons)
-      ? r.reasons.map((x: any) => (typeof x === 'string' ? x : (x.detail ?? x.name ?? ''))).filter(Boolean)
-      : [];
-    return {
-      gstin,
-      name: r.name ?? gstin ?? 'Unknown entity',
-      state: r.state ?? '',
-      pan: gstin ? String(gstin).slice(2, 12) : '',
-      incorp_date: '',
-      risk_score: score,
-      anomaly_score: 0,
-      rings: Array.isArray(r.rings) ? r.rings : [],
-      exposure_inr: typeof r.exposure_inr === 'number' ? r.exposure_inr : 0,
-      first_seen: '',
-      last_seen: '',
-      reasons,
-      sparkline: [],
-      severity: sev[String(r.band ?? '').toUpperCase()]
-             ?? (score >= 0.75 ? 'high' : score >= 0.4 ? 'med' : 'low'),
-      scenario: r.scenario ?? '',
-      entity_type: 'vendor',
-      assignee: undefined,
-    };
-  });
-}
-
-/** Investigation queue: modern composed risk, enriched + normalized. Falls back
- *  to demo fixtures when the backend is unreachable. */
-export async function getCases(): Promise<ApiResult<Vendor[]>> {
-  const res = await safeGet<unknown>('/api/risk/summary?limit=200', MOCK_VENDORS);
-  if (res.fromMock) return res as ApiResult<Vendor[]>;
-  return { ...res, data: normalizeComposerRows(res.data) };
-}
+// /api/vendors/risk is no longer consumed by the frontend.
+// (V7) getCases()/normalizeComposerRows removed — the Case Queue migrated to the
+// canonical getCaseList() (GET /api/cases), which carries real exposure, ring
+// count, status and primary_signal per row. The legacy composer summary
+// (GET /api/risk/summary) is no longer called by the frontend; it remains on the
+// backend for tests/tools. The Investigation page uses getCase() (Case API).
 
 // ── Canonical Case API (V6.3) ───────────────────────────────────────────
 // The final Investigator UI should consume these two functions: getCaseList()
@@ -180,6 +148,35 @@ export function getCaseList(
     count: 0, band_counts: {}, materialization: _EMPTY_MATERIALIZATION, cases: [],
   };
   return safeGet<CaseList>(`/api/cases/?${qs.toString()}`, fallback);
+}
+
+export interface StatusPatchResult {
+  ok: boolean;
+  status?: InvestigationStatus;
+  code: number | 'network' | 'disabled';
+}
+/** Persist an investigation status via PATCH /api/cases/{id} (admin-gated).
+ *  Returns ok:false with a code the caller can surface — never throws. */
+export async function patchCaseStatus(
+  gstin: string, status: InvestigationStatus,
+): Promise<StatusPatchResult> {
+  if (!ADMIN_TOKEN) return { ok: false, code: 'disabled' };
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort('timeout'), TIMEOUT_MS);
+    const res = await fetch(`${API_BASE}/api/cases/${encodeURIComponent(gstin)}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', 'X-Admin-Token': ADMIN_TOKEN },
+      body: JSON.stringify({ status }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!res.ok) return { ok: false, code: res.status };
+    const body = await res.json() as { investigation_status?: InvestigationStatus };
+    return { ok: true, status: body.investigation_status, code: res.status };
+  } catch {
+    return { ok: false, code: 'network' };
+  }
 }
 
 export function getCase(gstin: string): Promise<ApiResult<InvestigationCase>> {
@@ -219,6 +216,36 @@ export function postAgentQuery(payload: { intent: string; payload: unknown }): P
 
 export function getModelCard(): Promise<ApiResult<ModelCard>> {
   return safeGet<ModelCard>('/api/benchmarks/model-card', MOCK_MODEL_CARD);
+}
+
+export interface DatasetInfo {
+  kind: 'SYNTHETIC_DEMO' | 'PUBLIC_DATASET';
+  name: string;
+  dataset_id: string;
+  source: string;
+  license: string;
+  is_real_taxpayer_data: boolean;
+  anonymized: boolean;
+  entities: number | null;
+  transactions: number | null;
+  date_min: string | null;
+  date_max: string | null;
+  warnings: string[];
+  notes: string;
+  ingested_at: string | null;
+}
+/** Provenance of the graph currently loaded — drives the console's
+ *  SYNTHETIC DEMO vs PUBLIC DATASET banner. Never conflates the two. */
+export function getDatasetCurrent(): Promise<ApiResult<DatasetInfo>> {
+  const fallback: DatasetInfo = {
+    kind: 'SYNTHETIC_DEMO', name: 'synthetic demo', dataset_id: 'synthetic_v7',
+    source: 'datagen (seed 42)', license: 'internal / research',
+    is_real_taxpayer_data: false, anonymized: false,
+    entities: null, transactions: null, date_min: null, date_max: null, warnings: [],
+    notes: 'Deterministic synthetic dataset (seed 42) — NOT real taxpayer data.',
+    ingested_at: null,
+  };
+  return safeGet<DatasetInfo>('/api/dataset/current', fallback);
 }
 
 export function getLookalike(gstin: string, k = 5): Promise<ApiResult<LookalikeResp>> {

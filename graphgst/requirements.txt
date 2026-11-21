@@ -2,7 +2,10 @@
 # Pinned to major versions to keep hackathon demo reproducible.
 
 # Web framework
-fastapi>=0.115,<1.0
+fastapi>=0.116,<0.117
+# Pin starlette to what this fastapi supports: a stray `pip install starlette`
+# (e.g. 1.x for another tool) silently breaks `import main` otherwise.
+starlette>=0.46.2,<0.48
 uvicorn[standard]>=0.30,<1.0
 pydantic>=2.7,<3.0
 
@@ -19,9 +22,6 @@ networkx>=3.3,<4.0
 scikit-learn>=1.5,<2.0
 numpy>=1.26,<3.0
 joblib>=1.4,<2.0
-
-# Data generation and I/O
-python-dateutil>=2.9,<3.0
 
 # Testing
 pytest>=8.0,<9.0

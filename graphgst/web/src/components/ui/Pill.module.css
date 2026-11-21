@@ -19,9 +19,9 @@
 .info { color: var(--brand-2); border-color: var(--brand-line); background: var(--brand-dim); }
 .ok   { color: var(--ok);   border-color: rgba(41,199,154,0.4); background: var(--ok-dim); }
 .warn { color: var(--warn); border-color: rgba(224,166,58,0.4); background: var(--warn-dim); }
-.bad  { color: var(--bad);  border-color: rgba(242,78,99,0.4);  background: var(--bad-dim); }
+.bad  { color: var(--bad);  border-color: rgba(236,80,100,0.4);  background: var(--bad-dim); }
 .signal { color: var(--brand-2); border-color: var(--brand-line); background: var(--brand-dim); }
 
 .solid.ok   { background: rgba(41,199,154,0.16); }
 .solid.warn { background: rgba(224,166,58,0.16); }
-.solid.bad  { background: rgba(242,78,99,0.16);  }
+.solid.bad  { background: rgba(236,80,100,0.16);  }

@@ -450,8 +450,20 @@ def list_cases(band: Optional[str] = None, min_score: float = 0.0,
         ):
             exp_map[er["id"]] = round(float(er.get("exposure") or 0.0), 2)
 
-    cases: List[CaseListItem] = []
+    # Full-population band distribution (respects min_score, IGNORES band /
+    # limit / q). This is the portfolio summary the UI's distribution bar
+    # renders and doubles as a band filter, so it must be stable regardless of
+    # the current page or which band is being viewed — not a count of the
+    # returned page.
     band_counts: Dict[str, int] = {"LOW": 0, "MED": 0, "HIGH": 0, "CRITICAL": 0}
+    for br in run_query(
+        "MATCH (g:GSTIN) WHERE g.risk_score_norm IS NOT NULL AND g.risk_score_norm >= $min "
+        "RETURN g.risk_band AS band, g.risk_score_norm AS score",
+        {"min": float(min_score)},
+    ):
+        band_counts[_safe_band(br.get("band"), br.get("score")).value] += 1
+
+    cases: List[CaseListItem] = []
     for r in rows:
         reasons = _parse_reasons(r.get("reasons_json"))
         top_reasons = [rs.detail or rs.name for rs in reasons[:3] if (rs.detail or rs.name)]
@@ -461,7 +473,6 @@ def list_cases(band: Optional[str] = None, min_score: float = 0.0,
             if q.lower() not in hay:
                 continue
         bnd = _safe_band(r.get("band"), r.get("score")).value
-        band_counts[bnd] = band_counts.get(bnd, 0) + 1
         inv_status = r.get("inv_status") or "open"
         cases.append(CaseListItem(
             case_id=r["id"], gstin_id=r["id"], name=name, state_code=r.get("state"),

@@ -65,6 +65,42 @@
   box-shadow: 0 0 0 2px var(--bg-1);
 }
 
+/* Dataset provenance badge — SYNTHETIC DEMO vs PUBLIC DATASET */
+.dataset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: default;
+}
+.dsDemo {
+  color: var(--text-2);
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+}
+/* Public/real data is visually distinct (teal) so it can never be mistaken
+   for the synthetic demo. */
+.dsPublic {
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid color-mix(in srgb, var(--cyan) 30%, transparent);
+}
+.dsName {
+  text-transform: none;
+  letter-spacing: 0;
+  color: color-mix(in srgb, var(--cyan) 75%, var(--text-0));
+  padding-left: 6px;
+  margin-left: 2px;
+  border-left: 1px solid color-mix(in srgb, var(--cyan) 25%, transparent);
+}
+
 .divider {
   width: 1px;
   height: 20px;

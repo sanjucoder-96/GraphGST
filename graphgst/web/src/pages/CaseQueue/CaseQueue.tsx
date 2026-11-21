@@ -1,28 +1,59 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Play, ArrowRight, TrendingUp, ShieldAlert, Wallet, Search } from 'lucide-react';
-import { getCases, postDetect } from '../../lib/api';
-import { RiskSparkline } from '../../components/RiskSparkline/RiskSparkline';
+import { Play, ArrowRight, Layers } from 'lucide-react';
+import { getCaseList, postDetect } from '../../lib/api';
+import { RiskMeter } from '../../components/ui/Risk';
+import { StatusPill } from '../../components/ui/Status';
 import { Button } from '../../components/ui/Button';
 import { useStore } from '../../lib/store';
 import { useShortcuts } from '../../lib/keyboard';
-import type { Vendor } from '../../types/domain';
+import type { Band, CaseListItem, InvestigationStatus } from '../../types/case';
 import styles from './CaseQueue.module.css';
 
-type SortKey = 'score' | 'exposure' | 'age';
+type SortKey = 'score' | 'exposure' | 'network';
 
-const SEV: Record<string, { label: string; cls: string }> = {
-  high: { label: 'Critical',    cls: 'crit' },
-  med:  { label: 'Elevated',    cls: 'elev' },
-  low:  { label: 'Watch',       cls: 'watch' },
+const BAND_FILTER: [string, string][] = [
+  ['', 'All'], ['CRITICAL', 'Critical'], ['HIGH', 'High'], ['MED', 'Elevated'], ['LOW', 'Watch'],
+];
+const STATUS_FILTER: [string, string][] = [
+  ['', 'All'], ['open', 'Open'], ['investigating', 'Investigating'],
+  ['escalated', 'Escalated'], ['resolved', 'Resolved'], ['dismissed', 'Dismissed'],
+];
+
+const BAND_META: Record<Band, { label: string; cls: string }> = {
+  CRITICAL: { label: 'Critical', cls: 'crit' },
+  HIGH: { label: 'High', cls: 'high' },
+  MED: { label: 'Elevated', cls: 'med' },
+  LOW: { label: 'Watch', cls: 'low' },
 };
 
-function riskClass(score: number): string {
-  if (score >= 0.75) return 'crit';
-  if (score >= 0.55) return 'high';
-  if (score >= 0.30) return 'med';
-  return 'low';
+// Human labels for the dominant signal / scenario codes.
+const CODE_LABEL: Record<string, string> = {
+  CIRCULAR_TRADING: 'Circular trading',
+  MISSING_GSTR1: 'Missing GSTR-1',
+  AMOUNT_MISMATCH: 'Amount mismatch',
+  CANCELLED_SUPPLIER: 'Cancelled supplier',
+  NORMAL: 'Nominal',
+};
+function labelFor(code: string): string {
+  return CODE_LABEL[code] ?? code.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+}
+// Classification derives from the actual dominant risk driver, not the
+// synthetic generator scenario — so a CRITICAL cancelled entity never reads
+// "Nominal". Prefer the event-type in the server's primary_signal; then
+// ring involvement; then the scenario as a last resort.
+function classify(c: CaseListItem): string {
+  const m = (c.primary_signal ?? '').match(/([A-Z][A-Z0-9_]{3,})\s+event/);
+  if (m) return labelFor(m[1]);
+  if (c.ring_count > 0) return 'Circular trading';
+  return labelFor(c.scenario ?? '');
+}
+function inr(v: number): string {
+  if (v >= 1e7) return `₹${(v / 1e7).toFixed(2)}Cr`;
+  if (v >= 1e5) return `₹${(v / 1e5).toFixed(2)}L`;
+  if (v >= 1e3) return `₹${(v / 1e3).toFixed(1)}K`;
+  return `₹${v.toFixed(0)}`;
 }
 
 export function CaseQueuePage() {
@@ -31,40 +62,45 @@ export function CaseQueuePage() {
   const pushToast = useStore(s => s.pushToast);
   const qc = useQueryClient();
 
-  const severity = params.get('severity') ?? '';
-  const type = params.get('type') ?? '';
-  const scenario = params.get('scenario') ?? '';
+  const band = params.get('band') ?? '';
+  const status = params.get('status') ?? '';
   const sort = (params.get('sort') as SortKey | null) ?? 'score';
   const q = params.get('q') ?? '';
 
-  const vendors = useQuery({ queryKey: ['cases', 'risk'] as const, queryFn: getCases, staleTime: 30_000 });
+  const query = useQuery({
+    queryKey: ['caseList'] as const,
+    queryFn: () => getCaseList({ limit: 200 }),
+    staleTime: 30_000,
+  });
 
   useEffect(() => {
-    if (vendors.data?.fromMock) {
+    if (query.data?.fromMock) {
       pushToast({ kind: 'warn', title: 'Backend unreachable', body: 'Serving demo fixtures' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vendors.data?.fromMock]);
+  }, [query.data?.fromMock]);
 
-  const all = vendors.data?.data ?? [];
+  const list = query.data?.data;
+  const all: CaseListItem[] = list?.cases ?? [];
+  const loading = query.isLoading || (!query.data && query.isFetching);
+
   const rows = useMemo(() => {
-    const filtered = all.filter(v => {
-      if (severity && v.severity !== severity) return false;
-      if (type && v.entity_type !== type) return false;
-      if (scenario && v.scenario !== scenario) return false;
+    const filtered = all.filter(c => {
+      if (band && c.band !== band) return false;
+      if (status && c.investigation_status !== status) return false;
       if (q) {
-        const s = (v.gstin + ' ' + v.name + ' ' + v.reasons.join(' ')).toLowerCase();
-        if (!s.includes(q.toLowerCase())) return false;
+        const hay = `${c.gstin_id} ${c.name ?? ''} ${c.primary_signal ?? ''} ${c.scenario ?? ''}`.toLowerCase();
+        if (!hay.includes(q.toLowerCase())) return false;
       }
       return true;
     });
     filtered.sort((a, b) => {
       if (sort === 'exposure') return b.exposure_inr - a.exposure_inr;
-      if (sort === 'age') return new Date(b.first_seen).getTime() - new Date(a.first_seen).getTime();
+      if (sort === 'network') return b.ring_count - a.ring_count;
       return b.risk_score - a.risk_score;
     });
     return filtered;
-  }, [all, severity, type, scenario, q, sort]);
+  }, [all, band, status, q, sort]);
 
   const [cursor, setCursor] = useState(0);
   useEffect(() => { if (cursor >= rows.length) setCursor(0); }, [rows, cursor]);
@@ -72,12 +108,12 @@ export function CaseQueuePage() {
   useShortcuts({
     'j': () => setCursor(c => Math.min(rows.length - 1, c + 1)),
     'k': () => setCursor(c => Math.max(0, c - 1)),
-    'enter': () => { const row = rows[cursor]; if (row) openRow(row); }
+    'enter': () => { const row = rows[cursor]; if (row) openRow(row); },
   });
 
-  function openRow(v: Vendor): void {
-    if (v.rings.length > 0) navigate(`/ring/${v.rings[0]}?tab=overview&node=${v.gstin}`);
-    else navigate(`/entity/${v.gstin}?tab=overview`);
+  function openRow(c: CaseListItem): void {
+    if (c.ring_count > 0 && c.ring_ids[0]) navigate(`/ring/${c.ring_ids[0]}?tab=overview&node=${c.gstin_id}`);
+    else navigate(`/entity/${c.gstin_id}?tab=overview`);
   }
   function updateParam(k: string, val: string | null): void {
     const next = new URLSearchParams(params);
@@ -88,40 +124,66 @@ export function CaseQueuePage() {
     pushToast({ kind: 'info', title: 'Detection running', body: 'POST /api/rings/detect' });
     const res = await postDetect();
     qc.invalidateQueries({ queryKey: ['rings'] });
-    qc.invalidateQueries({ queryKey: ['vendors'] });
     pushToast({ kind: res.fromMock ? 'warn' : 'ok', title: res.fromMock ? 'Detection fell back to demo' : `Detection returned ${res.data.length} rings`, body: `${res.latency_ms}ms` });
   };
-  const ageDays = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
 
-  const totalExposure = all.reduce((s, r) => s + r.exposure_inr, 0);
-  const critCount = all.filter(r => r.severity === 'high').length;
-  const ringCount = new Set(all.flatMap(r => r.rings)).size;
+  // Summary readouts. band_counts is the full-DB distribution; exposure &
+  // networks are summed over the loaded (top-ranked) cases and labelled so.
+  const bandCounts = list?.band_counts ?? {};
+  const totalScored = list?.materialization?.n_scored ?? all.length;
+  const totalExposure = all.reduce((s, c) => s + c.exposure_inr, 0);
+  const networks = new Set(all.flatMap(c => c.ring_ids)).size;
+  const stale = list?.materialization?.stale ?? false;
+  const scoredAt = list?.materialization?.materialized_at;
 
   return (
     <div className={styles.page}>
-      {/* Header */}
-      <div className={styles.head}>
+      <header className={styles.head}>
         <div className={styles.headText}>
+          <div className={styles.eyebrow}>Investigation queue</div>
           <h1 className={styles.title}>Cases</h1>
-          <p className={styles.subtitle}>Entities ranked by composed risk across reconciliation, network, and temporal signals.</p>
         </div>
-        <Button variant="primary" onClick={onDetect}><Play size={13} strokeWidth={2} /> Run detection</Button>
-      </div>
+        <div className={styles.headMeta}>
+          <span className={styles.scored} data-mono title="Risk last materialized">
+            {stale ? <span className={styles.staleTag}>stale</span> : <span className={styles.freshDot} />}
+            scored {scoredAt ? new Date(scoredAt).toISOString().slice(0, 16).replace('T', ' ') : '—'}
+          </span>
+          <Button variant="primary" onClick={onDetect}><Play size={13} strokeWidth={2} /> Run detection</Button>
+        </div>
+      </header>
 
-      {/* Metric cards */}
-      <div className={styles.metrics}>
-        <MetricCard icon={<TrendingUp size={15} strokeWidth={1.75} />} label="Under review" value={all.length.toString()} accent="brand" foot={`${rows.length} match filters`} />
-        <MetricCard icon={<ShieldAlert size={15} strokeWidth={1.75} />} label="Critical" value={critCount.toString()} accent="bad" foot="risk ≥ 0.75" />
-        <MetricCard icon={<Wallet size={15} strokeWidth={1.75} />} label="ITC exposure" value={`₹${(totalExposure/100000).toFixed(1)}L`} accent="warn" foot={totalExposure.toLocaleString('en-IN')} mono />
-        <MetricCard icon={<Search size={15} strokeWidth={1.75} />} label="Rings" value={ringCount.toString()} accent="cyan" foot="detected networks" />
-      </div>
+      {/* Instrument readout strip — hairline-separated, not floating cards */}
+      <section className={styles.readout} aria-label="Portfolio summary">
+        <div className={styles.roItem}>
+          <div className={styles.roLabel}>Entities scored</div>
+          <div className={styles.roValue} data-mono>{totalScored.toLocaleString('en-IN')}</div>
+        </div>
+        <div className={styles.roDivider} />
+        <div className={`${styles.roItem} ${styles.roWide}`}>
+          <div className={styles.roLabel}>Risk distribution</div>
+          <BandBar counts={bandCounts} active={band} onPick={(b) => updateParam('band', band === b ? '' : b)} />
+        </div>
+        <div className={styles.roDivider} />
+        <div className={styles.roItem}>
+          <div className={styles.roLabel}>Exposure under review</div>
+          <div className={styles.roValue} data-mono>{inr(totalExposure)}</div>
+          <div className={styles.roFoot}>top {all.length} ranked</div>
+        </div>
+        <div className={styles.roDivider} />
+        <div className={styles.roItem}>
+          <div className={styles.roLabel}>Ring networks</div>
+          <div className={styles.roValue} data-mono>{networks}</div>
+          <div className={styles.roFoot}>distinct</div>
+        </div>
+      </section>
 
       {/* Filter bar */}
       <div className={styles.filters}>
-        <Segmented label="Severity" value={severity} onChange={(v) => updateParam('severity', v)} options={[['','All'],['high','Critical'],['med','Elevated'],['low','Watch']]} />
-        <Segmented label="Type" value={type} onChange={(v) => updateParam('type', v)} options={[['','All'],['vendor','Vendor'],['buyer','Buyer'],['transporter','Transporter']]} />
+        <Segmented label="Band" value={band} onChange={(v) => updateParam('band', v)} options={BAND_FILTER} />
+        <Segmented label="Status" value={status} onChange={(v) => updateParam('status', v)} options={STATUS_FILTER} />
         <div className={styles.filterSpacer} />
-        <Segmented label="Sort" value={sort} onChange={(v) => updateParam('sort', v || 'score')} options={[['score','Risk'],['exposure','Exposure'],['age','Age']]} />
+        <span className={styles.resultCount} data-mono>{rows.length} of {all.length}</span>
+        <Segmented label="Sort" value={sort} onChange={(v) => updateParam('sort', v || 'score')} options={[['score', 'Risk'], ['exposure', 'Exposure'], ['network', 'Network']]} />
       </div>
 
       {/* Table */}
@@ -129,69 +191,65 @@ export function CaseQueuePage() {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th className={styles.colRank}>#</th>
               <th className={styles.colRisk}>Risk</th>
               <th className={styles.colEntity}>Entity</th>
-              <th className={styles.colEvidence}>Primary signal</th>
-              <th className={styles.colReasons}>Reasons</th>
-              <th className={styles.colExp}>Exposure</th>
-              <th className={styles.colAge}>Age</th>
-              <th className={styles.colSev}>Status</th>
+              <th className={styles.colClass}>Classification</th>
+              <th className={styles.colSignal}>Primary signal</th>
+              <th className={styles.colNum}>Exposure</th>
+              <th className={styles.colNet}>Network</th>
+              <th className={styles.colStatus}>Status</th>
               <th className={styles.colGo} />
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
-              <tr><td colSpan={8}>
+            {loading ? (
+              Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={i} />)
+            ) : rows.length === 0 ? (
+              <tr><td colSpan={9}>
                 <div className={styles.empty}>
-                  <Search size={22} strokeWidth={1.5} />
+                  <Layers size={22} strokeWidth={1.5} />
                   <div className={styles.emptyTitle}>No cases match these filters</div>
                   <button className={styles.emptyBtn} onClick={() => setParams(new URLSearchParams(), { replace: true })}>Clear filters</button>
                 </div>
               </td></tr>
-            ) : rows.map((v, i) => (
+            ) : rows.map((c, i) => (
               <tr
-                key={v.gstin}
+                key={c.gstin_id}
                 className={i === cursor ? styles.selected : ''}
                 onClick={() => setCursor(i)}
-                onDoubleClick={() => openRow(v)}
+                onDoubleClick={() => openRow(c)}
               >
-                <td className={styles.colRisk}>
-                  <div className={styles.riskCell}>
-                    <span className={`${styles.riskScore} ${styles[riskClass(v.risk_score)]}`}>{v.risk_score.toFixed(3)}</span>
-                    <span className={styles.spark}><RiskSparkline data={v.sparkline} /></span>
-                  </div>
-                </td>
+                <td className={styles.colRank}><span className={styles.rank} data-mono>{i + 1}</span></td>
+                <td className={styles.colRisk}><RiskMeter score={c.risk_score} band={c.band} size="sm" /></td>
                 <td className={styles.colEntity}>
-                  <div className={styles.entityName}>{v.name}</div>
+                  <div className={styles.entityTop}>
+                    <span className={styles.entityName}>{c.name || c.gstin_id}</span>
+                    {c.status === 'CANCELLED' && <span className={styles.cancelled}>cancelled</span>}
+                  </div>
                   <div className={styles.entityMeta}>
-                    <span className={styles.gstin} data-mono>{v.gstin}</span>
-                    <span className={styles.state}>{v.state}</span>
+                    <span className={styles.gstin} data-mono>{c.gstin_id}</span>
                   </div>
                 </td>
-                <td className={styles.colEvidence}>
-                  {v.rings.length > 0
-                    ? <span className={styles.ringTag} data-mono>{v.rings[0]}</span>
-                    : <span className={styles.signalText}>{v.reasons[0] ?? '—'}</span>}
+                <td className={styles.colClass}>
+                  <span className={`${styles.classTag} ${styles[`sc_${c.band}`]}`}>{classify(c)}</span>
                 </td>
-                <td className={styles.colReasons}>
-                  <div className={styles.chips}>
-                    {v.reasons.slice(0, 2).map(r => <span key={r} className={styles.chip}>{r}</span>)}
-                    {v.reasons.length > 2 && <span className={styles.chipMore}>+{v.reasons.length - 2}</span>}
-                  </div>
-                </td>
-                <td className={styles.colExp}>
-                  <span className={styles.expVal} data-mono>₹{(v.exposure_inr/100000).toFixed(2)}L</span>
-                </td>
-                <td className={styles.colAge}>
-                  <span className={styles.ageVal} data-mono>{ageDays(v.first_seen)}d</span>
-                </td>
-                <td className={styles.colSev}>
-                  <span className={`${styles.sev} ${styles[SEV[v.severity]?.cls ?? 'watch']}`}>
-                    <span className={styles.sevDot} />{SEV[v.severity]?.label ?? v.severity}
+                <td className={styles.colSignal}>
+                  <span className={styles.signal} title={c.primary_signal ?? c.top_reasons[0] ?? ''}>
+                    {c.primary_signal || c.top_reasons[0] || '—'}
                   </span>
                 </td>
+                <td className={styles.colNum}>
+                  <span className={styles.exp} data-mono>{c.exposure_inr > 0 ? inr(c.exposure_inr) : '—'}</span>
+                </td>
+                <td className={styles.colNet}>
+                  {c.ring_count > 0
+                    ? <span className={styles.net} data-mono><Layers size={11} strokeWidth={2} />{c.ring_count}</span>
+                    : <span className={styles.netNone}>—</span>}
+                </td>
+                <td className={styles.colStatus}><StatusPill status={c.investigation_status as InvestigationStatus} size="sm" /></td>
                 <td className={styles.colGo}>
-                  <button className={styles.go} onClick={(e) => { e.stopPropagation(); openRow(v); }} aria-label={`Open ${v.name}`}>
+                  <button className={styles.go} onClick={(e) => { e.stopPropagation(); openRow(c); }} aria-label={`Open ${c.name}`}>
                     <ArrowRight size={14} strokeWidth={2} />
                   </button>
                 </td>
@@ -204,18 +262,54 @@ export function CaseQueuePage() {
   );
 }
 
-function MetricCard({ icon, label, value, accent, foot, mono }: {
-  icon: React.ReactNode; label: string; value: string; accent: string; foot: string; mono?: boolean;
+function BandBar({ counts, active, onPick }: {
+  counts: Record<string, number>; active: string; onPick: (b: string) => void;
 }) {
+  const order: Band[] = ['CRITICAL', 'HIGH', 'MED', 'LOW'];
   return (
-    <div className={styles.metric}>
-      <div className={styles.metricTop}>
-        <span className={`${styles.metricIcon} ${styles[`ac_${accent}`]}`}>{icon}</span>
-        <span className={styles.metricLabel}>{label}</span>
+    <div className={styles.bandBar}>
+      <div className={styles.bandTrack}>
+        {order.map(b => {
+          const n = counts[b] ?? 0;
+          if (n === 0) return null;
+          const dim = active && active !== b;
+          return (
+            <button
+              key={b}
+              className={`${styles.bandSeg} ${styles[`bs_${b}`]} ${dim ? styles.bandDim : ''} ${active === b ? styles.bandActive : ''}`}
+              style={{ flexGrow: n }}
+              onClick={() => onPick(b)}
+              title={`${BAND_META[b].label}: ${n}`}
+            />
+          );
+        })}
       </div>
-      <div className={`${styles.metricValue} ${mono ? styles.metricValueMono : ''}`}>{value}</div>
-      <div className={styles.metricFoot} data-mono>{foot}</div>
+      <div className={styles.bandLegend}>
+        {order.map(b => (
+          <button key={b} className={`${styles.legendItem} ${styles[`bs_${b}`]} ${active === b ? styles.legendActive : ''}`} onClick={() => onPick(b)}>
+            <span className={styles.legendDot} />
+            <span className={styles.legendLabel}>{BAND_META[b].label}</span>
+            <span className={styles.legendNum} data-mono>{counts[b] ?? 0}</span>
+          </button>
+        ))}
+      </div>
     </div>
+  );
+}
+
+function SkeletonRow() {
+  return (
+    <tr className={styles.skelRow}>
+      <td className={styles.colRank}><span className={styles.skel} style={{ width: 14 }} /></td>
+      <td className={styles.colRisk}><span className={styles.skel} style={{ width: 46 }} /></td>
+      <td className={styles.colEntity}><span className={styles.skel} style={{ width: 150 }} /><span className={styles.skel} style={{ width: 100, marginTop: 5 }} /></td>
+      <td className={styles.colClass}><span className={styles.skel} style={{ width: 88 }} /></td>
+      <td className={styles.colSignal}><span className={styles.skel} style={{ width: '80%' }} /></td>
+      <td className={styles.colNum}><span className={styles.skel} style={{ width: 54 }} /></td>
+      <td className={styles.colNet}><span className={styles.skel} style={{ width: 24 }} /></td>
+      <td className={styles.colStatus}><span className={styles.skel} style={{ width: 64 }} /></td>
+      <td className={styles.colGo} />
+    </tr>
   );
 }
 

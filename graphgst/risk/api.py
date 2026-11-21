@@ -59,6 +59,14 @@ def gstin_risk(gstin_id: str) -> Dict[str, Any]:
 
 @router.get("/summary")
 def summary(limit: int = Query(50, ge=1, le=1000)) -> Dict[str, Any]:
+    """Composer summary — ranks GSTINs by *live* composed risk (recomputes on
+    every call, ~4-5s over Aura).
+
+    DEPRECATED for UI use (V7): the Investigator Console now reads the canonical,
+    materialised Case API (`GET /api/cases`, cheap indexed read) instead. This
+    endpoint is retained for benchmarks/tools and ad-hoc live recomputation; it
+    is intentionally NOT removed. Prefer `/api/cases` for anything user-facing.
+    """
     ctx = _hydrate_context_or_503()
     composer = default_composer()
     ranked = composer.compose_all(ctx)
