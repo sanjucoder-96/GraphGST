@@ -1,0 +1,74 @@
+/* Modern intelligence-workspace shell.
+   Top bar (identity + global search + status) · left nav rail ·
+   main workspace · thin status footer. Cool dark, subtle depth. */
+
+.shell {
+  display: grid;
+  grid-template-rows: var(--h-topbar) 1fr var(--h-footer);
+  grid-template-columns: var(--h-rail) 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "rail   main"
+    "rail   footer";
+  min-height: 100vh;
+  background: var(--bg-0);
+  color: var(--text-0);
+}
+
+.topbar {
+  grid-area: topbar;
+  border-bottom: 1px solid var(--line-1);
+  background: var(--bg-1);
+  z-index: 20;
+}
+.rail {
+  grid-area: rail;
+  border-right: 1px solid var(--line-1);
+  background: var(--bg-1);
+  z-index: 10;
+}
+.main {
+  grid-area: main;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+.footer {
+  grid-area: footer;
+  border-top: 1px solid var(--line-1);
+  background: var(--bg-1);
+}
+
+/* Status footer — telemetry strip */
+.footerInner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  height: var(--h-footer);
+  padding: 0 var(--sp-7);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.02em;
+}
+.footerInner .sep { color: var(--line-2); }
+.footerInner .ok  { color: var(--ok); display: inline-flex; align-items: center; gap: 5px; }
+.footerInner .bad { color: var(--bad); display: inline-flex; align-items: center; gap: 5px; }
+.footerInner .statusDot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+.footerInner .attest {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--text-3);
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+.footerInner .attest strong {
+  color: var(--ok);
+  font-weight: 500;
+}

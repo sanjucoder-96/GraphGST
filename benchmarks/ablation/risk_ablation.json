@@ -1,0 +1,421 @@
+{
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "period_start": "2024-04-01",
+    "normal_share": 0.9,
+    "recon_issue_share": 0.06,
+    "circular_share": 0.03,
+    "duplicate_share": 0.01,
+    "avg_out_degree": 4.0,
+    "degree_power_law": 2.2,
+    "intra_state_pref": 0.7,
+    "n_rings": 8,
+    "ring_size_min": 3,
+    "ring_size_max": 6,
+    "ring_temporal_window_days": 7,
+    "ring_value_inflation": 0.15,
+    "ring_common_vehicle": true,
+    "ring_common_directors": true,
+    "ring_difficulty": 0.0,
+    "ring_broken_share": 0.0,
+    "n_hard_negatives": 0,
+    "anom_mix_missing_gstr1": 0.3,
+    "anom_mix_missing_gstr3b": 0.15,
+    "anom_mix_missing_tax": 0.1,
+    "anom_mix_amount_mismatch": 0.2,
+    "anom_mix_missing_ewb": 0.1,
+    "anom_mix_cancelled_supplier": 0.05,
+    "anom_mix_hsn_mismatch": 0.05,
+    "anom_mix_date_mismatch": 0.05,
+    "amount_lognorm_mu": 11.0,
+    "amount_lognorm_sigma": 1.1,
+    "ewb_threshold_amount": 50000.0,
+    "seed": 42,
+    "out_dir": "C:\\Users\\sanja\\AppData\\Local\\Temp\\graphgst_ablate",
+    "notes": ""
+  },
+  "labels": {
+    "ring_positives": 34,
+    "recon_positives": 146
+  },
+  "single_scorer": {
+    "reconcile": {
+      "ring": {
+        "auc": 0.4591,
+        "p@50": 0.06,
+        "p@100": 0.06,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.9738,
+        "p@50": 0.94,
+        "p@100": 0.94,
+        "n_pos": 146
+      }
+    },
+    "ring": {
+      "ring": {
+        "auc": 1.0,
+        "p@50": 0.68,
+        "p@100": 0.34,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.4602,
+        "p@50": 0.12,
+        "p@100": 0.27,
+        "n_pos": 146
+      }
+    },
+    "rules": {
+      "ring": {
+        "auc": 0.4856,
+        "p@50": 0.06,
+        "p@100": 0.06,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.772,
+        "p@50": 0.8,
+        "p@100": 0.86,
+        "n_pos": 146
+      }
+    },
+    "temporal": {
+      "ring": {
+        "auc": 0.5255,
+        "p@50": 0.06,
+        "p@100": 0.04,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.538,
+        "p@50": 0.52,
+        "p@100": 0.41,
+        "n_pos": 146
+      }
+    },
+    "propagate": {
+      "ring": {
+        "auc": 0.338,
+        "p@50": 0.0,
+        "p@100": 0.0,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.5314,
+        "p@50": 0.28,
+        "p@100": 0.34,
+        "n_pos": 146
+      }
+    },
+    "ml": {
+      "ring": {
+        "auc": 0.628,
+        "p@50": 0.06,
+        "p@100": 0.09,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.6295,
+        "p@50": 0.38,
+        "p@100": 0.42,
+        "n_pos": 146
+      }
+    }
+  },
+  "add_one_in_ladder": [
+    {
+      "scorers": [
+        "ring"
+      ],
+      "added": "ring",
+      "ring": {
+        "auc": 1.0,
+        "p@50": 0.68,
+        "p@100": 0.34,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.4602,
+        "p@50": 0.12,
+        "p@100": 0.27,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": null
+    },
+    {
+      "scorers": [
+        "ring",
+        "reconcile"
+      ],
+      "added": "reconcile",
+      "ring": {
+        "auc": 0.9576,
+        "p@50": 0.54,
+        "p@100": 0.34,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.898,
+        "p@50": 0.46,
+        "p@100": 0.63,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": -0.0424
+    },
+    {
+      "scorers": [
+        "ring",
+        "reconcile",
+        "rules"
+      ],
+      "added": "rules",
+      "ring": {
+        "auc": 0.8754,
+        "p@50": 0.12,
+        "p@100": 0.32,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.9095,
+        "p@50": 0.88,
+        "p@100": 0.61,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": -0.0822
+    },
+    {
+      "scorers": [
+        "ring",
+        "reconcile",
+        "rules",
+        "temporal"
+      ],
+      "added": "temporal",
+      "ring": {
+        "auc": 0.8806,
+        "p@50": 0.16,
+        "p@100": 0.32,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.904,
+        "p@50": 0.84,
+        "p@100": 0.61,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": 0.0052
+    },
+    {
+      "scorers": [
+        "ring",
+        "reconcile",
+        "rules",
+        "temporal",
+        "propagate"
+      ],
+      "added": "propagate",
+      "ring": {
+        "auc": 0.8766,
+        "p@50": 0.16,
+        "p@100": 0.3,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.87,
+        "p@50": 0.84,
+        "p@100": 0.63,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": -0.004
+    },
+    {
+      "scorers": [
+        "ring",
+        "reconcile",
+        "rules",
+        "temporal",
+        "propagate",
+        "ml"
+      ],
+      "added": "ml",
+      "ring": {
+        "auc": 0.874,
+        "p@50": 0.16,
+        "p@100": 0.26,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.8239,
+        "p@50": 0.84,
+        "p@100": 0.67,
+        "n_pos": 146
+      },
+      "ring_auc_delta_vs_prev": -0.0026
+    }
+  ],
+  "leave_one_out": {
+    "ring": {
+      "without_scorer": [
+        "reconcile",
+        "rules",
+        "temporal",
+        "propagate",
+        "ml"
+      ],
+      "ring": {
+        "auc": 0.5231,
+        "p@50": 0.06,
+        "p@100": 0.08,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.8634,
+        "p@50": 0.9,
+        "p@100": 0.82,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": 0.3509,
+      "recon_auc_marginal": -0.0395
+    },
+    "reconcile": {
+      "without_scorer": [
+        "ring",
+        "rules",
+        "temporal",
+        "propagate",
+        "ml"
+      ],
+      "ring": {
+        "auc": 0.9316,
+        "p@50": 0.3,
+        "p@100": 0.34,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.7457,
+        "p@50": 0.56,
+        "p@100": 0.55,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": -0.0576,
+      "recon_auc_marginal": 0.0782
+    },
+    "rules": {
+      "without_scorer": [
+        "ring",
+        "reconcile",
+        "temporal",
+        "propagate",
+        "ml"
+      ],
+      "ring": {
+        "auc": 0.9386,
+        "p@50": 0.4,
+        "p@100": 0.34,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.7683,
+        "p@50": 0.6,
+        "p@100": 0.58,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": -0.0646,
+      "recon_auc_marginal": 0.0556
+    },
+    "temporal": {
+      "without_scorer": [
+        "ring",
+        "reconcile",
+        "rules",
+        "propagate",
+        "ml"
+      ],
+      "ring": {
+        "auc": 0.8719,
+        "p@50": 0.12,
+        "p@100": 0.27,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.8256,
+        "p@50": 0.86,
+        "p@100": 0.65,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": 0.0021,
+      "recon_auc_marginal": -0.0017
+    },
+    "propagate": {
+      "without_scorer": [
+        "ring",
+        "reconcile",
+        "rules",
+        "temporal",
+        "ml"
+      ],
+      "ring": {
+        "auc": 0.8784,
+        "p@50": 0.16,
+        "p@100": 0.27,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.8289,
+        "p@50": 0.84,
+        "p@100": 0.65,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": -0.0044,
+      "recon_auc_marginal": -0.005
+    },
+    "ml": {
+      "without_scorer": [
+        "ring",
+        "reconcile",
+        "rules",
+        "temporal",
+        "propagate"
+      ],
+      "ring": {
+        "auc": 0.8766,
+        "p@50": 0.16,
+        "p@100": 0.3,
+        "n_pos": 34
+      },
+      "recon": {
+        "auc": 0.87,
+        "p@50": 0.84,
+        "p@100": 0.63,
+        "n_pos": 146
+      },
+      "ring_auc_marginal": -0.0026,
+      "recon_auc_marginal": -0.0461
+    }
+  },
+  "full_model": {
+    "scorers": [
+      "ring",
+      "reconcile",
+      "rules",
+      "temporal",
+      "propagate",
+      "ml"
+    ],
+    "ring": {
+      "auc": 0.874,
+      "p@50": 0.16,
+      "p@100": 0.26,
+      "n_pos": 34
+    },
+    "recon": {
+      "auc": 0.8239,
+      "p@50": 0.84,
+      "p@100": 0.67,
+      "n_pos": 146
+    }
+  }
+}

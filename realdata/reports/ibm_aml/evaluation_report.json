@@ -1,0 +1,711 @@
+{
+  "dataset": {
+    "name": "ibm_aml",
+    "source_url": "https://github.com/IBM/AML-Data",
+    "license": "CDLA-Sharing-1.0 (commercial OK, share-alike)",
+    "description": "IBM AMLworld HI-Small: a published, labelled directed payment graph (Altman et al., NeurIPS 2023). Directed From\u2192To account transfers with timestamps, amounts, and a per-transaction Is-Laundering label whose typologies include a 'simple cycle' (ground-truth circular trading).",
+    "is_real_taxpayer_data": false,
+    "anonymized": false,
+    "notes": "Deterministic sample of AMLworld HI-Small: scanned 5,078,345 source rows; kept ALL 5,177 laundering txns + every 40th normal txn (126,818 kept) = 131,995 transactions, 144,107 accounts. Realistic SYNTHETIC AML benchmark, NOT real taxpayer data; 'laundering' is a documented analog of GST circular trading."
+  },
+  "feature_availability": [
+    {
+      "feature": "Reconciliation (GSTR-1\u21942B\u21943B, ITC)",
+      "required_fields": "GSTR filings + tax amounts",
+      "available": false,
+      "can_run": "NO",
+      "reason": "requires GSTR-1/2B/3B filing rows the source does not provide"
+    },
+    {
+      "feature": "ITC-mismatch detection",
+      "required_fields": "invoice tax vs claimed ITC",
+      "available": false,
+      "can_run": "NO",
+      "reason": "needs statutory tax amounts and filed returns"
+    },
+    {
+      "feature": "Ring / circular-trade detection",
+      "required_fields": "directed supplier\u2192buyer edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "the core graph capability; runs on the edge list"
+    },
+    {
+      "feature": "GSTIN / entity relationships",
+      "required_fields": "entities + edges",
+      "available": true,
+      "can_run": "YES",
+      "reason": "neighbourhood + community structure"
+    },
+    {
+      "feature": "Temporal analysis",
+      "required_fields": "per-transaction dates",
+      "available": true,
+      "can_run": "YES",
+      "reason": "runs on transaction timestamps"
+    },
+    {
+      "feature": "Risk scoring (composed)",
+      "required_fields": "ring + temporal (+ reconcile/rules if filings)",
+      "available": true,
+      "can_run": "PARTIAL",
+      "reason": "ring + temporal scorers fire; reconcile/rules contribute ~0 without filing/status data"
+    },
+    {
+      "feature": "Graph embeddings (structural)",
+      "required_fields": "graph structure",
+      "available": true,
+      "can_run": "YES",
+      "reason": "node2vec/PMI-SVD over the real graph"
+    },
+    {
+      "feature": "Ground-truth evaluation (precision/recall)",
+      "required_fields": "fraud/ring labels",
+      "available": true,
+      "can_run": "YES",
+      "reason": "labels present \u2192 supervised eval"
+    }
+  ],
+  "graph_statistics": {
+    "entities": 134952,
+    "transactions": 117253,
+    "distinct_directed_edges": 98567,
+    "total_value": 524165616814.96,
+    "weakly_connected_components": 37122,
+    "largest_wcc_size": 25401,
+    "cyclic_sccs": 59,
+    "entities_in_cycles": 307,
+    "largest_scc_size": 25,
+    "mutual_edge_pairs": 49,
+    "avg_out_degree": 0.73
+  },
+  "ring_detection": {
+    "hop_max": 6,
+    "rings_detected": 610,
+    "elapsed_s": 3.37,
+    "band_counts": {
+      "HIGH": 17,
+      "MED": 556,
+      "LOW": 37
+    },
+    "top_rings": [
+      {
+        "ring_id": "R-f0f7e22b2ea9b36c",
+        "members": [
+          "IBMAML:005425-807982750",
+          "IBMAML:028183-807341220"
+        ],
+        "hops": 2,
+        "score": 0.3273,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.964,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 24514.52
+      },
+      {
+        "ring_id": "R-17e315dd02e4e3ee",
+        "members": [
+          "IBMAML:001686-80113D5D0",
+          "IBMAML:0121303-80BDDEE60"
+        ],
+        "hops": 2,
+        "score": 0.3261,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.99,
+          "T": 0.967,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 12884.86
+      },
+      {
+        "ring_id": "R-113e6e80aba71cd0",
+        "members": [
+          "IBMAML:0118-811A67510",
+          "IBMAML:0119-81235E8B0"
+        ],
+        "hops": 2,
+        "score": 0.3229,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.971,
+          "T": 0.967,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 93511.64
+      },
+      {
+        "ring_id": "R-59e17c9b4efd82a5",
+        "members": [
+          "IBMAML:001-800109820",
+          "IBMAML:011-8001AE260"
+        ],
+        "hops": 2,
+        "score": 0.3215,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.929,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 369.69
+      },
+      {
+        "ring_id": "R-11045956fd38e488",
+        "members": [
+          "IBMAML:0049365-812A09D40",
+          "IBMAML:0119-812A09CF0"
+        ],
+        "hops": 2,
+        "score": 0.3204,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.922,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 30067.41
+      },
+      {
+        "ring_id": "R-8b82dc2c8b920d24",
+        "members": [
+          "IBMAML:0010656-80422F080",
+          "IBMAML:0210319-80422E600"
+        ],
+        "hops": 2,
+        "score": 0.3186,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.978,
+          "T": 0.933,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 538684.07
+      },
+      {
+        "ring_id": "R-025cfd9cfada7223",
+        "members": [
+          "IBMAML:0050202-812D129C0",
+          "IBMAML:0222-812D127D0"
+        ],
+        "hops": 2,
+        "score": 0.315,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.89,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 89863.95
+      },
+      {
+        "ring_id": "R-3dd4b900256e8b3c",
+        "members": [
+          "IBMAML:001047-811F41AC0",
+          "IBMAML:016643-8042BFA00",
+          "IBMAML:004726-80E12A290",
+          "IBMAML:023842-804DE3CB0"
+        ],
+        "hops": 4,
+        "score": 0.3117,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.937,
+          "T": 0.933,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 4,
+        "ring_value": 28956.54
+      },
+      {
+        "ring_id": "R-b9e7d2a7a734f3b2",
+        "members": [
+          "IBMAML:007-807EF4700",
+          "IBMAML:0220504-807EF4570"
+        ],
+        "hops": 2,
+        "score": 0.3111,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 1.0,
+          "T": 0.867,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 3852.98
+      },
+      {
+        "ring_id": "R-d21cb7d8e88c2fa0",
+        "members": [
+          "IBMAML:0121-8000E1590",
+          "IBMAML:0223-8119F8CC0",
+          "IBMAML:0222-811D80C30"
+        ],
+        "hops": 3,
+        "score": 0.3087,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.952,
+          "T": 0.9,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 3,
+        "ring_value": 158927.2
+      },
+      {
+        "ring_id": "R-4f9fd49166e3e128",
+        "members": [
+          "IBMAML:0123288-80C3B54A0",
+          "IBMAML:02843-80FBDD530",
+          "IBMAML:0239453-80E57ABE0",
+          "IBMAML:025637-808FC9C70"
+        ],
+        "hops": 4,
+        "score": 0.306,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.936,
+          "T": 0.9,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 4,
+        "ring_value": 60370.02
+      },
+      {
+        "ring_id": "R-f84c30c574468948",
+        "members": [
+          "IBMAML:0048309-811C599A0",
+          "IBMAML:0222-811B83280"
+        ],
+        "hops": 2,
+        "score": 0.3044,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.827,
+          "T": 1.0,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 86350.31
+      },
+      {
+        "ring_id": "R-6fa1ccd2fbd61cb5",
+        "members": [
+          "IBMAML:0017400-80DFAB280",
+          "IBMAML:024811-80B8C9580",
+          "IBMAML:003489-8014C0730",
+          "IBMAML:002824-801DAF060"
+        ],
+        "hops": 4,
+        "score": 0.3044,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.926,
+          "T": 0.9,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 4,
+        "ring_value": 47771.31
+      },
+      {
+        "ring_id": "R-9da178b6a978ed74",
+        "members": [
+          "IBMAML:0048681-812D10690",
+          "IBMAML:0148348-812D0E910"
+        ],
+        "hops": 2,
+        "score": 0.3037,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.956,
+          "T": 0.867,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 34084.43
+      },
+      {
+        "ring_id": "R-53b1f2939e43f07e",
+        "members": [
+          "IBMAML:0050528-812D0C600",
+          "IBMAML:0148350-811FFF630"
+        ],
+        "hops": 2,
+        "score": 0.3025,
+        "band": "HIGH",
+        "signals": {
+          "C": 0.0,
+          "V": 0.848,
+          "T": 0.967,
+          "R": 0.0,
+          "N": 0.0,
+          "H": 0.0
+        },
+        "n_invoices": 2,
+        "ring_value": 58318.41
+      }
+    ],
+    "evidence_chains": [
+      {
+        "ring_id": "R-f0f7e22b2ea9b36c",
+        "score": 0.3273,
+        "band": "HIGH",
+        "members": [
+          "IBMAML:005425-807982750",
+          "IBMAML:028183-807341220"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IBMAML:005425-807982750",
+            "to": "IBMAML:028183-807341220",
+            "invoice_id": "IBMAML-TXN-04908875",
+            "date": "2022-09-10",
+            "amount": 12698.47,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IBMAML:028183-807341220",
+            "to": "IBMAML:005425-807982750",
+            "invoice_id": "IBMAML-TXN-04908876",
+            "date": "2022-09-10",
+            "amount": 11816.05,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-17e315dd02e4e3ee",
+        "score": 0.3261,
+        "band": "HIGH",
+        "members": [
+          "IBMAML:001686-80113D5D0",
+          "IBMAML:0121303-80BDDEE60"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IBMAML:001686-80113D5D0",
+            "to": "IBMAML:0121303-80BDDEE60",
+            "invoice_id": "IBMAML-TXN-02252772",
+            "date": "2022-09-04",
+            "amount": 6507.0,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IBMAML:0121303-80BDDEE60",
+            "to": "IBMAML:001686-80113D5D0",
+            "invoice_id": "IBMAML-TXN-02252773",
+            "date": "2022-09-05",
+            "amount": 6377.86,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-113e6e80aba71cd0",
+        "score": 0.3229,
+        "band": "HIGH",
+        "members": [
+          "IBMAML:0118-811A67510",
+          "IBMAML:0119-81235E8B0"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IBMAML:0118-811A67510",
+            "to": "IBMAML:0119-81235E8B0",
+            "invoice_id": "IBMAML-TXN-04723796",
+            "date": "2022-09-10",
+            "amount": 45385.21,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IBMAML:0119-81235E8B0",
+            "to": "IBMAML:0118-811A67510",
+            "invoice_id": "IBMAML-TXN-04269460",
+            "date": "2022-09-09",
+            "amount": 48126.43,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-59e17c9b4efd82a5",
+        "score": 0.3215,
+        "band": "HIGH",
+        "members": [
+          "IBMAML:001-800109820",
+          "IBMAML:011-8001AE260"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IBMAML:001-800109820",
+            "to": "IBMAML:011-8001AE260",
+            "invoice_id": "IBMAML-TXN-02431397",
+            "date": "2022-09-05",
+            "amount": 171.75,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IBMAML:011-8001AE260",
+            "to": "IBMAML:001-800109820",
+            "invoice_id": "IBMAML-TXN-02431399",
+            "date": "2022-09-05",
+            "amount": 197.94,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      },
+      {
+        "ring_id": "R-11045956fd38e488",
+        "score": 0.3204,
+        "band": "HIGH",
+        "members": [
+          "IBMAML:0049365-812A09D40",
+          "IBMAML:0119-812A09CF0"
+        ],
+        "chain": [
+          {
+            "step": 1,
+            "from": "IBMAML:0049365-812A09D40",
+            "to": "IBMAML:0119-812A09CF0",
+            "invoice_id": "IBMAML-TXN-00628237",
+            "date": "2022-09-02",
+            "amount": 13867.38,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          },
+          {
+            "step": 2,
+            "from": "IBMAML:0119-812A09CF0",
+            "to": "IBMAML:0049365-812A09D40",
+            "invoice_id": "IBMAML-TXN-00611980",
+            "date": "2022-09-02",
+            "amount": 16200.03,
+            "tax": null,
+            "reconciliation_state": "unknown"
+          }
+        ]
+      }
+    ],
+    "members_in_rings": 143
+  },
+  "risk_scoring_partial": {
+    "note": "PARTIAL composite: only the ring + temporal scorers have inputs; reconcile/rules need GSTR filings + status this dataset lacks.",
+    "scored_entities": 134952,
+    "band_counts": {
+      "HIGH": 1163,
+      "MED": 66808,
+      "LOW": 66981
+    },
+    "top_entities": [
+      {
+        "gstin_id": "IBMAML:028-8000B60E0",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:012-800542F90",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:020-800A3A940",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:015-800073D80",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:0137218-80DC52C70",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:010-8001F84F0",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:003-80006BB40",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:01420-8003FAAB0",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:02591-801B6D270",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      },
+      {
+        "gstin_id": "IBMAML:021611-800C49FB0",
+        "score": 0.35,
+        "band": "HIGH",
+        "contributions": {
+          "reconcile": 0.0,
+          "rings": 0.0,
+          "rules": 0.2,
+          "temporal": 0.15
+        }
+      }
+    ]
+  },
+  "temporal": {
+    "dated_transactions": 117253,
+    "date_min": "2022-09-01",
+    "date_max": "2022-09-18",
+    "months_covered": 1,
+    "transactions_by_month": {
+      "2022-09": 117253
+    }
+  },
+  "evaluation_mode": "GROUND_TRUTH (supervised)",
+  "supervised_evaluation": {
+    "caveat": "Labels denote money-laundering / fraud in the SOURCE domain, a documented ANALOG of GST circular trading \u2014 not identical. Measures concentration on labelled-illicit entities on an independent labelled graph, not GST-specific accuracy.",
+    "labelled_positive_entities": 6357,
+    "total_entities": 134952,
+    "prevalence": 0.0471,
+    "ring_membership_vs_labels": {
+      "tp": 137,
+      "fp": 6,
+      "fn": 6220,
+      "precision": 0.958,
+      "recall": 0.0216,
+      "f1": 0.0422,
+      "precision_lift_vs_base": 20.34
+    },
+    "risk_ranking_vs_labels": {
+      "roc_auc": 0.5637,
+      "precision_at_50": 0.3,
+      "precision_at_100": 0.33,
+      "base_rate": 0.0471
+    }
+  }
+}

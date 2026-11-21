@@ -1,0 +1,151 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Brand — glyph mark + wordmark, doubles as command-menu trigger */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 52px;
+  padding: 0 var(--sp-6);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-1);
+  cursor: pointer;
+  width: 100%;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.brand:hover { background: var(--bg-2); }
+.mark {
+  width: 26px; height: 26px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--brand) 0%, #3358D8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px var(--brand-line), 0 4px 12px var(--brand-glow);
+  flex-shrink: 0;
+}
+.markGlyph {
+  width: 12px; height: 12px;
+  border-radius: 3px;
+  border: 2px solid #fff;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotate(45deg);
+}
+.brandName {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text-0);
+  letter-spacing: -0.02em;
+}
+.brandAccent { color: var(--brand-2); font-weight: 600; }
+
+/* Nav groups */
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-6) var(--sp-4) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-7);
+}
+.group { display: flex; flex-direction: column; gap: 2px; }
+.groupTitle {
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 0 var(--sp-4) var(--sp-3);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 34px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.item:hover { color: var(--text-0); background: var(--bg-2); }
+.item.active {
+  color: var(--text-0);
+  background: var(--brand-dim);
+}
+.item.active::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: var(--r-full);
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand-glow);
+}
+.item.active .icon { color: var(--brand-2); }
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  flex-shrink: 0;
+}
+.itemLabel {
+  font-size: var(--fs-base);
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+.itemHint {
+  font-size: var(--fs-2xs);
+  color: var(--text-4);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.item:hover .itemHint { opacity: 1; }
+
+/* Footer actions */
+.foot {
+  border-top: 1px solid var(--line-1);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.footBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  height: 30px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 0;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.footBtn:hover { color: var(--text-1); background: var(--bg-2); }
+.footBtn span:nth-child(2) { flex: 1; text-align: left; }
+.kbd {
+  font-size: var(--fs-2xs);
+  color: var(--text-4);
+  padding: 1px 5px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xs);
+  background: var(--bg-2);
+}

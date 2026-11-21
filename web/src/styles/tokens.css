@@ -1,0 +1,279 @@
+/* Graph GST — "MERIDIAN" design system  (V7 redesign).
+
+   A financial-crime intelligence workstation. The reference points are
+   instrument-grade tools — a graph-analytics terminal, a trading desk, a
+   SOC console — not a SaaS dashboard. Three principles carry the whole
+   language:
+
+     1. RESTRAINT.  The surface is a neutral graphite instrument panel.
+        The indigo accent is structural, never decorative — it marks the
+        ONE active/selected/primary thing and nothing else. Most of the
+        UI is greyscale. That restraint is what separates a real analyst
+        tool from a templated dark dashboard.
+
+     2. MEANING-ONLY COLOR.  The green→amber→orange→red ramp expresses
+        risk and state. If something is colored, it means something.
+
+     3. PRECISION & DENSITY.  Data is separated by hairlines, not floated
+        in cards. Every identifier and figure is set in Geist Mono with
+        tabular numerals so columns align to the pixel.
+*/
+
+:root {
+  /* ── Surfaces — neutral graphite, near-black → elevated ──────────
+     Deliberately de-blued vs. a typical "dark tech" ground so the
+     panel reads instrument-grey, not gamer-black. */
+  --bg-0:  #0A0B0E;   /* app ground, deepest */
+  --bg-1:  #0E1014;   /* rail / top bar / panel */
+  --bg-2:  #13151B;   /* section / raised surface */
+  --bg-3:  #191C24;   /* elevated / hover */
+  --bg-4:  #222630;   /* selected surface / active row */
+
+  /* Glass overlays for floating chrome (command palette, popovers) */
+  --glass:      rgba(12, 14, 18, 0.80);
+  --glass-2:    rgba(19, 21, 27, 0.86);
+
+  /* ── Hairlines & borders ─────────────────────────────────────── */
+  --line-1: #191D25;   /* faint hairline — row separators */
+  --line-2: #242A34;   /* standard border */
+  --line-3: #333B48;   /* strong / interactive border */
+
+  /* ── Text ramp — cool neutral whites → faint ─────────────────── */
+  --text-0: #EDF0F5;   /* primary */
+  --text-1: #BEC6D2;   /* secondary */
+  --text-2: #838C9B;   /* muted / labels */
+  --text-3: #576070;   /* faint / meta */
+  --text-4: #3B424E;   /* disabled */
+
+  /* ── Accent — restrained iris-indigo. STRUCTURAL ONLY.
+        Active nav, selected row, focus ring, primary action. Never a
+        gradient, never a decorative glow on a card. ──────────────── */
+  --brand:       #6474F0;
+  --brand-2:     #8492F5;
+  --brand-3:     #AEB8F9;
+  --brand-dim:   rgba(100, 116, 240, 0.14);
+  --brand-veil:  rgba(100, 116, 240, 0.06);
+  --brand-line:  rgba(100, 116, 240, 0.42);
+  --brand-glow:  rgba(100, 116, 240, 0.26);
+
+  /* ── Relationship accent — cool teal (graph links, similarity) ── */
+  --cyan:      #34C2D9;
+  --cyan-dim:  rgba(52, 194, 217, 0.12);
+
+  /* ── Risk ramp — MEANING ONLY. Calibrated for the graphite ground.
+        clean → elevated → high → critical. ──────────────────────── */
+  --risk-low:  #33B98A;   /* green — clean */
+  --risk-med:  #D6A83C;   /* amber — elevated */
+  --risk-high: #E8814A;   /* orange — high */
+  --risk-crit: #EC5064;   /* red — critical */
+
+  --risk-low-dim:  rgba(51, 185, 138, 0.13);
+  --risk-med-dim:  rgba(214, 168, 60, 0.14);
+  --risk-high-dim: rgba(232, 129, 74, 0.14);
+  --risk-crit-dim: rgba(236, 80, 100, 0.14);
+
+  /* Semantic aliases */
+  --ok:   #33B98A;
+  --warn: #D6A83C;
+  --bad:  #EC5064;
+  --info: #6474F0;
+
+  --ok-dim:   rgba(51, 185, 138, 0.13);
+  --warn-dim: rgba(214, 168, 60, 0.14);
+  --bad-dim:  rgba(236, 80, 100, 0.14);
+
+  /* ── Type families ───────────────────────────────────────────── */
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ── Type scale (dense cockpit) ──────────────────────────────── */
+  --fs-2xs:  10px;   --lh-2xs:  14px;
+  --fs-xs:   11px;   --lh-xs:   16px;
+  --fs-sm:   12px;   --lh-sm:   18px;
+  --fs-base: 13px;   --lh-base: 20px;
+  --fs-md:   14px;   --lh-md:   21px;
+  --fs-lg:   16px;   --lh-lg:   24px;
+  --fs-xl:   20px;   --lh-xl:   26px;
+  --fs-2xl:  26px;   --lh-2xl:  32px;
+  --fs-3xl:  34px;   --lh-3xl:  40px;
+  --fs-4xl:  46px;   --lh-4xl:  50px;
+
+  /* Numeric display (Geist Mono, tabular) */
+  --fs-num-sm:  13px;
+  --fs-num:     15px;
+  --fs-num-lg:  22px;
+  --fs-num-xl:  34px;
+  --fs-num-2xl: 46px;
+
+  /* ── Spacing (dense: 4px base) ───────────────────────────────── */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 12px;
+  --sp-6: 16px;
+  --sp-7: 20px;
+  --sp-8: 24px;
+  --sp-9: 32px;
+  --sp-10: 40px;
+  --sp-11: 56px;
+
+  /* ── Radii — data surfaces stay crisp; controls get a soft round.
+        A documented two-tier system: interactive controls = 6-8px,
+        data plates / rows = 3-4px, floating chrome = 10-12px. ───── */
+  --r-xs:  3px;    /* chips, row plates */
+  --r-sm:  5px;    /* inputs, small controls */
+  --r-md:  7px;    /* buttons, cards */
+  --r-lg:  10px;   /* panels, popovers */
+  --r-xl:  14px;   /* modals */
+  --r-full: 999px;
+
+  /* ── Chrome heights ──────────────────────────────────────────── */
+  --h-topbar: 48px;
+  --h-rail:   224px;   /* expanded sidebar width */
+  --h-rail-collapsed: 60px;
+  --h-row:    34px;
+  --h-footer: 30px;
+
+  /* ── Motion — functional, not cinematic. ─────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast:  110ms;
+  --dur-base:  180ms;
+  --dur-slow:  280ms;
+
+  /* ── Shadows — cool, layered, restrained. No decorative glow. ── */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.45);
+  --shadow-md:  0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.02);
+  --shadow-lg:  0 20px 56px rgba(0,0,0,0.62), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-pop: 0 12px 34px rgba(0,0,0,0.58), 0 0 0 1px var(--line-2);
+  --shadow-brand: 0 0 0 1px var(--brand-line);
+
+  /* ── Focus ───────────────────────────────────────────────────── */
+  --ring: 0 0 0 2px var(--bg-0), 0 0 0 4px var(--brand);
+}
+
+/* ── Global baseline ─────────────────────────────────────────────── */
+html, body, #root {
+  background: var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  font-feature-settings: "cv01","cv03","ss03";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.006em;
+}
+
+[data-mono], code, kbd, samp, pre, .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Utility: uppercase label / section eyebrow */
+.label {
+  font-size: var(--fs-2xs);
+  font-weight: 550;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* Numeric display helper */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--r-xs);
+}
+::selection { background: var(--brand-dim); color: var(--text-0); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: var(--r-full);
+  border: 2px solid var(--bg-0);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--line-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Backwards-compat aliases (legacy token names → MERIDIAN) ──
+   Keep older modules rendering while each is migrated to the new
+   tokens. Deleted once every module.css references the new names. */
+:root {
+  --bg:            var(--bg-0);
+  --panel:         var(--bg-1);
+  --card:          var(--bg-2);
+  --elevated:      var(--bg-3);
+  --rule:          var(--line-1);
+  --rule-2:        var(--line-2);
+  --row:           var(--bg-1);
+  --row-alt:       var(--bg-1);
+  --row-hover:     var(--bg-3);
+  --row-sel:       var(--bg-4);
+  --ink:           var(--text-0);
+  --ink-1:         var(--text-0);
+  --ink-2:         var(--text-1);
+  --ink-3:         var(--text-2);
+  --ink-4:         var(--text-3);
+  --ink-5:         var(--text-4);
+  --ink-6:         var(--line-2);
+  --copper:        var(--brand);
+  --copper-hi:     var(--brand-2);
+  --copper-lo:     var(--brand);
+  --copper-veil:   var(--brand-veil);
+  --copper-glow:   var(--brand-glow);
+  --copper-line:   var(--brand-line);
+  --font-body:     var(--font-sans);
+  --font-display:  var(--font-sans);
+  --text:          var(--text-0);
+  --text-strong:   var(--text-0);
+  --text-muted:    var(--text-2);
+  --text-dim:      var(--text-3);
+  --text-fade:     var(--text-4);
+  --border-solid:  var(--line-1);
+  --border-solid-2:var(--line-2);
+  --signal:        var(--brand);
+  --signal-veil:   var(--brand-dim);
+  --shadow-modal:  var(--shadow-lg);
+  --shadow-plate:  var(--shadow-sm);
+  --r-chip:  var(--r-xs);
+  --r-card:  var(--r-md);
+  --r-modal: var(--r-lg);
+  --row-a:   var(--bg-1);
+  --row-b:   var(--bg-1);
+  --row-selected: var(--bg-4);
+  --h-footer: 30px;
+  --fs-chrome:  var(--fs-2xs);
+  --fs-micro:   var(--fs-xs);
+  --fs-body:    var(--fs-base);
+  --fs-read:    var(--fs-md);
+  --fs-strong:  var(--fs-md);
+  --fs-mono-sm: var(--fs-num-sm);
+  --fs-mono:    var(--fs-num-sm);
+  --fs-mono-lg: var(--fs-num);
+  --fs-h:       var(--fs-xl);
+  --fs-h3:      var(--fs-lg);
+  --fs-display: var(--fs-3xl);
+  --lh-body:    var(--lh-base);
+  --dur-hover:  var(--dur-fast);
+  --dur-in:     var(--dur-base);
+  --ease-in:    var(--ease-io);
+}

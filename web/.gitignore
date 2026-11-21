@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# TypeScript incremental build cache — regenerated, never commit
+*.tsbuildinfo
+.vscode
+.idea
+.DS_Store
+.env
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

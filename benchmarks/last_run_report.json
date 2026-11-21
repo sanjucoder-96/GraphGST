@@ -1,0 +1,86 @@
+{
+  "config": {
+    "n_gstins": 500,
+    "months": 3,
+    "n_rings_planted": 8,
+    "seed": 42
+  },
+  "counts": {
+    "edges": 3718,
+    "planted_rings": 8,
+    "detected_rings": 396,
+    "recovered_rings": 8,
+    "missed_rings": 0,
+    "non_planted_detected": 388
+  },
+  "recall": 1.0,
+  "timing_sec": {
+    "generate": 0.367,
+    "load_csv": 0.213,
+    "detect": 0.687
+  },
+  "sample_recovered": [
+    {
+      "ring_id_truth": "RING-42-00000",
+      "ring_id_detected": "R-68383043e2e47603",
+      "members": [
+        "27CYFCE3784B1ZW",
+        "27KKRPO1560C1ZL",
+        "27IBZFN9011M1ZP",
+        "27GUTPJ9684R1ZR"
+      ],
+      "score": 0.593,
+      "signals": {
+        "C": 1.0,
+        "V": 0.844,
+        "T": 0.967,
+        "R": 0.0,
+        "N": 0.75,
+        "H": 0.0
+      },
+      "size": 4
+    },
+    {
+      "ring_id_truth": "RING-42-00001",
+      "ring_id_detected": "R-9626249921b647d4",
+      "members": [
+        "27JYFCR8692K1ZH",
+        "27SVUCQ0632R1ZG",
+        "27TDTFF2214L1ZS"
+      ],
+      "score": 0.602,
+      "signals": {
+        "C": 1.0,
+        "V": 0.886,
+        "T": 0.978,
+        "R": 0.0,
+        "N": 0.75,
+        "H": 0.0
+      },
+      "size": 3
+    },
+    {
+      "ring_id_truth": "RING-42-00002",
+      "ring_id_detected": "R-adc93a3132fa5dd8",
+      "members": [
+        "29BTTPB2495A1Z6",
+        "29DFIHA7802D1ZB",
+        "29FJXCW6381V1ZS",
+        "29LGDFP0871A1ZG",
+        "29JJCFK7469E1ZB",
+        "29UZDFV6245I1ZW"
+      ],
+      "score": 0.576,
+      "signals": {
+        "C": 1.0,
+        "V": 0.763,
+        "T": 0.944,
+        "R": 0.0,
+        "N": 0.75,
+        "H": 0.0
+      },
+      "size": 6
+    }
+  ],
+  "sample_missed": []
+}
